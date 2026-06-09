@@ -1,0 +1,559 @@
+@use '@/style/setting/color' as CL;
+.layoutCardPass {
+	&--Card {
+		position: relative;
+		width: calc(68mm * 2);
+		height: calc(48mm * 2);
+		background: url('@/assets/Flag.jpg') no-repeat center center;
+		background-size: cover;
+		border-radius: 5px;
+		font-family: 'Times New Roman', Times, serif;
+		&--Title {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			writing-mode: sideways-rl;
+			text-transform: uppercase;
+			background-color: #feec23;
+			height: 100%;
+			width: 50px;
+			border-radius: 5px 0 0 5px;
+			p {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				font-weight: bold;
+				font-size: 29px;
+				margin-bottom: -20px;
+				color: #f84a4a;
+				letter-spacing: 25px;
+				width: 100%;
+				text-align: center;
+			}
+		}
+		&--Number {
+			display: flex;
+			flex-direction: row;
+			column-gap: 15px;
+			position: absolute;
+			top: 10px;
+			left: 60px;
+			p {
+				font-size: 22px;
+				font-weight: bold;
+			}
+		}
+		&--Date {
+			position: absolute;
+			top: 10px;
+			left: 270px;
+			p {
+				font-size: 22px;
+				font-weight: bold;
+			}
+		}
+		&--Organization {
+			position: absolute;
+			top: 40px;
+			left: 60px;
+			max-width: 275px;
+			line-height: 25px;
+			p {
+				font-size: 18px;
+			}
+		}
+		&--Post {
+			position: absolute;
+			bottom: 110px;
+			left: 60px;
+			max-width: 275px;
+			p {
+				font-size: 18px;
+			}
+		}
+		&--Name {
+			position: absolute;
+			top: 142px;
+			left: 60px;
+			max-width: 275px;
+			p {
+				font-size: 23px;
+				font-weight: bold;
+				margin-bottom: -8px;
+			}
+		}
+		&--Photo {
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+			right: 5px;
+			top: 15%;
+			width: calc(30mm * 1.5);
+			height: calc(40mm * 1.5);
+			background-color: #fff;
+			border-radius: 5px;
+			span {
+				font-size: 35px;
+			}
+			img {
+				height: 100%;
+				width: 100%;
+			}
+		}
+		&--Director {
+			position: absolute;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-end;
+			bottom: 5px;
+			left: 60px;
+			width: calc(100% - 70px);
+			p {
+				font-size: 15px;
+			}
+			p:nth-child(1) {
+				max-width: 285px;
+				line-height: 20px;
+			}
+			p:nth-child(2) {
+				text-align: right;
+			}
+		}
+	}
+}
+
+.layoutCardPass__Print {
+	&--Card {
+		position: relative;
+		width: 70mm;
+		height: 48mm;
+		background: url('@/assets/Flag.jpg') no-repeat center center;
+		background-size: cover;
+		font-family: 'Times New Roman', Times, serif;
+		&--Title {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			writing-mode: sideways-rl;
+			text-transform: uppercase;
+			background-color: #feec23;
+			height: 100%;
+			width: 25px;
+			p {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				font-weight: bold;
+				font-size: 18px;
+				margin-bottom: -10px;
+				color: #f84a4a;
+				letter-spacing: 12px;
+				width: 100%;
+				text-align: center;
+			}
+		}
+		&--Number {
+			display: flex;
+			flex-direction: row;
+			column-gap: 15px;
+			position: absolute;
+			top: 5px;
+			left: 30px;
+			p {
+				font-size: 14px;
+				font-weight: bold;
+			}
+		}
+		&--Date {
+			position: absolute;
+			top: 5px;
+			left: 140px;
+			p {
+				font-size: 14px;
+				font-weight: bold;
+			}
+		}
+		&--Organization {
+			position: absolute;
+			top: 25px;
+			left: 30px;
+			line-height: 11px;
+			max-width: 35mm;
+			p {
+				font-size: 10px;
+			}
+		}
+		&--Post {
+			position: absolute;
+			bottom: 50px;
+			left: 30px;
+			max-width: 35mm;
+			p {
+				font-size: 10px;
+			}
+		}
+		&--Name {
+			position: absolute;
+			top: 70px;
+			left: 30px;
+			max-width: 35mm;
+			p {
+				font-size: 13.5px;
+				font-weight: bold;
+				letter-spacing: 0.5px;
+				margin-bottom: -5px;
+			}
+		}
+		&--Photo {
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+			right: 5px;
+			top: 15%;
+			width: 23mm;
+			height: 30mm;
+			background-color: #fff;
+			border-radius: 2px;
+			span {
+				font-size: 35px;
+			}
+			img {
+				height: 100%;
+				width: 100%;
+			}
+		}
+		&--Director {
+			position: absolute;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-end;
+			bottom: 5px;
+			left: 30px;
+			width: calc(100% - 10mm);
+			p {
+				font-size: 8px;
+			}
+			p:nth-child(1) {
+				max-width: 40mm;
+				line-height: 10px;
+			}
+			p:nth-child(2) {
+				text-align: right;
+			}
+		}
+	}
+}
+
+.layoutCardPassVip {
+	position: relative;
+	width: calc(68mm * 2);
+	height: calc(48mm * 2);
+	z-index: 0;
+	transform-style: preserve-3d;
+	&.Active {
+		animation: ActiveBack 1s forwards;
+	}
+	&.Closed {
+		animation: ActiveClosed 1s forwards;
+	}
+	&--Front {
+		position: absolute;
+		width: calc(68mm * 2);
+		height: calc(48mm * 2);
+		background: url('@/assets/Flag.jpg') no-repeat center center;
+		background-size: cover;
+		font-family: 'Times New Roman', Times, serif;
+		margin: 0 auto;
+		left: 0;
+		right: 0;
+		z-index: 1;
+		border-radius: 10px;
+		padding: 8px;
+		border: 1px solid CL.$Divider;
+		&--title {
+			width: 100%;
+			font-size: 22px;
+			text-transform: uppercase;
+			font-weight: bold;
+			text-align: center;
+			line-height: 23px;
+		}
+		&--NumberCard {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			column-gap: 10px;
+			font-size: 23px;
+			font-weight: bold;
+			line-height: 20px;
+		}
+		&--text {
+			font-size: 20px;
+			line-height: 23px;
+			text-align: center;
+			width: 100%;
+			font-weight: bold;
+		}
+		&--Name {
+			max-width: 60%;
+			text-align: center;
+			font-size: 28px;
+			font-weight: bold;
+			margin-top: 60px;
+			margin-left: 20px;
+			overflow: hidden;
+			p {
+				margin-bottom: -5px;
+			}
+		}
+		&--Date {
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-start;
+			align-items: center;
+			column-gap: 30px;
+			max-width: 60%;
+			font-weight: bold;
+			font-size: 20px;
+			position: absolute;
+			bottom: 30px;
+		}
+		&--Photo {
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+			right: 5px;
+			top: 30%;
+			width: calc(30mm * 1.5);
+			height: calc(40mm * 1.5);
+			background-color: #fff;
+			border-radius: 5px;
+			span {
+				font-size: 35px;
+			}
+			img {
+				height: 100%;
+				width: 100%;
+			}
+		}
+	}
+	&--Back {
+		position: absolute;
+		width: calc(68mm * 2);
+		height: calc(48mm * 2);
+		background: url('@/assets/gerbT.png') no-repeat center center;
+		background-size: cover;
+		font-family: 'Times New Roman', Times, serif;
+		margin: 0 auto;
+		left: 0;
+		right: 0;
+		transform: rotateY(180deg);
+		border-radius: 10px;
+		padding: 20px 15px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		border: 1px solid CL.$Divider;
+		&--Organization {
+			text-align: center;
+			font-size: 22px;
+			font-weight: bold;
+			max-height: 100px;
+			overflow: hidden;
+			line-height: 23px;
+		}
+		&--Post {
+			text-align: center;
+			font-size: 22px;
+			font-weight: bold;
+			max-height: 100px;
+			overflow: hidden;
+			line-height: 23px;
+		}
+		&--Director {
+			position: relative;
+			width: 100%;
+			font-weight: bold;
+			p {
+				font-size: 15px;
+			}
+			p:nth-child(1) {
+				max-width: 285px;
+				line-height: 20px;
+			}
+			p:nth-child(2) {
+				position: absolute;
+				bottom: 0;
+				right: 0;
+			}
+		}
+	}
+}
+
+.layoutCardPassVip__Print {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: center;
+	column-gap: 20px;
+	&--Front {
+		position: relative;
+		width: 70mm;
+		height: 48mm;
+		background: url('@/assets/Flag.jpg') no-repeat center center;
+		background-size: cover;
+		font-family: 'Times New Roman', Times, serif;
+		padding: 2px 5px;
+		border: 1px solid #e3e3e3;
+		&--title {
+			width: 100%;
+			font-size: 11px;
+			text-transform: uppercase;
+			font-weight: bold;
+			text-align: center;
+			line-height: 13px;
+		}
+		&--NumberCard {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			column-gap: 5px;
+			font-size: 13px;
+			font-weight: bold;
+			line-height: 13px;
+		}
+		&--text {
+			font-size: 12px;
+			line-height: 13px;
+			text-align: center;
+			width: 100%;
+			font-weight: bold;
+		}
+		&--Name {
+			max-width: 63%;
+			text-align: center;
+			font-size: 17px;
+			font-weight: bold;
+			margin-top: 20px;
+			p {
+				margin-bottom: -5px;
+			}
+		}
+		&--Date {
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-start;
+			align-items: center;
+			column-gap: 30px;
+			max-width: 60%;
+			font-weight: bold;
+			font-size: 10px;
+			position: absolute;
+			bottom: 15px;
+		}
+		&--Photo {
+			position: absolute;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+			right: 5px;
+			top: 33%;
+			width: 23mm;
+			height: 30mm;
+			background-color: #fff;
+			border-radius: 2px;
+			span {
+				font-size: 35px;
+			}
+			img {
+				height: 100%;
+				width: 100%;
+			}
+		}
+	}
+	&--Back {
+		width: 70mm;
+		height: 48mm;
+		background: url('@/assets/gerbT.png') no-repeat center center;
+		background-size: cover;
+		font-family: 'Times New Roman', Times, serif;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		align-items: center;
+		padding: 5px 10px;
+		border: 1px solid #e3e3e3;
+		&--Organization {
+			text-align: center;
+			font-size: 14px;
+			font-weight: bold;
+			max-height: 100px;
+			overflow: hidden;
+			line-height: 13px;
+		}
+		&--Post {
+			text-align: center;
+			font-size: 14px;
+			font-weight: bold;
+			max-height: 100px;
+			overflow: hidden;
+			line-height: 13px;
+		}
+		&--Director {
+			position: relative;
+			min-height: 40px;
+			width: 100%;
+			font-weight: bold;
+			p {
+				font-size: 10px;
+			}
+			p:nth-child(1) {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				max-width: 50mm;
+				line-height: 10px;
+			}
+			p:nth-child(2) {
+				position: absolute;
+				bottom: -4px;
+				right: 0;
+			}
+		}
+	}
+}
+
+.layoutCardPassVip--Front,
+.layoutCardPassVip--Back {
+	backface-visibility: hidden;
+}
+
+@keyframes ActiveClosed {
+	0% {
+		transform: perspective(900px) rotateY(180deg);
+	}
+	100% {
+		transform: perspective(900px) rotateY(0);
+	}
+}
+
+@keyframes ActiveBack {
+	0% {
+		transform: perspective(900px) rotateY(0);
+	}
+	100% {
+		transform: perspective(900px) rotateY(180deg);
+	}
+}

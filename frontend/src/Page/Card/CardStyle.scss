@@ -1,0 +1,916 @@
+@use '@/style/setting/color' as CL;
+
+@mixin SettingH3 {
+	font-size: 16px;
+	color: CL.$TextColorSecondary;
+	margin-bottom: 5px;
+}
+@mixin SettingNameBlock {
+	flex: 1 1 200px;
+	width: 100%;
+	h3 {
+		@include SettingH3();
+	}
+	input[type='text'] {
+		width: 100%;
+		height: 40px;
+		border: 1px solid CL.$Divider;
+		border-radius: 5px;
+		font-size: 15px;
+		padding: 10px;
+		background-color: #fff;
+		&:focus {
+			outline: none;
+			border: 1px solid CL.$PrimaryBlue;
+		}
+	}
+}
+
+@mixin SettingNameBlock_Dark {
+	flex: 1 1 200px;
+	width: 100%;
+	h3 {
+		@include SettingH3();
+	}
+	input[type='text'] {
+		width: 100%;
+		height: 40px;
+		border: 1px solid CL.$Dark_Divider;
+		border-radius: 5px;
+		font-size: 15px;
+		padding: 10px;
+		background-color: CL.$Dark_Sidebar;
+		color: CL.$Dark_TextColor;
+		&:focus {
+			outline: none;
+			border: 1px solid CL.$Dark_PrimaryBlue;
+		}
+	}
+}
+
+.MainCard {
+	height: 100%;
+	padding: 30px 15px;
+
+	&--headerInfo {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: flex-start;
+		column-gap: 30px;
+		&--TypePassCard {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: center;
+			row-gap: 20px;
+			border-radius: 5px;
+			padding: 10px 0;
+			max-width: 33.33%;
+			min-width: 300px;
+			height: 260px;
+			h1 {
+				font-size: 18px;
+			}
+			&--content {
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+				column-gap: 10px;
+				row-gap: 20px;
+				width: 100%;
+				&--Item {
+					display: flex;
+					flex-direction: row;
+					justify-content: flex-start;
+					align-items: center;
+					transition: all 0.3s ease;
+					background: transparent;
+					padding: 10px 20px;
+					width: 100%;
+					border: 1px solid transparent;
+					border-radius: 5px;
+					img {
+						width: 70px;
+						border-radius: 5px;
+						margin-right: 20px;
+					}
+					&--text {
+						display: flex;
+						flex-direction: column;
+						justify-content: space-between;
+						align-items: flex-start;
+						h2 {
+							font-size: 16px;
+						}
+						p {
+							font-size: 13px;
+							color: CL.$TextColorSecondary;
+							transition: all 0.3s ease;
+						}
+					}
+					&.Active {
+						background-color: CL.$HoverBlue;
+						color: CL.$PrimaryBlue;
+						border: 1px solid CL.$PrimaryBlue;
+						cursor: pointer;
+						.MainCard--TypePassCard--content--Item--text {
+							p {
+								color: CL.$PrimaryBlue;
+							}
+						}
+					}
+				}
+			}
+		}
+		&--ListPrintCard {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			border-radius: 5px;
+			height: 260px;
+			padding: 0 5px 10px 5px;
+			h1 {
+				font-size: 18px;
+			}
+			&--tables {
+				width: 100%;
+				height: 210px;
+				overflow-y: scroll;
+				&::-webkit-scrollbar {
+					width: 10px; /* ширина scrollbar */
+				}
+				&::-webkit-scrollbar-track {
+					background: rgba($color: #fdfaf2, $alpha: 0.2);
+					backdrop-filter: blur(10px); /* цвет дорожки */
+				}
+				&::-webkit-scrollbar-thumb {
+					background-color: CL.$PrimaryBlue; /* цвет плашки */
+					border-radius: 20px; /* закругления плашки */
+					border: 3px solid CL.$PrimaryBlue; /* padding вокруг плашки */
+				}
+				.table {
+					margin-top: 10px;
+					width: 100%;
+					border: none;
+					th {
+						padding: 5px;
+						font-weight: bold;
+						font-size: 13px;
+					}
+					td {
+						padding: 5px;
+						font-size: 13px;
+					}
+
+					.DeleteListUserCard {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						button {
+							width: 30px;
+							height: 30px;
+							display: flex;
+							justify-content: center;
+							align-items: center;
+							font-size: 20px;
+							color: CL.$PrimaryButtonDelete;
+							border: 1px dashed CL.$PrimaryButtonDelete;
+							cursor: pointer;
+							border-radius: 5px;
+							transition: all 0.3s ease;
+							background-color: transparent;
+							&:hover {
+								background-color: CL.$PrimaryButtonDelete;
+								color: #fff;
+							}
+						}
+					}
+				}
+			}
+			&--BTN {
+				display: flex;
+				flex-direction: row;
+				justify-content: right;
+				align-items: center;
+				width: 100%;
+				column-gap: 20px;
+				&--Clear {
+					height: 35px;
+					border-radius: 5px;
+					border: 1px dashed CL.$PrimaryButtonDelete;
+
+					cursor: pointer;
+					transition: all 0.3s ease;
+					display: flex;
+					flex-direction: row;
+					justify-content: center;
+					align-items: center;
+					column-gap: 20px;
+					padding: 0 20px;
+					font-size: 15px;
+					span {
+						display: flex;
+						flex-direction: row;
+						justify-content: center;
+						align-items: center;
+						font-size: 28px;
+						color: CL.$PrimaryButtonDelete;
+					}
+				}
+				&--View {
+					height: 35px;
+					border-radius: 5px;
+					border: 1px solid transparent;
+					background-color: CL.$PrimaryButton;
+					cursor: pointer;
+					transition: all 0.3s ease;
+					display: flex;
+					flex-direction: row;
+					justify-content: center;
+					align-items: center;
+					column-gap: 20px;
+					padding: 0 20px;
+					color: #fff;
+					font-size: 15px;
+					&:hover {
+						background-color: CL.$PrimaryButtonHover;
+					}
+					span {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						font-size: 25px;
+					}
+				}
+			}
+		}
+	}
+	&--content {
+		margin-top: 10px;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: center;
+		row-gap: 20px;
+		width: 100%;
+		h1 {
+			font-size: 18px;
+			text-transform: uppercase;
+			font-weight: bold;
+		}
+		&--Info {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: flex-start;
+			width: 100%;
+			column-gap: 30px;
+			.FormFront {
+				flex: 1;
+				min-height: 500px;
+				padding: 5px 15px;
+				border-radius: 5px;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-around;
+				align-items: flex-start;
+				row-gap: 10px;
+				position: relative;
+				h2 {
+					font-size: 18px;
+				}
+				&--Number {
+					width: 100%;
+					h3 {
+						@include SettingH3();
+					}
+					input[type='number'] {
+						width: 100%;
+						padding: 10px;
+						height: 40px;
+
+						border-radius: 5px;
+						font-size: 15px;
+					}
+					input[type='number']::-webkit-outer-spin-button,
+					input[type='number']::-webkit-inner-spin-button {
+						-webkit-appearance: none;
+						margin: 0;
+					}
+				}
+				&--Organization {
+					width: 100%;
+					h3 {
+						@include SettingH3();
+					}
+					&--Content {
+						display: flex;
+						flex-direction: row;
+						justify-content: space-between;
+						align-items: center;
+						width: 100%;
+						&--BTN {
+							display: flex;
+							justify-content: center;
+							align-items: center;
+							font-size: 17px;
+							height: 38.8px;
+							width: 38.8px;
+							border-radius: 0 5px 5px 0;
+							transition: all 0.3s ease;
+						}
+					}
+				}
+				&--Post {
+					width: 100%;
+					h3 {
+						@include SettingH3();
+					}
+					&--Content {
+						display: flex;
+						flex-direction: row;
+						justify-content: space-between;
+						align-items: center;
+						width: 100%;
+						&--BTN {
+							display: flex;
+							justify-content: center;
+							align-items: center;
+							font-size: 17px;
+							height: 38.8px;
+							width: 38.8px;
+							border-radius: 0 5px 5px 0;
+							transition: all 0.3s ease;
+						}
+					}
+				}
+				&--Name {
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: center;
+					flex-wrap: wrap;
+					width: 100%;
+					column-gap: 10px;
+					row-gap: 10px;
+				}
+				&--DateAndPhoto {
+					display: flex;
+					flex-direction: column;
+					justify-content: space-between;
+					align-items: flex-start;
+					width: 100%;
+					column-gap: 10px;
+					row-gap: 10px;
+					&--Date {
+						width: 100%;
+						h3 {
+							@include SettingH3();
+						}
+						input[type='date'] {
+							width: 100%;
+							padding: 10px;
+							height: 40px;
+							border-radius: 5px;
+							font-size: 14px;
+							cursor: pointer;
+						}
+					}
+					&--Photo {
+						position: relative;
+						display: flex;
+						flex-direction: column;
+						justify-content: center;
+						align-items: center;
+						height: 80px;
+						width: 100%;
+						border-radius: 5px;
+
+						&.Active {
+							border: 2px dashed CL.$PrimaryButtonAdd;
+						}
+						span {
+							font-size: 30px;
+						}
+						input[type='file'] {
+							display: block;
+							height: 100%;
+							width: 100%;
+							position: absolute;
+							top: 0;
+							bottom: 0;
+							left: 0;
+							right: 0;
+							opacity: 0;
+							cursor: pointer;
+						}
+					}
+				}
+				&--BTN {
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: center;
+					column-gap: 10px;
+					width: 100%;
+					&--Delete {
+						flex: 1;
+						height: 35px;
+						border-radius: 5px;
+						border: 1px dashed CL.$PrimaryButtonDelete;
+						cursor: pointer;
+						transition: all 0.3s ease;
+						display: flex;
+						flex-direction: row;
+						justify-content: center;
+						align-items: center;
+						column-gap: 20px;
+						padding: 0;
+						font-size: 15px;
+						span {
+							display: flex;
+							flex-direction: row;
+							justify-content: center;
+							align-items: center;
+							font-size: 20px;
+							color: CL.$PrimaryButtonDelete;
+						}
+					}
+					&--Add {
+						flex: 1;
+						height: 35px;
+						border-radius: 5px;
+						border: 1px solid transparent;
+						background-color: CL.$PrimaryButton;
+						cursor: pointer;
+						transition: all 0.3s ease;
+						display: flex;
+						flex-direction: row;
+						justify-content: center;
+						align-items: center;
+						column-gap: 20px;
+						padding: 0;
+						color: #fff;
+						font-size: 15px;
+						&:hover {
+							background-color: CL.$PrimaryButtonHover;
+						}
+						span {
+							display: flex;
+							flex-direction: row;
+							justify-content: center;
+							align-items: center;
+							font-size: 20px;
+							color: #fff;
+						}
+					}
+				}
+				&--Setting {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					position: absolute;
+					right: 10px;
+					top: 10px;
+					font-size: 25px;
+					color: CL.$PrimaryBlue;
+					transition: all 0.3s ease;
+					&:hover {
+						transform: rotate(180deg);
+					}
+				}
+				.ModalAddList {
+					display: flex;
+					flex-direction: column;
+					justify-content: flex-start;
+					align-items: flex-start;
+					row-gap: 30px;
+					h3 {
+						font-size: 25px;
+						font-weight: bold;
+					}
+					input[type='text'] {
+						width: 100%;
+						border-radius: 10px;
+						height: 40px;
+						padding: 10px 20px;
+					}
+					button {
+						width: 100%;
+						height: 40px;
+						background-color: CL.$PrimaryButtonAdd;
+						border-radius: 5px;
+						font-size: 20px;
+						transition: all 0.3s ease;
+						&:hover {
+							background-color: CL.$PrimaryButtonAddHover;
+						}
+					}
+				}
+			}
+			&--Preview {
+				flex: 1;
+				min-height: 500px;
+				padding: 10px 15px;
+				border-radius: 5px;
+				display: flex;
+				flex-direction: column;
+				justify-content: flex-start;
+				align-items: center;
+				row-gap: 20px;
+				h2 {
+					font-size: 18px;
+					width: 100%;
+					text-align: left;
+				}
+				&--content {
+					display: flex;
+					flex-direction: column;
+					justify-content: center;
+					align-items: center;
+					width: 100%;
+				}
+				&--BTNRev {
+					padding: 10px 30px;
+					background-color: CL.$PrimaryButton;
+					border-radius: 5px;
+					color: #fff;
+					transition: all 0.3s ease;
+					display: flex;
+					flex-direction: row;
+					justify-content: center;
+					align-items: center;
+					column-gap: 20px;
+					&:hover {
+						background-color: CL.$PrimaryButtonHover;
+					}
+					span {
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						font-size: 25px;
+					}
+					p {
+					}
+				}
+			}
+		}
+	}
+}
+.Print {
+	&--content {
+		margin: 20px 0;
+	}
+	&_BTN {
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		column-gap: 20px;
+		background-color: CL.$PrimaryButton;
+		color: #fff;
+		width: 100%;
+		height: 50px;
+		transition: all 0.3s ease;
+		font-size: 20px;
+		border-radius: 5px;
+		span {
+			font-size: 28px;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+		&:hover {
+			background-color: CL.$PrimaryButtonHover;
+		}
+	}
+}
+
+#Light {
+	&.MainCard {
+		background-color: CL.$Light_ColorBackground;
+		&--headerInfo {
+			&--TypePassCard {
+				border: 1px solid CL.$Border;
+				&--content {
+					&--Item {
+						color: CL.$Light_TextColor;
+						&:hover {
+							background-color: CL.$HoverBlue;
+							color: CL.$PrimaryBlue;
+							cursor: pointer;
+						}
+					}
+				}
+			}
+			&--ListPrintCard {
+				border: 1px solid CL.$Border;
+				&--tables {
+					.table {
+						th {
+							background-color: CL.$HoverBlue;
+						}
+						tbody tr:nth-child(odd) {
+							background: #fff;
+						}
+						tbody tr:nth-child(even) {
+							background: #f7f7f7;
+						}
+					}
+				}
+				&--BTN {
+					&--Clear {
+						background-color: CL.$SecondaryButton;
+						color: CL.$TextColorSecondary;
+						&:hover {
+							background-color: CL.$PrimaryButtonDelete;
+							color: #fff;
+							span {
+								color: #fff;
+							}
+						}
+					}
+				}
+			}
+		}
+		&--content {
+			&--Info {
+				.FormFront {
+					border: 1px solid CL.$Border;
+					h2 {
+						color: CL.$Light_TextColor;
+					}
+					&--Number {
+						input[type='number'] {
+							border: 1px solid CL.$Divider;
+							background-color: CL.$Sidebar;
+							&:focus {
+								outline: none;
+								border: 1px solid CL.$PrimaryBlue;
+							}
+						}
+					}
+					&--Organization {
+						&--Content {
+							&--BTN {
+								border: 1px solid CL.$Divider;
+								background-color: #fff;
+								color: CL.$TextColorSecondary;
+								&:hover {
+									background-color: CL.$Divider;
+								}
+							}
+						}
+					}
+					&--Post {
+						&--Content {
+							&--BTN {
+								border: 1px solid CL.$Divider;
+								background-color: #fff;
+								color: CL.$TextColorSecondary;
+
+								&:hover {
+									background-color: CL.$Divider;
+								}
+							}
+						}
+					}
+					&--Name {
+						&--LastName {
+							@include SettingNameBlock();
+						}
+						&--FirstName {
+							@include SettingNameBlock();
+						}
+						&--Patronymic {
+							@include SettingNameBlock();
+						}
+					}
+					&--DateAndPhoto {
+						&--Date {
+							input[type='date'] {
+								border: 1px solid CL.$Divider;
+								background-color: CL.$Sidebar;
+								&:focus {
+									outline: none;
+									border: 1px solid CL.$PrimaryBlue;
+								}
+							}
+						}
+						&--Photo {
+							border: 2px dashed CL.$PrimaryBlue;
+						}
+					}
+					&--BTN {
+						&--Delete {
+							background-color: CL.$Sidebar;
+							color: CL.$TextColorSecondary;
+							span {
+								color: CL.$PrimaryButtonDelete;
+							}
+							&:hover {
+								background-color: CL.$PrimaryButtonDelete;
+								color: #fff;
+								span {
+									color: #fff;
+								}
+							}
+						}
+					}
+				}
+				&--Preview {
+					border: 1px solid CL.$Border;
+					h2 {
+						color: CL.$Light_TextColor;
+					}
+				}
+			}
+		}
+		.ModalAddList {
+			h3 {
+				color: CL.$Light_TextColor;
+			}
+			input[type='text'] {
+				border: 1px solid CL.$Divider;
+			}
+		}
+	}
+}
+
+#Dark {
+	&.MainCard {
+		background-color: CL.$Dark_ColorBackground;
+		&--headerInfo {
+			&--TypePassCard {
+				border: 1px solid CL.$Dark_Border;
+				h1 {
+					color: CL.$Dark_TextColor;
+				}
+				&--content {
+					&--Item {
+						color: CL.$Dark_TextColor;
+						&:hover {
+							background-color: CL.$Dark_HoverBlue;
+							color: CL.$Dark_LightBlue;
+							cursor: pointer;
+						}
+					}
+				}
+			}
+			&--ListPrintCard {
+				border: 1px solid CL.$Dark_Border;
+				h1 {
+					color: CL.$Dark_TextColor;
+				}
+				&--tables {
+					.table {
+						color: CL.$Dark_TextColor;
+						th {
+							background-color: CL.$Dark_HoverBlue;
+						}
+						tbody tr:nth-child(odd) {
+							background: CL.$HoverBlue;
+						}
+						tbody tr:nth-child(even) {
+							background: #3d58764b;
+						}
+					}
+				}
+				&--BTN {
+					&--Clear {
+						background-color: CL.$Dark_Sidebar;
+						color: CL.$Dark_TextColorSecondary;
+						&:hover {
+							background-color: CL.$PrimaryButtonDelete;
+							color: #fff;
+							span {
+								color: #fff;
+							}
+						}
+					}
+				}
+			}
+		}
+		&--content {
+			h1 {
+				color: #fff;
+			}
+			&--Info {
+				.FormFront {
+					border: 1px solid CL.$Dark_Border;
+					h2 {
+						color: CL.$Dark_TextColor;
+					}
+					&--Number {
+						input[type='number'] {
+							border: 1px solid CL.$Dark_Divider;
+							background-color: CL.$Dark_Sidebar;
+							color: CL.$Dark_TextColor;
+							&:focus {
+								outline: none;
+								border: 1px solid CL.$Dark_PrimaryBlue;
+							}
+						}
+					}
+					&--Organization {
+						&--Content {
+							&--BTN {
+								border: 1px solid CL.$Dark_Divider;
+								background-color: CL.$Dark_Sidebar;
+								color: CL.$Dark_TextColorSecondary;
+								&:hover {
+									background-color: CL.$Dark_Divider;
+								}
+							}
+						}
+					}
+					&--Post {
+						&--Content {
+							&--BTN {
+								border: 1px solid CL.$Dark_Divider;
+								background-color: CL.$Dark_Sidebar;
+								color: CL.$Dark_TextColorSecondary;
+								&:hover {
+									background-color: CL.$Dark_Divider;
+								}
+							}
+						}
+					}
+					&--Name {
+						&--LastName {
+							@include SettingNameBlock_Dark();
+						}
+						&--FirstName {
+							@include SettingNameBlock_Dark();
+						}
+						&--Patronymic {
+							@include SettingNameBlock_Dark();
+						}
+					}
+					&--DateAndPhoto {
+						&--Date {
+							input[type='date'] {
+								border: 1px solid CL.$Dark_Divider;
+								background-color: CL.$Dark_Sidebar;
+								color: CL.$Dark_TextColor;
+								&:focus {
+									outline: none;
+									border: 1px solid CL.$Dark_PrimaryBlue;
+								}
+							}
+							input[type='date']::-webkit-calendar-picker-indicator {
+								background-color: CL.$Dark_PrimaryBlue;
+								padding: 5px;
+								border-radius: 5px;
+								cursor: pointer;
+							}
+						}
+						&--Photo {
+							color: CL.$Dark_TextColor;
+							border: 2px dashed CL.$Dark_PrimaryBlue;
+						}
+					}
+					&--BTN {
+						&--Delete {
+							background-color: CL.$Dark_Sidebar;
+							color: CL.$Dark_TextColorSecondary;
+							span {
+								color: CL.$PrimaryButtonDelete;
+							}
+							&:hover {
+								background-color: CL.$PrimaryButtonDelete;
+								color: #fff;
+								span {
+									color: #fff;
+								}
+							}
+						}
+					}
+				}
+				&--Preview {
+					border: 1px solid CL.$Dark_Border;
+					h2 {
+						color: CL.$Dark_TextColor;
+					}
+				}
+			}
+		}
+		.ModalAddList {
+			h3 {
+				color: CL.$Dark_TextColor;
+			}
+			p {
+				color: CL.$Dark_TextColor;
+			}
+			input[type='text'] {
+				border: 1px solid CL.$Dark_Divider;
+				color: CL.$Dark_TextColor;
+			}
+		}
+	}
+}

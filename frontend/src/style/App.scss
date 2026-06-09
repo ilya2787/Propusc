@@ -1,0 +1,266 @@
+@use '@/style/setting/color' as CL;
+@forward '@/style/setting/reset';
+
+body {
+	&.Dark {
+		background-color: CL.$Dark_ColorBackground;
+	}
+	&.Light {
+		background-color: CL.$Light_ColorBackground;
+	}
+}
+
+.MainContent {
+	display: flex;
+	flex-direction: row;
+	height: 100vh;
+	overflow-x: scroll;
+	&::-webkit-scrollbar {
+		width: 10px; /* ширина scrollbar */
+		height: 10px;
+	}
+	&::-webkit-scrollbar-track {
+		background: rgba($color: #fdfaf2, $alpha: 0.2);
+		backdrop-filter: blur(10px); /* цвет дорожки */
+	}
+	&::-webkit-scrollbar-thumb {
+		background-color: CL.$PrimaryBlue; /* цвет плашки */
+		border-radius: 20px; /* закругления плашки */
+		border: 3px solid CL.$PrimaryBlue; /* padding вокруг плашки */
+	}
+	&__header {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		border-radius: 0 5px 5px 0;
+		height: 100%;
+		min-width: 250px;
+		padding: 10px;
+		position: fixed;
+		z-index: 99;
+		&--Logo {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			column-gap: 10px;
+			margin-bottom: 30px;
+			span {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				color: #fff;
+				font-size: 35px;
+				background-color: CL.$PrimaryBlue;
+				border-radius: 5px;
+				padding: 5px;
+			}
+			h1 {
+				font-size: 20px;
+				line-height: 20px;
+				font-weight: 700;
+			}
+		}
+		&--Menu {
+			width: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: flex-start;
+			row-gap: 10px;
+			&--Link {
+				display: flex;
+				justify-content: flex-start;
+				align-items: center;
+				column-gap: 10px;
+				width: 100%;
+				padding: 10px 5px 10px 10px;
+				border-radius: 5px;
+				text-decoration: none;
+				border: 1px solid transparent;
+				transition: all 0.2s ease;
+				&.Active {
+					background-color: CL.$HoverBlue;
+					border: 1px solid CL.$PrimaryBlue;
+					color: CL.$PrimaryBlue;
+				}
+				span {
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					font-size: 20px;
+					transition: all 0.1s ease;
+				}
+				p {
+					font-size: 15px;
+					transition: all 0.1s ease;
+				}
+			}
+		}
+		&--theme {
+			position: absolute;
+			bottom: 40px;
+			left: 25%;
+			input[type='checkbox'] {
+				display: none;
+			}
+			width: 120px;
+			height: 30px;
+			display: flex;
+			flex-direction: row-reverse;
+			column-gap: 10px;
+			&--icon {
+				font-size: 45px;
+				span {
+					display: inline-block;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					&.Active {
+						animation: ActiveThemeDarkIcon 0.3s forwards;
+					}
+					&.Close {
+						animation: CloseThemeDarkIcon 0.3s forwards;
+					}
+				}
+			}
+			label {
+				display: inline-block;
+				width: 100%;
+				height: 100%;
+				background-color: CL.$Light_ColorBackground;
+				border: 1px solid CL.$Dark_Border;
+				border-radius: 30px;
+				position: relative;
+				span {
+					display: inline-block;
+					width: 35px;
+					height: 35px;
+					background-color: CL.$Dark_PrimaryBlue;
+					border-radius: 50%;
+					position: absolute;
+					top: -4px;
+					left: -1px;
+					transition: all 0.3s ease;
+					&.Active {
+						animation: ActiveThemeDark 0.3s forwards;
+					}
+					&.Close {
+						animation: CloseThemeDark 0.3s forwards;
+					}
+				}
+			}
+		}
+	}
+	&_content {
+		width: 100%;
+		height: 100%;
+		min-width: 1100px;
+		margin-left: 250px;
+	}
+}
+
+#Light {
+	&.MainContent {
+		background: CL.$Light_ColorBackground;
+		&__header {
+			background-color: CL.$Sidebar;
+			border: 1px solid #e0e0e0;
+			&--Logo {
+				h1 {
+					color: CL.$Light_TextColor;
+				}
+			}
+			&--Menu {
+				&--Link {
+					color: CL.$Light_TextColor;
+					&:hover {
+						background-color: CL.$HoverBlue;
+						color: CL.$PrimaryBlue;
+					}
+				}
+			}
+		}
+		&_content {
+			background: url('@/assets/BG.png') no-repeat;
+			background-size: 100% auto;
+			background-position: center center;
+		}
+	}
+}
+
+#Dark {
+	&.MainContent {
+		background: CL.$Dark_ColorBackground;
+		&__header {
+			background-color: CL.$Dark_Sidebar;
+			border: 1px solid #25293e;
+			&--Logo {
+				h1 {
+					color: CL.$Dark_TextColor;
+				}
+			}
+			&--Menu {
+				&--Link {
+					color: CL.$Dark_TextColor;
+					&:hover {
+						background-color: CL.$Dark_HoverBlue;
+						color: CL.$Dark_TextColor;
+					}
+				}
+			}
+		}
+		&_content {
+			background: url('@/assets/BGDark.png') no-repeat;
+			background-size: 100% auto;
+			background-position: center center;
+		}
+	}
+}
+
+@keyframes ActiveThemeDark {
+	0% {
+		left: -1px;
+	}
+	100% {
+		left: calc(100% - 30px);
+	}
+}
+
+@keyframes CloseThemeDark {
+	0% {
+		left: calc(100% - 30px);
+	}
+	100% {
+		left: -1px;
+	}
+}
+
+@keyframes ActiveThemeDarkIcon {
+	0% {
+		transform: rotate(0);
+		color: #3a445c;
+	}
+	50% {
+		color: #eaeaea;
+	}
+	100% {
+		transform: rotate(180deg);
+		color: #eaeaea;
+	}
+}
+
+@keyframes CloseThemeDarkIcon {
+	0% {
+		transform: rotate(-180deg);
+		color: #eaeaea;
+	}
+	50% {
+		color: #3a445c;
+	}
+	100% {
+		transform: rotate(0);
+		color: #3a445c;
+	}
+}

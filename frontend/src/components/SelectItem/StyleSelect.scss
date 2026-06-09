@@ -1,0 +1,104 @@
+@use '@/style/setting/color' as CL;
+
+.css-b62m3t-container {
+	width: 100% !important;
+}
+.custom-select {
+	&__control {
+		border-radius: 5px 0 0 5px !important;
+		box-shadow: none !important;
+		&--menu-is-open {
+			border-color: CL.$HoverBlue !important;
+			max-height: 400px;
+			overflow-y: scroll;
+			.custom-select__indicator {
+				svg {
+					transform: rotate(180deg);
+				}
+			}
+		}
+		&--is-focused {
+			border-color: CL.$HoverBlue !important;
+		}
+	}
+	&__value-container {
+		cursor: pointer !important;
+	}
+	&__input-container {
+		border: transparent !important;
+	}
+	&__indicator {
+		cursor: pointer !important;
+		svg {
+			transition: all 0.3s ease !important;
+		}
+	}
+	&__menu {
+		border-radius: 5px !important;
+		animation: isOpenMenu 0.35s ease-in-out;
+		z-index: 10 !important;
+	}
+	&__option {
+		cursor: pointer !important;
+	}
+}
+
+#Light .custom-select {
+	&__control {
+		background: CL.$Sidebar !important;
+		border: 1px solid CL.$Divider !important;
+	}
+	&__option {
+		&--is-focused {
+			background-color: CL.$HoverBlue !important;
+			color: CL.$PrimaryBlue !important;
+		}
+		&--is-selected {
+			background: CL.$HoverBlue !important;
+		}
+	}
+}
+
+#Dark .custom-select {
+	&__control {
+		background: CL.$Dark_Sidebar !important;
+		border: 1px solid CL.$Dark_Divider !important;
+		&--is-focused {
+			border-color: CL.$Dark_HoverBlue !important;
+		}
+	}
+	&__option {
+		color: CL.$Dark_TextColorSecondary;
+		&--is-focused {
+			background-color: CL.$Dark_HoverBlue !important;
+			color: CL.$Dark_LightBlue !important;
+		}
+		&--is-selected {
+			background: CL.$Dark_HoverBlue !important;
+			color: CL.$Dark_PrimaryBlue !important;
+		}
+	}
+	&__single-value {
+		color: #fff !important;
+	}
+	&__menu {
+		background-color: CL.$Dark_Sidebar !important;
+	}
+	&__input {
+		color: CL.$Dark_TextColor !important;
+	}
+}
+
+@keyframes isOpenMenu {
+	0% {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	50% {
+		opacity: 0.3;
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}

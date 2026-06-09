@@ -1,0 +1,69 @@
+@media print {
+	@page {
+		size: A4;
+		margin: 10mm;
+	}
+	.a4-page {
+		width: 190mm;
+		padding: 0;
+		margin: 0 auto;
+		page-break-after: always;
+		break-after: page;
+		box-sizing: border-box;
+		overflow: hidden;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: flex-start;
+		flex-wrap: wrap;
+		column-gap: 100px;
+		row-gap: 10px;
+	}
+	.a4-page_Vip {
+		width: 190mm;
+		padding: 0;
+		margin: 0 auto;
+		page-break-after: always;
+		break-after: page;
+		box-sizing: border-box;
+		overflow: hidden;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: flex-start;
+		flex-wrap: wrap;
+		column-gap: 100px;
+		row-gap: 10px;
+	}
+}
+.a4-page {
+	width: 190mm;
+	padding: 0;
+	margin: 0 auto;
+	page-break-after: always;
+	break-after: page;
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	column-gap: 100px;
+	row-gap: 10px;
+}
+.a4-page_Vip {
+	width: 190mm;
+	padding: 0;
+	margin: 0 auto;
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	column-gap: 100px;
+	row-gap: 10px;
+	margin-bottom: 10px;
+}

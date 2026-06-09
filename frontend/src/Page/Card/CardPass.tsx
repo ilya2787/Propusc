@@ -1,0 +1,47 @@
+import { useContext, type FC } from 'react'
+import { AppContext } from '../../App'
+import { formatDate } from '../../components/FormatDate/FormatDate'
+import FrontForm from '../../components/FrontForm/FrontForm'
+import LayoutCardPass from '../../components/LayoutCard/LayoutCardPass'
+import { Context } from './CardAll'
+
+const CardPass: FC = () => {
+	const MainContext = useContext(AppContext)
+	const theme = MainContext.theme
+	const AllContext = useContext(Context)
+	const LastName = AllContext.LastName
+	const FirstName = AllContext.FirstName
+	const Patronymic = AllContext.Patronymic
+	const NewDate = AllContext.NewDate
+	const Number_Tabs = AllContext.Number_Tabs
+	const FilePhoto = AllContext.FilePhoto
+	const Organization = AllContext.Organization
+	const Post = AllContext.Post
+
+	return (
+		<div className='MainCard--content' id={theme}>
+			<h1>Пропуск</h1>
+			<div className='MainCard--content--Info' id={theme}>
+				<FrontForm />
+				<div className='MainCard--content--Info--Preview' id={theme}>
+					<h2>Предпросмотр</h2>
+					<div className='MainCard--content--Info--Preview--content'>
+						<LayoutCardPass
+							Number_Tabs={Number_Tabs}
+							CurrentSingleOrganization={Organization}
+							CurrentSinglePost={Post}
+							LastName={LastName}
+							FirstName={FirstName}
+							Patronymic={Patronymic}
+							NewDate={NewDate ? formatDate(NewDate) : ''}
+							FilePhoto={FilePhoto}
+							Print={false}
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default CardPass
