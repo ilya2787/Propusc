@@ -3,6 +3,8 @@ import App from './App'
 import { ROUTES } from './model/routes'
 import CardAll from './Page/Card/CardAll'
 import Home from './Page/Home'
+import TemplateEditor from './Page/Templates/TemplateEditor'
+import NotFound from './Page/NotFound/NotFound'
 export const router = createBrowserRouter([
 	{
 		Component: App,
@@ -14,6 +16,14 @@ export const router = createBrowserRouter([
 			{
 				path: ROUTES.Card,
 				element: <CardAll />,
+			},
+			{
+				path: ROUTES.Templates,
+				element: <TemplateEditor />,
+			},
+			{
+				path: '*',
+				element: <NotFound />,
 			},
 		],
 	},

@@ -1,8 +1,9 @@
 export interface TListPrint {
+	Id: string
 	Number_Tabs: number
 	LastName: string
 	FirstName: string
-	Patronymic?: string
+	Patronymic: string
 	NewDate: string
 	Organization: string
 	Post: string

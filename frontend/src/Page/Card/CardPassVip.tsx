@@ -1,4 +1,4 @@
-import { useContext, type FC } from 'react'
+import { useContext, useState, type FC } from 'react'
 import { AppContext } from '../../App'
 import { formatDate } from '../../components/FormatDate/FormatDate'
 import FrontForm from '../../components/FrontForm/FrontForm'
@@ -23,15 +23,14 @@ const CardPassVip: FC = () => {
 	const FocusOrganization = AllContext.FocusOrganization
 	const FocusPost = AllContext.FocusPost
 	const setFocusPost = AllContext.setFocusPost
+	const SelectedTemplate = AllContext.SelectedTemplate
+	const [isBackVisible, setIsBackVisible] = useState(false)
+	const backVisible = isBackVisible || FocusOrganization || FocusPost
 
 	const rotationCard = () => {
-		if (FocusOrganization || FocusPost) {
-			setFocusOrganization(false)
-			setFocusPost(false)
-		} else {
-			setFocusOrganization(true)
-			setFocusPost(true)
-		}
+		setIsBackVisible(!backVisible)
+		setFocusOrganization(false)
+		setFocusPost(false)
 	}
 
 	return (
@@ -52,14 +51,18 @@ const CardPassVip: FC = () => {
 							NewDate={NewDate ? formatDate(NewDate) : ''}
 							FilePhoto={FilePhoto}
 							Print={false}
+							template={SelectedTemplate}
+							flipped={backVisible}
 						/>
 					</div>
 					<button
 						className='MainCard--content--Info--Preview--BTNRev'
 						onClick={() => rotationCard()}
+						aria-pressed={backVisible}
+						aria-label={backVisible ? 'Показать лицевую сторону удостоверения' : 'Показать оборотную сторону удостоверения'}
 					>
 						<span>{ICON.Revers}</span>
-						<p>Повернуть</p>
+						<p>{backVisible ? 'Лицевая сторона' : 'Оборотная сторона'}</p>
 					</button>
 				</div>
 			</div>

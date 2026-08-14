@@ -17,6 +17,7 @@ const CardPass: FC = () => {
 	const FilePhoto = AllContext.FilePhoto
 	const Organization = AllContext.Organization
 	const Post = AllContext.Post
+	const SelectedTemplate = AllContext.SelectedTemplate
 
 	return (
 		<div className='MainCard--content' id={theme}>
@@ -36,6 +37,7 @@ const CardPass: FC = () => {
 							NewDate={NewDate ? formatDate(NewDate) : ''}
 							FilePhoto={FilePhoto}
 							Print={false}
+							template={SelectedTemplate}
 						/>
 					</div>
 				</div>

@@ -1,4 +1,4 @@
-const translitMap = {
+const translitMap: Record<string, string> = {
 	а: 'a',
 	б: 'b',
 	в: 'v',

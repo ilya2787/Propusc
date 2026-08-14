@@ -1,7 +1,14 @@
-import { useContext, useEffect, useRef, type FC } from 'react'
+import { useContext, type FC, type PointerEvent } from 'react'
 import { Context } from '../../Page/Card/CardAll'
 import { ICON } from '../icon/Icon'
 import './StyleCard.scss'
+import FlagBackground from '../../assets/Flag.jpg'
+import EmblemBackground from '../../assets/gerbT.png'
+import { DEFAULT_ELEMENT_LAYOUTS, DEFAULT_FIXED_TEXTS, DEFAULT_FONT_SIZES, DEFAULT_PHOTO_SETTINGS, getTemplate, type PassTemplate, type TemplateElementKey } from '../../model/templates'
+import { useAutoFitText } from './useAutoFitText'
+import { resolvePhotoSource } from './resolvePhotoSource'
+import { resolveServerImageUrl } from '../../api/images'
+import { getCardDimensions } from './cardDimensions'
 
 interface TypeProps {
 	Number_Tabs: number
@@ -13,9 +20,14 @@ interface TypeProps {
 	Patronymic: string
 	FilePhoto?: string
 	Print: boolean
+	template?: PassTemplate
+	director?: { post: string; name: string }
+	previewSide?: 'front' | 'back'
+	editor?: { selected?: TemplateElementKey; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void }
+	flipped?: boolean
 }
 
-const layoutCardPassVip: FC<TypeProps> = ({
+const LayoutCardPassVip: FC<TypeProps> = ({
 	Number_Tabs,
 	NewDate,
 	CurrentSingleOrganization,
@@ -25,64 +37,124 @@ const layoutCardPassVip: FC<TypeProps> = ({
 	Patronymic,
 	FilePhoto,
 	Print,
+	template,
+	director,
+	previewSide,
+	editor,
+	flipped = false,
 }) => {
 	const AllContext = useContext(Context)
-	const FocusOrganization = AllContext.FocusOrganization
-	const FocusPost = AllContext.FocusPost
-	const NameDirector = AllContext.NameDirector
-	const PostDirector = AllContext.PostDirector
-
-	const RefBlockCard = useRef<HTMLDivElement>(null)
-
-	useEffect(() => {
-		if (FocusOrganization || FocusPost) {
-			RefBlockCard.current?.classList.add('Active')
-			RefBlockCard.current?.classList.remove('Closed')
-		} else {
-			RefBlockCard.current?.classList.remove('Active')
-			RefBlockCard.current?.classList.add('Closed')
+	const NameDirector = director?.name ?? AllContext.NameDirector
+	const PostDirector = director?.post ?? AllContext.PostDirector
+	const activeTemplate = template ?? getTemplate('service-certificate')
+	const dimensions = getCardDimensions(activeTemplate, false, Print ? 335 : 514, Print ? 240 : 363)
+	const printDimensions = getCardDimensions(activeTemplate, true)
+	const sizes = { ...DEFAULT_FONT_SIZES, ...activeTemplate.design.fontSizes }
+	const nameWidth = activeTemplate.design.elements?.certificateName?.width ?? DEFAULT_ELEMENT_LAYOUTS.certificateName.width
+	const nameRef = useAutoFitText('--font-certificate-name-fit', sizes.certificateName, [LastName, FirstName, Patronymic, nameWidth])
+	const frontBackgroundSource = resolveServerImageUrl(activeTemplate.design.frontBackgroundImage) || ((activeTemplate.design.frontBackground ?? activeTemplate.design.background) === 'emblem' ? EmblemBackground : FlagBackground)
+	const backBackgroundSource = resolveServerImageUrl(activeTemplate.design.backBackgroundImage) || ((activeTemplate.design.backBackground ?? 'emblem') === 'emblem' ? EmblemBackground : FlagBackground)
+	const photoSettings = { ...DEFAULT_PHOTO_SETTINGS, ...activeTemplate.design.photos?.certificatePhoto }
+	const fixedText = (key: TemplateElementKey) => activeTemplate.design.fixedTexts?.[key] ?? DEFAULT_FIXED_TEXTS[key] ?? ''
+	const cardStyle = {
+		'--template-front-background': `url("${frontBackgroundSource}")`,
+		'--template-back-background': `url("${backBackgroundSource}")`,
+		'--template-accent': activeTemplate.design.accentColor,
+		'--template-title': activeTemplate.design.titleColor,
+		'--template-front-text': activeTemplate.design.frontTextColor ?? activeTemplate.design.textColor ?? '#111111',
+		'--template-back-text': activeTemplate.design.backTextColor ?? activeTemplate.design.textColor ?? '#111111',
+		'--template-font': activeTemplate.design.fontFamily,
+		'--template-radius': `${activeTemplate.design.borderRadius}px`,
+		'--card-font-scale': dimensions.contentScale,
+		'--font-certificate-title': `${sizes.certificateTitle}px`,
+		'--font-certificate-number': `${sizes.certificateNumber}px`,
+		'--font-certificate-intro': `${sizes.certificateIntro}px`,
+		'--font-certificate-name': `${sizes.certificateName}px`,
+		'--font-certificate-date': `${sizes.certificateDate}px`,
+		'--font-certificate-organization': `${sizes.certificateOrganization}px`,
+		'--font-certificate-post': `${sizes.certificatePost}px`,
+		'--font-certificate-director-post': `${sizes.certificateDirectorPost}px`,
+		'--font-certificate-director-name': `${sizes.certificateDirectorName}px`,
+		'--line-certificate-title': activeTemplate.design.lineHeights?.certificateTitle ?? 1.05,
+		'--line-certificate-number': activeTemplate.design.lineHeights?.certificateNumber ?? 1.1,
+		'--line-certificate-intro': activeTemplate.design.lineHeights?.certificateIntro ?? 1.15,
+		'--line-certificate-name': activeTemplate.design.lineHeights?.certificateName ?? 1.15,
+		'--line-certificate-date': activeTemplate.design.lineHeights?.certificateDate ?? 1.2,
+		'--line-certificate-organization': activeTemplate.design.lineHeights?.certificateOrganization ?? 1.05,
+		'--line-certificate-post': activeTemplate.design.lineHeights?.certificatePost ?? 1.05,
+		'--line-certificate-director-post': activeTemplate.design.lineHeights?.certificateDirectorPost ?? 1.3,
+		'--line-certificate-director-name': activeTemplate.design.lineHeights?.certificateDirectorName ?? 1.2,
+	} as React.CSSProperties
+	const editable = (key: TemplateElementKey) => {
+		const hidden = activeTemplate.design.hiddenElements?.includes(key) ?? false
+		let configured = activeTemplate.design.elements?.[key]
+		const legacyDirector = activeTemplate.design.elements?.certificateDirector
+		if (!configured && legacyDirector && key === 'certificateDirectorPost') configured = { ...legacyDirector, width: Math.min(285, legacyDirector.width) }
+		if (!configured && legacyDirector && key === 'certificateDirectorName') configured = { x: legacyDirector.x + Math.max(0, legacyDirector.width - 149), y: legacyDirector.y + 30, width: 149, align: 'right' }
+		const layout = configured ?? DEFAULT_ELEMENT_LAYOUTS[key]
+		const isPhoto = key === 'certificatePhoto'
+		const isDirector = key === 'certificateDirector'
+		const textStyle = activeTemplate.design.textStyles?.[key]
+		return {
+			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, minHeight: isDirector ? 50 * dimensions.scaleY : undefined, height: isDirector ? 50 * dimensions.scaleY : isPhoto ? photoSettings.height * dimensions.scaleY : undefined, maxWidth: 'none', borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : undefined, margin: 0, textAlign: layout.align, color: textStyle?.color, fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
+			onPointerDown: editor && !Print ? (event: PointerEvent<HTMLElement>) => editor.onSelect(key, event) : undefined,
+			'data-editor-selected': editor && !Print ? editor.selected === key : undefined,
 		}
-	}, [FocusOrganization, FocusPost])
+	}
 
 	return (
 		<div
-			ref={RefBlockCard}
-			className={Print ? 'layoutCardPassVip__Print' : 'layoutCardPassVip'}
+			style={{
+				...cardStyle,
+				...(!Print ? { width: dimensions.widthPx, height: dimensions.heightPx } : {}),
+				...(Print ? {
+					'--card-print-width': `${printDimensions.widthMm}mm`,
+					'--card-print-height': `${printDimensions.heightMm}mm`,
+					'--card-print-scale': printDimensions.widthPx / dimensions.widthPx,
+				} : {}),
+			}}
+			className={Print ? 'layoutCardPassVip__Print' : `layoutCardPassVip ${flipped && !previewSide ? 'Flipped' : ''} ${previewSide ? `Editor${previewSide === 'front' ? 'Front' : 'Back'}` : ''}`}
 		>
 			<div
+				style={{ backgroundImage: `url("${frontBackgroundSource}")`, width: dimensions.widthPx, height: dimensions.heightPx }}
 				className={
 					Print ? 'layoutCardPassVip__Print--Front' : 'layoutCardPassVip--Front'
 				}
 			>
 				<h3
+					{...editable('certificateTitle')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Front--title'
 							: 'layoutCardPassVip--Front--title'
 					}
 				>
-					Правительство <br /> Калининградской области
+					{fixedText('certificateTitle')}
 				</h3>
 				<div
+					{...editable('certificateNumber')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Front--NumberCard'
 							: 'layoutCardPassVip--Front--NumberCard'
 					}
 				>
-					<p>Служебное удостоверение № </p>
+					<p>{fixedText('certificateNumber')} </p>
 					<p>{Number_Tabs}</p>
 				</div>
 				<p
+					{...editable('certificateIntro')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Front--text'
 							: 'layoutCardPassVip--Front--text'
 					}
 				>
-					Предъявитель настоящего удостоверения
+					{fixedText('certificateIntro')}
 				</p>
 				<div
+					ref={nameRef}
+					{...editable('certificateName')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Front--Name'
@@ -94,16 +166,18 @@ const layoutCardPassVip: FC<TypeProps> = ({
 					<p>{Patronymic}</p>
 				</div>
 				<div
+					{...editable('certificateDate')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Front--Date'
 							: 'layoutCardPassVip--Front--Date'
 					}
 				>
-					<p>Дата выдачи:</p>
+					<p>{fixedText('certificateDate')}</p>
 					<p>{NewDate}</p>
 				</div>
 				<div
+					{...editable('certificatePhoto')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Front--Photo'
@@ -111,18 +185,20 @@ const layoutCardPassVip: FC<TypeProps> = ({
 					}
 				>
 					{FilePhoto ? (
-						<img src={`${import.meta.env.VITE_APP_SERVER}/Photo/${FilePhoto}`} alt={FilePhoto} />
+						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
 					) : (
 						<span>{ICON.Photo}</span>
 					)}
 				</div>
 			</div>
 			<div
+				style={{ backgroundImage: `url("${backBackgroundSource}")`, width: dimensions.widthPx, height: dimensions.heightPx }}
 				className={
 					Print ? 'layoutCardPassVip__Print--Back' : 'layoutCardPassVip--Back'
 				}
 			>
 				<div
+					{...editable('certificateOrganization')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Back--Organization'
@@ -132,6 +208,7 @@ const layoutCardPassVip: FC<TypeProps> = ({
 					<p>{CurrentSingleOrganization}</p>
 				</div>
 				<div
+					{...editable('certificatePost')}
 					className={
 						Print
 							? 'layoutCardPassVip__Print--Back--Post'
@@ -140,19 +217,13 @@ const layoutCardPassVip: FC<TypeProps> = ({
 				>
 					<p>{CurrentSinglePost}</p>
 				</div>
-				<div
-					className={
-						Print
-							? 'layoutCardPassVip__Print--Back--Director'
-							: 'layoutCardPassVip--Back--Director'
-					}
-				>
-					<p>{PostDirector}</p>
-					<p>{NameDirector}</p>
-				</div>
+				{activeTemplate.design.showDirector && <>
+					<div {...editable('certificateDirectorPost')} className={Print ? 'layoutCardPassVip__Print--Back--DirectorPost' : 'layoutCardPassVip--Back--DirectorPost'}><p>{PostDirector}</p></div>
+					<div {...editable('certificateDirectorName')} className={Print ? 'layoutCardPassVip__Print--Back--DirectorName' : 'layoutCardPassVip--Back--DirectorName'}><p>{NameDirector}</p></div>
+				</>}
 			</div>
 		</div>
 	)
 }
 
-export default layoutCardPassVip
+export default LayoutCardPassVip

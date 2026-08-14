@@ -16,8 +16,7 @@
 		justify-content: flex-start;
 		align-items: flex-start;
 		flex-wrap: wrap;
-		column-gap: 100px;
-		row-gap: 10px;
+		gap: 3mm;
 	}
 	.a4-page_Vip {
 		width: 190mm;
@@ -32,8 +31,7 @@
 		justify-content: flex-start;
 		align-items: flex-start;
 		flex-wrap: wrap;
-		column-gap: 100px;
-		row-gap: 10px;
+		gap: 3mm;
 	}
 }
 .a4-page {
@@ -49,8 +47,7 @@
 	justify-content: flex-start;
 	align-items: flex-start;
 	flex-wrap: wrap;
-	column-gap: 100px;
-	row-gap: 10px;
+	gap: 3mm;
 }
 .a4-page_Vip {
 	width: 190mm;
@@ -63,7 +60,6 @@
 	justify-content: flex-start;
 	align-items: flex-start;
 	flex-wrap: wrap;
-	column-gap: 100px;
-	row-gap: 10px;
+	gap: 3mm;
 	margin-bottom: 10px;
 }

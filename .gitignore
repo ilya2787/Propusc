@@ -1,0 +1,10 @@
+.DS_Store
+**/.DS_Store
+
+frontend/node_modules/
+frontend/dist/
+backend/node_modules/
+backend/dist/
+
+Photo/
+backend/public/uploads/

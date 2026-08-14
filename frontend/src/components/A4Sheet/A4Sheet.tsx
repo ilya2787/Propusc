@@ -12,6 +12,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 	({ ActivePrintVip, NumberObject }, ref) => {
 		const AllContext = useContext(Context)
 		const ListPrint = AllContext.ListPrint
+		const SelectedTemplate = AllContext.SelectedTemplate
 
 		const chunkArray = <T,>(array: T[], size: number): T[][] => {
 			const result: T[][] = []
@@ -28,7 +29,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 						<div key={index} className='a4-page'>
 							{page.map(data => (
 								<LayoutCardPass
-									key={data.Number_Tabs}
+									key={data.Id}
 									Number_Tabs={data.Number_Tabs}
 									CurrentSingleOrganization={data.Organization}
 									CurrentSinglePost={data.Post}
@@ -38,6 +39,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 									NewDate={data.NewDate}
 									FilePhoto={data.FilePhoto}
 									Print={true}
+									template={SelectedTemplate}
 								/>
 							))}
 						</div>
@@ -45,7 +47,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 						<div key={index} className='a4-page_Vip'>
 							{page.map(data => (
 								<LayoutCardPassVip
-									key={data.Number_Tabs}
+									key={data.Id}
 									Number_Tabs={data.Number_Tabs}
 									CurrentSingleOrganization={data.Organization}
 									CurrentSinglePost={data.Post}
@@ -55,6 +57,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 									NewDate={data.NewDate}
 									FilePhoto={data.FilePhoto}
 									Print={true}
+									template={SelectedTemplate}
 								/>
 							))}
 						</div>

@@ -23,7 +23,7 @@ const SelectItem: FC<TypeProps> = ({
 	}
 
 	const onChangeSingle = (newValue: SingleValue<string | IOption>) => {
-		setCurrentSingle && setCurrentSingle((newValue as IOption).value)
+		if (setCurrentSingle && newValue) setCurrentSingle((newValue as IOption).value)
 	}
 
 	return (

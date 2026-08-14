@@ -142,17 +142,17 @@
 				height: 210px;
 				overflow-y: scroll;
 				&::-webkit-scrollbar {
-					width: 10px; /* ширина scrollbar */
-				}
-				&::-webkit-scrollbar-track {
-					background: rgba($color: #fdfaf2, $alpha: 0.2);
-					backdrop-filter: blur(10px); /* цвет дорожки */
-				}
-				&::-webkit-scrollbar-thumb {
-					background-color: CL.$PrimaryBlue; /* цвет плашки */
-					border-radius: 20px; /* закругления плашки */
-					border: 3px solid CL.$PrimaryBlue; /* padding вокруг плашки */
-				}
+				width: 10px; /* ширина scrollbar */
+			}
+	&::-webkit-scrollbar-track {
+		background: rgba($color: #fdfaf2, $alpha: 0.2);
+		backdrop-filter: blur(10px); /* цвет дорожки */
+	}
+	&::-webkit-scrollbar-thumb {
+		background-color: CL.$PrimaryBlue; /* цвет плашки */
+		border-radius: 20px; /* закругления плашки */
+		border: 3px solid CL.$PrimaryBlue; /* padding вокруг плашки */
+	}
 				.table {
 					margin-top: 10px;
 					width: 100%;
@@ -554,7 +554,9 @@
 						justify-content: center;
 						align-items: center;
 						font-size: 25px;
+						transition: transform .45s cubic-bezier(.22, .8, .25, 1);
 					}
+					&[aria-pressed='true'] span { transform: rotate(180deg); }
 					p {
 					}
 				}
@@ -590,6 +592,34 @@
 		}
 	}
 }
+.PrintConfirm_Backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	background: rgba(17, 24, 39, .58);
+	backdrop-filter: blur(4px);
+}
+.PrintConfirm {
+	width: min(430px, 100%);
+	padding: 26px;
+	border: 1px solid rgba(255, 255, 255, .35);
+	border-radius: 14px;
+	color: #172033;
+	background: #fff;
+	box-shadow: 0 22px 60px rgba(10, 20, 40, .28);
+	animation: PrintConfirmIn .2s ease;
+	h2 { margin-bottom: 9px; font-size: 21px; }
+	p { color: #667085; font-size: 14px; line-height: 1.5; }
+	&_Actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; button { padding: 10px 15px; border-radius: 8px; font-size: 13px; transition: background .15s ease, color .15s ease; } }
+	&_Keep { color: #4b5565; background: #edf0f4; &:hover { background: #dfe4ea; } }
+	&_Delete { color: #fff; background: #c43d3d; &:hover { background: #a92f2f; } }
+}
+#Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #465068; p { color: #b8c1d1; } .PrintConfirm_Keep { color: #dce2ec; background: #343c50; &:hover { background: #404a61; } } }
+@keyframes PrintConfirmIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 #Light {
 	&.MainCard {
@@ -913,4 +943,83 @@
 			}
 		}
 	}
+}
+
+.FormFront--DirectorCard {
+	display: grid;
+	grid-template-columns: 38px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 11px;
+	width: 100%;
+	padding: 11px 12px;
+	border: 1px solid #dce4ef;
+	border-radius: 10px;
+	color: CL.$Light_TextColor;
+	background: linear-gradient(135deg, #f8faff 0%, #f2f6fc 100%);
+	text-align: left;
+	cursor: pointer;
+	transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease;
+	&:hover { border-color: rgba(CL.$PrimaryBlue, .55); background: #edf3ff; box-shadow: 0 7px 18px rgba(34, 52, 83, .1); transform: translateY(-1px); }
+	&:focus-visible { outline: 3px solid rgba(CL.$PrimaryBlue, .24); outline-offset: 2px; }
+	&--Icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 9px; color: CL.$PrimaryBlue; background: rgba(CL.$PrimaryBlue, .1); font-size: 19px; }
+	&--Info { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; strong { margin-bottom: 3px; color: CL.$PrimaryBlue; font-size: 12px; } > span { overflow: hidden; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; } small { display: -webkit-box; overflow: hidden; margin-top: 3px; color: CL.$TextColorSecondary; font-size: 11px; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 2; } }
+	&--Action { padding: 6px 8px; border-radius: 7px; color: CL.$PrimaryBlue; background: #fff; font-size: 11px; font-weight: 700; }
+}
+
+#Dark.FormFront--DirectorCard {
+	border-color: CL.$Dark_Divider;
+	color: CL.$Dark_TextColor;
+	background: linear-gradient(135deg, #252c3d 0%, #202637 100%);
+	&:hover { border-color: CL.$Dark_LightBlue; background: #293248; box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+	.FormFront--DirectorCard--Icon { color: #b5c2ff; background: rgba(CL.$Dark_PrimaryBlue, .22); }
+	.FormFront--DirectorCard--Info { strong { color: #b5c2ff; } small { color: CL.$Dark_TextColorSecondary; } }
+	.FormFront--DirectorCard--Action { color: #c2cbff; background: #343d54; }
+}
+
+@media (max-width: 520px) {
+	.FormFront--DirectorCard { grid-template-columns: 38px minmax(0, 1fr); &--Action { display: none; } }
+}
+
+// Redesigned pass creation flow
+.MainCard {
+	height: auto;
+	min-height: 100%;
+	padding: 34px clamp(20px, 3.5vw, 54px) 64px;
+	background: transparent !important;
+
+	&__pageHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 28px; max-width: 1400px; margin: 0 auto 28px; h1 { margin: 6px 0 8px; color: #172033; font-size: clamp(30px, 3vw, 42px); line-height: 1.1; letter-spacing: -.035em; } p { max-width: 720px; color: #626e82; font-size: 15px; line-height: 1.55; } }
+	&__eyebrow { color: CL.$PrimaryBlue; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+	&__queueBadge { display: flex; align-items: center; gap: 12px; min-width: 142px; padding: 12px 16px; border: 1px solid #dfe5ef; border-radius: 14px; background: rgba(255,255,255,.8); box-shadow: 0 8px 24px rgba(31, 49, 80, .06); > span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #e8f0ff; color: CL.$PrimaryBlue; font-size: 20px; } div { display: grid; } strong { font-size: 20px; line-height: 1; } small { margin-top: 4px; color: #7f8999; font-size: 11px; } }
+	&__sectionTitle { display: flex; align-items: center; gap: 12px; > span { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: CL.$PrimaryBlue; color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 5px 12px rgba(49, 94, 168, .22); } h2 { color: #202a3b; font-size: 17px; line-height: 1.2; } p { margin-top: 3px; color: #707c90; font-size: 12px; } }
+
+	&--headerInfo { display: block; max-width: 1400px; margin: 0 auto 20px; &--TypePassCard { display: block; max-width: none; min-width: 0; width: 100%; height: auto; padding: 18px; border: 1px solid #e1e6ef !important; border-radius: 16px; background: rgba(255,255,255,.75); box-shadow: 0 8px 30px rgba(29, 45, 75, .05); &--content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 16px; &--Item { min-height: 82px; padding: 10px 14px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff; cursor: pointer; img { width: 48px; max-height: 60px; object-fit: contain; margin-right: 13px; } &--text { gap: 4px; h2 { font-size: 14px; } p { font-size: 11px; line-height: 1.35; } } &:hover { transform: translateY(-1px); border-color: #a9c1ef; } &.Active { border: 1px solid CL.$PrimaryBlue; background: #eef4ff; box-shadow: inset 0 0 0 1px rgba(49,94,168,.08); } } } } }
+
+	&__workspace { max-width: 1400px; margin: 0 auto 20px; padding: 18px; border: 1px solid #e1e6ef; border-radius: 16px; background: rgba(255,255,255,.82); box-shadow: 0 10px 34px rgba(29, 45, 75, .06); > .MainCard__sectionTitle { margin-bottom: 18px; } .MainCard--content { margin: 0; gap: 0; > h1 { display: none; } &--Info { align-items: stretch; gap: 18px; .FormFront, &--Preview { min-width: 0; min-height: 0; padding: 18px; border: 1px solid #e4e8ef !important; border-radius: 14px; background: #fff; } .FormFront { justify-content: flex-start; gap: 15px; } &--Preview { position: sticky; top: 18px; justify-content: flex-start; background: #f6f8fc; h2 { margin-bottom: 10px; } } } } }
+
+	&--headerInfo--ListPrintCard { display: block; max-width: 1400px; width: auto; height: auto; margin: 0 auto; padding: 18px; border: 1px solid #e1e6ef !important; border-radius: 16px; background: rgba(255,255,255,.82); box-shadow: 0 10px 34px rgba(29,45,75,.06); &--tables { height: auto; min-height: 96px; max-height: 310px; margin-top: 14px; border: 1px solid #e6eaf0; border-radius: 12px; .table { margin: 0; border-collapse: separate; border-spacing: 0; th { position: sticky; top: 0; z-index: 1; padding: 11px 10px; background: #f0f4fa !important; color: #5b6678; text-align: left; } td { padding: 10px; border-top: 1px solid #edf0f4; } } } &--BTN { width: auto; gap: 9px; &--Clear, &--View { height: 40px; padding: 0 15px; border-radius: 9px; column-gap: 8px; font-size: 13px; span { font-size: 19px; } } &--Clear:disabled { opacity: .45; cursor: not-allowed; } } }
+	&__queueHeader { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+	&__emptyRow td { height: 84px; color: #8a94a4; text-align: center !important; background: #fff !important; }
+}
+
+#Dark.MainCard {
+	.MainCard__pageHeader h1 { color: #f4f7fc; }
+	.MainCard__pageHeader p { color: #b8c2d2; }
+	.MainCard__eyebrow { color: #91b5ff; }
+	.MainCard__sectionTitle h2 { color: #f0f4fa; }
+	.MainCard__sectionTitle p { color: #aab5c7; }
+	.MainCard__queueBadge strong { color: #f4f7fc; }
+	.MainCard__queueBadge small { color: #aab5c7; }
+	.MainCard__queueBadge, .MainCard--headerInfo--TypePassCard, .MainCard__workspace, .MainCard--headerInfo--ListPrintCard { border-color: #30394d !important; background: rgba(29, 36, 53, .88); color: #eef2f8; }
+	.MainCard--headerInfo--TypePassCard--content--Item, .MainCard__workspace .FormFront, .MainCard__workspace .MainCard--content--Info--Preview { border-color: #364057 !important; background: #252d40; color: #eef2f8; }
+	.MainCard--headerInfo--TypePassCard--content--Item.Active { border-color: #789ff0 !important; background: #293958; }
+	.MainCard--headerInfo--ListPrintCard--tables { border-color: #364057; .table th { background: #293348 !important; color: #c5cedc; } .table td { border-color: #343d50; } }
+	.MainCard__emptyRow td { color: #9ba6b8; background: #252d40 !important; }
+}
+
+@media (max-width: 1100px) {
+	.MainCard { &__workspace .MainCard--content--Info { flex-direction: column; .MainCard--content--Info--Preview { position: static; } } &__queueHeader { align-items: flex-start; flex-direction: column; } }
+}
+
+@media (max-width: 720px) {
+	.MainCard { padding: 24px 16px 44px; &__pageHeader { align-items: stretch; flex-direction: column; & > p { font-size: 14px; } } &__queueBadge { align-self: flex-start; } &--headerInfo--TypePassCard--content { grid-template-columns: 1fr; } &--headerInfo--ListPrintCard--BTN { width: 100%; flex-wrap: wrap; button { flex: 1 1 180px; } } &--headerInfo--ListPrintCard--tables { overflow-x: auto; .table { min-width: 760px; } } &__workspace, &--headerInfo--TypePassCard, &--headerInfo--ListPrintCard { padding: 14px; } }
 }

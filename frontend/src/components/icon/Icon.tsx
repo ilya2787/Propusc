@@ -3,7 +3,7 @@ import { BsPersonVcard } from 'react-icons/bs'
 import { CgDarkMode } from 'react-icons/cg'
 import { GoHome } from 'react-icons/go'
 import { HiDocumentDuplicate } from 'react-icons/hi2'
-import { IoCloseOutline, IoSettingsOutline } from 'react-icons/io5'
+import { IoCloseOutline, IoPencilOutline, IoSettingsOutline } from 'react-icons/io5'
 import {
 	MdAssignmentAdd,
 	MdMovieEdit,
@@ -32,5 +32,6 @@ export const ICON = {
 	Revers: <RxUpdate />,
 	AddList: <MdAssignmentAdd />,
 	Setting: <IoSettingsOutline />,
+	Edit: <IoPencilOutline />,
 	DarkMode: <CgDarkMode />,
 }

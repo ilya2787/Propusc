@@ -1,139 +1,92 @@
 @use '@/style/setting/color' as CL;
 
 .Modal_background {
-	position: fixed;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	right: 0;
-	left: 0;
-	overflow: hidden;
-	top: 0;
-	// width: 100vw;
-	height: 100%;
-	z-index: 99;
-	background-color: rgba($color: #333333, $alpha: 0.5);
-	@media (max-width: 600px) {
-		width: auto;
-		height: 100%;
-	}
-	.Modal_container {
-		position: relative;
-		min-width: 50vw;
-		width: 70%;
-		max-width: 90%;
-		background: rgba($color: #fdfaf2, $alpha: 0.2);
-		backdrop-filter: blur(10px);
-		margin: 20px 0 0 0;
-		border-radius: 15px;
-		min-height: 200px;
-		max-height: 90vh;
-		padding: 0 90px 40px 90px;
-		@media (max-width: 1200px) {
-			min-width: 90%;
-			max-width: 90%;
-		}
-		@media (max-width: 1000px) {
-			padding: 0 20px 20px 20px;
-			min-height: max-content;
-		}
-		&--title {
-			margin: 30px 0;
-			font-size: clamp(20px, 5vw, 40px);
-			font-family: Unbounded;
-			text-transform: uppercase;
-			font-weight: bold;
-			letter-spacing: 2px;
-			color: CL.$Light_ColorBackground;
-		}
-		.btnClosed {
-			position: fixed;
-			top: 10px;
-			right: 20px;
-			font-size: 35px;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			padding: 7px;
-			border-radius: 50%;
-			border: none;
-			color: CL.$Light_TextColor;
-			transition: all 0.3s ease;
-			background-color: rgba($color: #ffffff, $alpha: 0.2);
-			cursor: pointer;
-			&:hover {
-				color: red;
-				transform: rotate(180deg);
-			}
-		}
-
-		.Modal_content {
-			padding: 20px;
-			border-radius: 10px;
-			max-height: 70vh;
-			overflow-y: scroll;
-			&::-webkit-scrollbar {
-				width: 10px; /* ширина scrollbar */
-			}
-
-			@media (max-width: 1000px) {
-				max-height: 60dvh;
-			}
-			@media (max-width: 400px) {
-				max-height: 90dvh;
-			}
-			overflow-x: hidden;
-		}
-	}
+	position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center;
+	padding: 24px; overflow: hidden; background: rgba(14, 22, 38, .62);
+	backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
 }
 
-#Light .Modal_content {
-	background-color: CL.$Light_ColorBackground;
-	&::-webkit-scrollbar-track {
-		background: rgba($color: #fdfaf2, $alpha: 0.2);
-		backdrop-filter: blur(10px); /* цвет дорожки */
-	}
-	&::-webkit-scrollbar-thumb {
-		background-color: CL.$PrimaryBlue; /* цвет плашки */
-		border-radius: 20px; /* закругления плашки */
-		border: 3px solid CL.$PrimaryBlue; /* padding вокруг плашки */
-	}
+.Modal_container {
+	display: flex; flex-direction: column; width: min(680px, 100%); max-height: min(88vh, 900px);
+	overflow: hidden; border: 1px solid rgba(255,255,255,.38); border-radius: 18px; background: #fff;
+	box-shadow: 0 30px 90px rgba(5, 14, 30, .34), 0 8px 24px rgba(5, 14, 30, .16);
+	&--sm { width: min(480px, 100%); }
+	&--md { width: min(680px, 100%); }
+	&--lg { width: min(920px, 100%); }
+	&--xl { width: min(1280px, 96vw); }
+	&--title { margin: 2px 0 0; color: #172033; font-size: clamp(20px, 3vw, 27px); font-weight: 700; line-height: 1.2; letter-spacing: -.02em; }
 }
 
-#Dark .Modal_content {
-	background-color: CL.$Dark_ColorBackground;
-	&::-webkit-scrollbar-track {
-		background: rgba($color: #232323, $alpha: 0.2);
-		backdrop-filter: blur(10px); /* цвет дорожки */
-		border-radius: 0 10px 10px 0;
+.Modal_header {
+	display: flex; align-items: center; justify-content: space-between; gap: 20px;
+	padding: 20px 22px 17px; border-bottom: 1px solid #e5eaf1;
+	background: linear-gradient(135deg, #fff 0%, #f4f7fb 100%);
+	&--eyebrow { color: CL.$PrimaryBlue; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .14em; }
+}
+
+.btnClosed {
+	display: grid; place-items: center; flex: 0 0 auto; width: 38px; height: 38px; padding: 0;
+	border: 1px solid #dce2eb; border-radius: 10px; color: #667085; background: #fff; font-size: 23px; cursor: pointer;
+	transition: color .18s ease, border-color .18s ease, background .18s ease, transform .18s ease;
+	&:hover { color: #bd3434; border-color: #efb4b4; background: #fff2f2; transform: rotate(4deg); }
+	&:focus-visible { outline: 3px solid rgba(CL.$PrimaryBlue, .28); outline-offset: 2px; }
+}
+
+.Modal_content {
+	padding: 22px; overflow-x: hidden; overflow-y: auto; color: #172033; background: #fff;
+	scrollbar-width: thin; scrollbar-color: CL.$PrimaryBlue transparent;
+	&::-webkit-scrollbar { width: 8px; }
+	&::-webkit-scrollbar-track { background: transparent; }
+	&::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: CL.$PrimaryBlue; background-clip: padding-box; }
+}
+
+.ModalAddList {
+	display: flex; flex-direction: column; align-items: stretch; gap: 14px;
+	h3 { font-size: 16px; font-weight: 700; }
+	p { margin: 3px 0 -5px; font-size: 13px; }
+	input[type='text'], textarea {
+		width: 100%; padding: 11px 13px; border: 1px solid #ccd5e2; border-radius: 9px;
+		color: #172033; background: #fff; font: inherit; font-size: 14px; line-height: 1.5;
+		transition: border-color .15s ease, box-shadow .15s ease;
+		&:focus { outline: none; border-color: CL.$PrimaryBlue; box-shadow: 0 0 0 3px rgba(CL.$PrimaryBlue, .14); }
 	}
-	&::-webkit-scrollbar-thumb {
-		background-color: CL.$Dark_PrimaryBlue; /* цвет плашки */
-		border-radius: 20px; /* закругления плашки */
-		border: 3px solid CL.$Dark_PrimaryBlue; /* padding вокруг плашки */
-	}
+	textarea { min-height: 104px; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
+	button { width: 100%; min-height: 42px; border-radius: 9px; color: #fff; background: CL.$PrimaryBlue; font-size: 14px; font-weight: 700; transition: background .15s ease, transform .15s ease; &:hover { background: CL.$PrimaryButtonHover; } &:active { transform: translateY(1px); } }
 }
 
-.entering,
-.entered {
-	opacity: 1;
-	transition: all 0.3s;
-}
-.entering .Modal_container,
-.entered .Modal_container {
-	top: 0;
-	transition: all 0.3s;
-}
-
-.exiting,
-.exited {
-	opacity: 0;
-	transition: all 0.3s;
+.ModalAddList.DirectorSettings {
+	width: 100%;
+	align-items: stretch;
+	.DirectorSettings__hint { margin: 0 0 2px !important; padding: 11px 12px; border-radius: 9px; color: #667085; background: #f3f6fa; font-size: 12px !important; line-height: 1.5; }
+	label { display: flex; flex-direction: column; align-items: stretch; gap: 7px; width: 100%; span { color: #344054; font-size: 13px; font-weight: 700; } input[type='text'], textarea { box-sizing: border-box; display: block; width: 100% !important; max-width: none; margin: 0; } }
+	.DirectorSettings__actions { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); justify-content: center; align-items: stretch; gap: 9px; width: 100%; margin-top: 3px; }
+	.DirectorSettings__cancel, .DirectorSettings__save { display: flex; align-items: center; justify-content: center; width: 100% !important; min-width: 0; min-height: 44px !important; height: auto !important; padding: 10px 14px; border-radius: 9px; font-size: 13px !important; font-weight: 700; line-height: 1.25; text-align: center; white-space: normal; overflow-wrap: anywhere; }
+	.DirectorSettings__cancel { color: #556176 !important; border: 1px solid #d4dce7; background: #f6f8fb !important; &:hover { color: #25324a !important; background: #e9edf3 !important; } }
+	.DirectorSettings__save { color: #fff; background: CL.$PrimaryBlue !important; &:hover { background: CL.$PrimaryButtonHover !important; } &:disabled { opacity: .65; cursor: wait; } }
 }
 
-.exiting .Modal_container,
-.exited .Modal_container {
-	transition: all 0.3s;
-	top: -100%;
+#Dark.Modal_container {
+	border-color: #414a60; background: #252b3c;
+	.Modal_header { border-color: #3b4357; background: linear-gradient(135deg, #2d3447 0%, #252b3c 100%); }
+	.Modal_container--title { color: #f0f3f8; }
+	.btnClosed { color: #bac3d3; border-color: #485168; background: #343b4e; &:hover { color: #ffb5b5; border-color: #92545b; background: #49323b; } }
+	.Modal_content { color: #eef2f8; background: #252b3c; scrollbar-color: CL.$Dark_PrimaryBlue transparent; &::-webkit-scrollbar-thumb { background: CL.$Dark_PrimaryBlue; background-clip: padding-box; } }
+	.ModalAddList { input[type='text'], textarea { color: #eef2f8; border-color: #485168; background: #303749; &::placeholder { color: #8f9aad; } } }
+	.DirectorSettings { &__hint { color: #b7c0cf; background: #303749; } label span { color: #e5e9f1; } &__cancel { color: #c3cad6 !important; border-color: #4a5368; background: #303749 !important; &:hover { color: #fff !important; background: #3a4358 !important; } } }
+}
+
+.entering, .entered { opacity: 1; transition: opacity .25s ease; }
+.entering .Modal_container, .entered .Modal_container { opacity: 1; transform: translateY(0) scale(1); transition: opacity .25s ease, transform .25s cubic-bezier(.2,.8,.2,1); }
+.exiting, .exited { opacity: 0; transition: opacity .2s ease; }
+.exiting .Modal_container, .exited .Modal_container { opacity: 0; transform: translateY(10px) scale(.985); transition: opacity .2s ease, transform .2s ease; }
+
+@media (max-width: 640px) {
+	.Modal_background { padding: 10px; align-items: flex-end; }
+	.Modal_container { width: 100%; max-height: 92vh; border-radius: 17px 17px 10px 10px; }
+	.Modal_header { padding: 16px; }
+	.Modal_content { padding: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.Modal_background, .Modal_container { transition: none !important; }
 }
