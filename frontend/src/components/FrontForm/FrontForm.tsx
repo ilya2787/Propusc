@@ -11,6 +11,7 @@ import { AppContext } from '../../App'
 import { deleteUploadedImage, uploadImage } from '../../api/images'
 import { Context } from '../../Page/Card/CardAll'
 import { DEFAULT_PHOTO_SETTINGS, type TemplateElementKey } from '../../model/templates'
+import { recordPassEvent } from '../../api/audit'
 import { formatDate } from '../FormatDate/FormatDate'
 import { ICON } from '../icon/Icon'
 import ModalWindows from '../ModalWindows/ModalWindows'
@@ -24,10 +25,13 @@ import {
 import SelectItem from '../SelectItem/Select'
 import { transliterateToLatin } from '../Translit/TranslitFunction'
 import DateField from '../DateField/DateField'
+import { useAuth } from '../../auth/AuthContext'
 
 const FrontForm: FC = () => {
 	const MainContext = useContext(AppContext)
 	const theme = MainContext.theme
+	const { user } = useAuth()
+	const isAdmin = user?.role === 'admin'
 
 	const AllContext = useContext(Context)
 	const CurrentSingleOrganization = AllContext.CurrentSingleOrganization
@@ -129,6 +133,7 @@ const FrontForm: FC = () => {
 				QrKey: usesQr ? QrKey.trim() : '',
 			}
 			setListPrint(ListPrint => [...ListPrint, value])
+			void recordPassEvent('pass.created', SelectedTemplate.id, 1)
 			CleaningForm(showPhoto && !usesQr)
 			AddCardPrint()
 		} else {
@@ -248,7 +253,7 @@ const FrontForm: FC = () => {
 	return (
 		<div className='FormFront' id={theme}>
 			<h2>Данные пропуска</h2>
-			{(showDirectorPost || showDirectorName) && <button
+			{isAdmin && (showDirectorPost || showDirectorName) && <button
 				type='button'
 				onClick={OpenDirectorSettings}
 				className='FormFront--DirectorCard'

@@ -7,6 +7,12 @@ import { extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import multer from 'multer'
 import mysql from 'mysql2'
+import { requireAuth, requireRole } from './src/auth/middleware.js'
+import { createAuthRouter } from './src/auth/router.js'
+import { ensureAuthSchema } from './src/auth/schema.js'
+import { createUsersRouter } from './src/auth/usersRouter.js'
+import { createAuditRouter } from './src/auth/auditRouter.js'
+import { writeAuditLog } from './src/auth/audit.js'
 dotenv.config()
 
 const app = express()
@@ -14,7 +20,7 @@ app.disable('x-powered-by')
 app.use(
 	cors({
 		origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
-		methods: ['POST', 'GET', 'PUT', 'DELETE'],
+		methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'],
 		credentials: true,
 	}),
 )
@@ -51,26 +57,6 @@ const uploadImage = multer({
 	},
 })
 
-app.post('/UploadImage', uploadImage.single('image'), (req, res) => {
-	if (!req.file) return res.status(400).json({ message: 'Изображение не передано' })
-	const folder = req.query.kind === 'background' ? 'backgrounds' : 'photos'
-	return res.status(201).json({
-		url: `/uploads/${folder}/${req.file.filename}`,
-		name: decodeUploadName(req.file.originalname),
-	})
-})
-
-app.delete('/UploadedImage', (req, res) => {
-	const url = String(req.body?.url ?? '')
-	const match = url.match(/^\/uploads\/(backgrounds|photos)\/([a-zA-Z0-9.-]+)$/)
-	if (!match) return res.status(400).json({ message: 'Некорректный адрес изображения' })
-	const filePath = join(uploadsDirectory, match[1], match[2])
-	unlink(filePath, error => {
-		if (error && error.code !== 'ENOENT') return res.status(500).json({ message: 'Не удалось удалить изображение' })
-		return res.json({ status: 'success' })
-	})
-})
-
 const PORT = parseInt(process.env.PORT || '5173', 10)
 
 const DB = mysql.createConnection({
@@ -84,6 +70,14 @@ DB.connect(err => {
 	if (err) console.error('Ошибка подключения к базе данных:', err)
 	else {
 		console.log('Подключение к базе данных прошло успешно')
+		void ensureAuthSchema(DB.promise())
+			.then(async () => {
+				console.log('Таблицы пользователей, сессий и аудита готовы к работе')
+				const [result] = await DB.promise().execute<mysql.ResultSetHeader>('DELETE FROM audit_log WHERE created_at < DATE_SUB(NOW(), INTERVAL 180 DAY)')
+				if (result.affectedRows) console.log(`Удалено устаревших записей аудита: ${result.affectedRows}`)
+				await DB.promise().execute('DELETE FROM login_rate_limits WHERE updated_at < DATE_SUB(NOW(), INTERVAL 1 DAY)')
+			})
+			.catch(schemaError => console.error('Ошибка создания таблиц авторизации:', schemaError))
 		DB.query(`
 			CREATE TABLE IF NOT EXISTS pass_templates (
 				id VARCHAR(191) PRIMARY KEY,
@@ -99,6 +93,39 @@ DB.connect(err => {
 			else console.log('Таблица шаблонов готова к работе')
 		})
 	}
+})
+
+const database = DB.promise()
+const authenticated = requireAuth(database)
+const administrator = requireRole('admin')
+const editor = requireRole('admin', 'operator')
+
+app.use('/Auth', createAuthRouter(database))
+app.use('/Admin/Users', authenticated, administrator, createUsersRouter(database))
+app.use('/Admin/Audit', authenticated, administrator, createAuditRouter(database))
+
+app.post('/UploadImage', authenticated, editor, (req, res, next) => {
+	if (req.query.kind === 'background' && req.authUser?.role !== 'admin') return res.status(403).json({ message: 'Изменять фон шаблона может только администратор' })
+	return uploadImage.single('image')(req, res, next)
+}, (req, res) => {
+	if (!req.file) return res.status(400).json({ message: 'Изображение не передано' })
+	const folder = req.query.kind === 'background' ? 'backgrounds' : 'photos'
+	return res.status(201).json({
+		url: `/uploads/${folder}/${req.file.filename}`,
+		name: decodeUploadName(req.file.originalname),
+	})
+})
+
+app.delete('/UploadedImage', authenticated, editor, (req, res) => {
+	const url = String(req.body?.url ?? '')
+	const match = url.match(/^\/uploads\/(backgrounds|photos)\/([a-zA-Z0-9.-]+)$/)
+	if (!match) return res.status(400).json({ message: 'Некорректный адрес изображения' })
+	if (match[1] === 'backgrounds' && req.authUser?.role !== 'admin') return res.status(403).json({ message: 'Удалять фон шаблона может только администратор' })
+	const filePath = join(uploadsDirectory, match[1], match[2])
+	unlink(filePath, error => {
+		if (error && error.code !== 'ENOENT') return res.status(500).json({ message: 'Не удалось удалить изображение' })
+		return res.json({ status: 'success' })
+	})
 })
 
 type PassTemplatePayload = {
@@ -133,7 +160,7 @@ const readOptionPayload = (body: unknown) => {
 	return { value: (body.value as string).trim(), label: (body.label as string).trim() }
 }
 
-app.get('/Templates', (_req, res) => {
+app.get('/Templates', authenticated, (_req, res) => {
 	DB.query('SELECT id, name, description, kind, is_built_in, design FROM pass_templates ORDER BY is_built_in DESC, name', (err, rows: any[]) => {
 		if (err) return res.status(500).json({ message: 'Не удалось загрузить шаблоны' })
 		try {
@@ -151,7 +178,7 @@ app.get('/Templates', (_req, res) => {
 	})
 })
 
-app.post('/TemplatesSync', (req, res) => {
+app.post('/TemplatesSync', authenticated, administrator, (req, res) => {
 	const templates = isRecord(req.body) ? req.body.templates : undefined
 	if (!Array.isArray(templates) || templates.length > 100 || templates.some(template => !validateTemplate(template))) {
 		return res.status(400).json({ message: 'Некорректные данные шаблонов' })
@@ -163,7 +190,11 @@ app.post('/TemplatesSync', (req, res) => {
 		if (transactionError) return res.status(500).json({ message: 'Не удалось начать сохранение' })
 		DB.query('DELETE FROM pass_templates', deleteError => {
 			if (deleteError) return DB.rollback(() => res.status(500).json({ message: 'Не удалось обновить шаблоны' }))
-			if (templates.length === 0) return DB.commit(commitError => commitError ? res.status(500).json({ message: 'Не удалось сохранить шаблоны' }) : res.json({ status: 'success' }))
+			if (templates.length === 0) return DB.commit(commitError => {
+				if (commitError) return res.status(500).json({ message: 'Не удалось сохранить шаблоны' })
+				void writeAuditLog(database, req, { action: 'template.synced', entityType: 'template_collection', details: { count: 0 } })
+				return res.json({ status: 'success' })
+			})
 
 			const values = templates.map(template => [
 				template.id,
@@ -177,6 +208,7 @@ app.post('/TemplatesSync', (req, res) => {
 				if (insertError) return DB.rollback(() => res.status(500).json({ message: 'Не удалось записать шаблоны' }))
 				DB.commit(commitError => {
 					if (commitError) return DB.rollback(() => res.status(500).json({ message: 'Не удалось завершить сохранение' }))
+					void writeAuditLog(database, req, { action: 'template.synced', entityType: 'template_collection', details: { count: templates.length, templateIds: templates.map(template => template.id) } })
 					return res.json({ status: 'success', count: templates.length })
 				})
 			})
@@ -184,7 +216,7 @@ app.post('/TemplatesSync', (req, res) => {
 	})
 })
 
-app.get('/AllListOrganization', (_req, res) => {
+app.get('/AllListOrganization', authenticated, (_req, res) => {
 	const sql = 'SELECT * FROM Organization'
 	DB.query(sql, (err, data) => {
 		if (err) {
@@ -195,7 +227,7 @@ app.get('/AllListOrganization', (_req, res) => {
 	})
 })
 
-app.get('/AllListPost', (_req, res) => {
+app.get('/AllListPost', authenticated, (_req, res) => {
 	const sql = 'SELECT * FROM Post'
 	DB.query(sql, (err, data) => {
 		if (err) {
@@ -206,7 +238,7 @@ app.get('/AllListPost', (_req, res) => {
 	})
 })
 
-app.post('/AddOrganization', (req, res) => {
+app.post('/AddOrganization', authenticated, editor, (req, res) => {
 	const payload = readOptionPayload(req.body)
 	if (!payload) return res.status(400).json({ message: 'Укажите корректное название организации' })
 	const sql = 'INSERT INTO Organization (value, label) VALUE (?)'
@@ -216,11 +248,12 @@ app.post('/AddOrganization', (req, res) => {
 			console.error('Ошибка добавления организации:', err)
 			return res.status(err.code === 'ER_DUP_ENTRY' ? 409 : 500).json({ message: err.code === 'ER_DUP_ENTRY' ? 'Такая организация уже существует' : 'Не удалось добавить организацию' })
 		}
+		void writeAuditLog(database, req, { action: 'directory.organization_created', entityType: 'organization', entityId: payload.value })
 		return res.status(201).json(data)
 	})
 })
 
-app.post('/AddPost', (req, res) => {
+app.post('/AddPost', authenticated, editor, (req, res) => {
 	const payload = readOptionPayload(req.body)
 	if (!payload) return res.status(400).json({ message: 'Укажите корректное название должности' })
 	const sql = 'INSERT INTO Post (value, label) VALUE (?)'
@@ -230,11 +263,12 @@ app.post('/AddPost', (req, res) => {
 			console.error('Ошибка добавления должности:', err)
 			return res.status(err.code === 'ER_DUP_ENTRY' ? 409 : 500).json({ message: err.code === 'ER_DUP_ENTRY' ? 'Такая должность уже существует' : 'Не удалось добавить должность' })
 		}
+		void writeAuditLog(database, req, { action: 'directory.post_created', entityType: 'post', entityId: payload.value })
 		return res.status(201).json(data)
 	})
 })
 
-app.get('/Director', (_req, res) => {
+app.get('/Director', authenticated, (_req, res) => {
 	const sql = 'SELECT * FROM director'
 	DB.query(sql, (err, data) => {
 		if (err) {
@@ -245,7 +279,7 @@ app.get('/Director', (_req, res) => {
 	})
 })
 
-app.post('/DirectorUpdate', (req, res) => {
+app.post('/DirectorUpdate', authenticated, administrator, (req, res) => {
 	if (!isRecord(req.body) || !validString(req.body.Name, 255) || !validString(req.body.Post, 255) || !Number.isInteger(req.body.id) || (req.body.id as number) <= 0) {
 		return res.status(400).json({ message: 'Некорректные данные руководителя' })
 	}
@@ -258,8 +292,27 @@ app.post('/DirectorUpdate', (req, res) => {
 		}
 		const result = data as mysql.ResultSetHeader
 		if (result.affectedRows === 0) return res.status(404).json({ message: 'Руководитель не найден' })
+		void writeAuditLog(database, req, { action: 'directory.director_updated', entityType: 'director', entityId: String(req.body.id) })
 		return res.json({ status: 'success' })
 	})
+})
+
+app.post('/Audit/PassEvent', authenticated, editor, (req, res) => {
+	if (!isRecord(req.body)) return res.status(400).json({ message: 'Некорректные данные события' })
+	const action = req.body.action
+	const templateId = typeof req.body.templateId === 'string' ? req.body.templateId.trim() : ''
+	const count = req.body.count
+	if ((action !== 'pass.created' && action !== 'pass.printed')
+		|| !/^[a-zA-Z0-9_-]{1,191}$/.test(templateId)
+		|| !Number.isInteger(count) || (count as number) < 1 || (count as number) > 1000) {
+		return res.status(400).json({ message: 'Некорректные данные события' })
+	}
+	void writeAuditLog(database, req, {
+		action,
+		entityType: 'pass_batch',
+		entityId: templateId,
+		details: { templateId, count },
+	}).then(() => res.status(201).json({ status: 'success' }))
 })
 
 app.use((_req, res) => res.status(404).json({ message: 'Маршрут не найден' }))

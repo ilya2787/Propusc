@@ -7,6 +7,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import mascotLogo from './assets/pass-mascot-logo-v2.png'
 import { ICON } from './components/icon/Icon'
 import { ROUTES } from './model/routes'
+import { useAuth } from './auth/AuthContext'
 import './style/App.scss'
 
 type TypeContext = {
@@ -21,6 +22,7 @@ export const AppContext = createContext<TypeContext>({
 
 function App() {
 	const { pathname } = useLocation()
+	const { user, logout } = useAuth()
 	const isHomePage = pathname === ROUTES.HOME
 	const [theme, setTheme] = useState<string>(() => {
 		const mode = JSON.parse(localStorage.getItem('mode')!)
@@ -73,7 +75,7 @@ function App() {
 						<span>{ICON.CardPass}</span>
 						<p>Пропуска</p>
 					</NavLink>
-					<NavLink
+					{user?.role === 'admin' && <NavLink
 						to={ROUTES.Templates}
 						className={({ isActive }) =>
 							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
@@ -82,7 +84,42 @@ function App() {
 					>
 						<span>{ICON.Editor}</span>
 						<p>Шаблон</p>
-					</NavLink>
+					</NavLink>}
+					{user?.role === 'admin' && <NavLink
+						to={ROUTES.Users}
+						className={({ isActive }) =>
+							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
+						}
+						id={theme}
+					>
+						<span>{ICON.Users}</span>
+						<p>Пользователи</p>
+					</NavLink>}
+					{user?.role === 'admin' && <NavLink
+						to={ROUTES.Audit}
+						className={({ isActive }) =>
+							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
+						}
+						id={theme}
+					>
+						<span>{ICON.Audit}</span>
+						<p>Журнал</p>
+					</NavLink>}
+				</div>
+				<div className='MainContent__header--account'>
+					<div className='MainContent__header--account--identity'>
+						<span className='MainContent__header--account--avatar'>{user?.displayName.slice(0, 1).toUpperCase()}</span>
+						<div className='MainContent__header--account--info'>
+							<strong>{user?.displayName}</strong>
+							<small>{user?.role === 'admin' ? 'Администратор' : 'Оператор'}</small>
+						</div>
+					</div>
+					<button type='button' onClick={() => void logout()} title='Выйти из системы'>
+						<svg aria-hidden='true' viewBox='0 0 24 24' fill='none'>
+							<path d='M10 17l5-5-5-5M15 12H3M15 4h3a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-3' />
+						</svg>
+						<small>Выйти</small>
+					</button>
 				</div>
 				<div className='MainContent__header--theme'>
 					<input

@@ -1,5 +1,6 @@
 {
-	"watch": ["index.ts"],
+	"watch": ["index.ts", "src/**/*.ts"],
 	"ext": "ts,json",
-	"ignore": ["public/uploads/**", "dist/**"]
+	"ignore": ["public/uploads/**", "dist/**"],
+	"exec": "tsx"
 }

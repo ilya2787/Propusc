@@ -1,6 +1,7 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useBlocker } from 'react-router'
 import { AppContext } from '../../App'
+import { AUTH_EXPIRED_EVENT } from '../../auth/AuthContext'
 import { deleteUploadedImage, uploadImage } from '../../api/images'
 import LayoutCardPass from '../../components/LayoutCard/LayoutCardPass'
 import LayoutCardPassVip from '../../components/LayoutCard/LayoutCardPassVip'
@@ -193,6 +194,14 @@ const TemplateEditor = () => {
 		window.addEventListener('beforeunload', warnBeforeUnload)
 		return () => window.removeEventListener('beforeunload', warnBeforeUnload)
 	}, [saved])
+
+	useEffect(() => {
+		const preserveUnsavedTemplates = () => {
+			if (!saved) saveTemplates(templates)
+		}
+		window.addEventListener(AUTH_EXPIRED_EVENT, preserveUnsavedTemplates)
+		return () => window.removeEventListener(AUTH_EXPIRED_EVENT, preserveUnsavedTemplates)
+	}, [saved, templates])
 
 	useEffect(() => {
 		const canvas = previewCanvasRef.current

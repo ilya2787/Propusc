@@ -2,8 +2,11 @@ import 'react-router'
 
 export const ROUTES = {
 	HOME: '/',
+	Login: '/Login',
 	Card: '/Card',
 	Templates: '/Templates',
+	Users: '/Users',
+	Audit: '/Audit',
 } as const
 
 export type PathParams = {

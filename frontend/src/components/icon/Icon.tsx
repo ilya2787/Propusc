@@ -2,6 +2,7 @@ import { AiFillPrinter } from 'react-icons/ai'
 import { BsPersonVcard } from 'react-icons/bs'
 import { CgDarkMode } from 'react-icons/cg'
 import { GoHome } from 'react-icons/go'
+import { HiOutlineClipboardDocumentList, HiOutlineUsers } from 'react-icons/hi2'
 import { HiDocumentDuplicate } from 'react-icons/hi2'
 import { IoCloseOutline, IoPencilOutline, IoSettingsOutline } from 'react-icons/io5'
 import {
@@ -21,6 +22,8 @@ export const ICON = {
 	CardPass: <BsPersonVcard />,
 	Home: <GoHome />,
 	Editor: <MdMovieEdit />,
+	Users: <HiOutlineUsers />,
+	Audit: <HiOutlineClipboardDocumentList />,
 	Upload: <PiUploadThin />,
 	AddCard: <MdOutlineAddCard />,
 	DeleteCard: <TiUserDelete />,

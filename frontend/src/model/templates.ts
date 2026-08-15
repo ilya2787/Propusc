@@ -1,3 +1,5 @@
+import { AUTH_EXPIRED_EVENT } from '../auth/AuthContext'
+
 export type TemplateKind = 'pass' | 'certificate'
 
 export type TemplateCardSize = {
@@ -268,7 +270,8 @@ const serverUrl = () => import.meta.env.VITE_APP_SERVER
 export const fetchTemplates = async (): Promise<PassTemplate[]> => {
 	const localTemplates = loadTemplates()
 	try {
-		const response = await fetch(`${serverUrl()}/Templates`)
+		const response = await fetch(`${serverUrl()}/Templates`, { credentials: 'include' })
+		if (response.status === 401) window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
 		if (!response.ok) throw new Error('Не удалось загрузить шаблоны')
 		const templates = await response.json() as PassTemplate[]
 		if (templates.length === 0) {
@@ -286,8 +289,10 @@ export const persistTemplates = async (templates: PassTemplate[]) => {
 	const response = await fetch(`${serverUrl()}/TemplatesSync`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
+		credentials: 'include',
 		body: JSON.stringify({ templates }),
 	})
+	if (response.status === 401) window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
 	if (!response.ok) {
 		const data = await response.json().catch(() => ({}))
 		throw new Error(data.message || 'Не удалось сохранить шаблоны')

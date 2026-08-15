@@ -11,6 +11,7 @@ import {
 import { useReactToPrint } from 'react-to-print'
 import { AppContext } from '../../App'
 import { deleteUploadedImage } from '../../api/images'
+import { recordPassEvent } from '../../api/audit'
 import { A4Sheet } from '../../components/A4Sheet/A4Sheet'
 import { ICON } from '../../components/icon/Icon'
 import ModalWindows from '../../components/ModalWindows/ModalWindows'
@@ -214,7 +215,10 @@ const CardAll = () => {
 	// Печать
 	const handlePrint = useReactToPrint({
 		content: () => printRef.current,
-		onAfterPrint: () => setPrintDialogClosed(true),
+		onAfterPrint: () => {
+			void recordPassEvent('pass.printed', SelectedTemplate.id, ListPrint.length)
+			setPrintDialogClosed(true)
+		},
 	})
 	const finishPrintAndCleanup = async () => {
 		await Promise.allSettled([...new Set(ListPrint.map(item => item.FilePhoto))].map(deleteUploadedImage))

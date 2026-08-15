@@ -3,8 +3,7 @@ import { notifications } from '@mantine/notifications'
 export const warning = () => {
 	notifications.show({
 		title: 'Внимание!',
-		message: `Создание шаблонов 
-		\n  пока не доступно`,
+		message: 'Создание шаблонов пока недоступно',
 		position: 'top-right',
 		autoClose: 5000,
 		color: 'orange',
@@ -14,7 +13,7 @@ export const warning = () => {
 export const warningListPrint = () => {
 	notifications.show({
 		title: 'Внимание!',
-		message: `Список для печати пуст`,
+		message: 'Список для печати пуст',
 		position: 'top-right',
 		autoClose: 5000,
 		color: 'orange',
@@ -24,7 +23,7 @@ export const warningListPrint = () => {
 export const ErrorAddCard = () => {
 	notifications.show({
 		title: 'Заполните обязательные поля',
-		message: `Заполните все необходимые поля`,
+		message: 'Заполните все необходимые поля',
 		position: 'top-right',
 		autoClose: 5000,
 		color: 'red',
@@ -44,7 +43,7 @@ export const AddCardPrint = () => {
 export const DeleteCard = () => {
 	notifications.show({
 		title: 'Удаление пропуска с печати',
-		message: `Пропуск успешно удален`,
+		message: 'Пропуск успешно удалён',
 		position: 'top-right',
 		autoClose: 5000,
 		color: 'red',
@@ -53,8 +52,8 @@ export const DeleteCard = () => {
 
 export const DeleteListCardNatification = () => {
 	notifications.show({
-		title: 'Отчистка списка',
-		message: `Список пропусков отчищен`,
+		title: 'Очистка списка',
+		message: 'Список пропусков очищен',
 		position: 'top-right',
 		autoClose: 5000,
 		color: 'red',
@@ -74,7 +73,7 @@ export const AddOrganizationBD = () => {
 export const AddPostBD = () => {
 	notifications.show({
 		title: 'Добавление записи',
-		message: 'должность успешно добавлена',
+		message: 'Должность успешно добавлена',
 		color: 'green',
 		position: 'top-right',
 		autoClose: 5000,

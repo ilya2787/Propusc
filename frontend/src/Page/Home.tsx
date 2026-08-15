@@ -3,8 +3,11 @@ import mascot from '../assets/pass-mascot-logo-v2.png'
 import { ICON } from '../components/icon/Icon'
 import { ROUTES } from '../model/routes'
 import './Home.scss'
+import { useAuth } from '../auth/AuthContext'
 
-const Home = () => (
+const Home = () => {
+	const { user } = useAuth()
+	return (
 	<main className='HomePage'>
 		<section className='HomePage__hero'>
 			<div className='HomePage__copy'>
@@ -28,13 +31,13 @@ const Home = () => (
 				<span><strong>Пропуска</strong><small>Заполнить данные и подготовить к печати</small></span>
 				<b aria-hidden='true'>→</b>
 			</Link>
-			<Link className='HomeAction' to={ROUTES.Templates}>
+			{user?.role === 'admin' && <Link className='HomeAction' to={ROUTES.Templates}>
 				<span className='HomeAction__icon HomeAction__icon--violet'>{ICON.Editor}</span>
 				<span><strong>Шаблон</strong><small>Изменить фон, логотип и вид карточки</small></span>
 				<b aria-hidden='true'>→</b>
-			</Link>
+			</Link>}
 		</section>
 	</main>
-)
+)}
 
 export default Home
