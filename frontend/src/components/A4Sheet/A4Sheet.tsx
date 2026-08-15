@@ -38,6 +38,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 									Patronymic={data.Patronymic}
 									NewDate={data.NewDate}
 									FilePhoto={data.FilePhoto}
+									QrKey={data.QrKey}
 									Print={true}
 									template={SelectedTemplate}
 								/>
@@ -56,6 +57,7 @@ export const A4Sheet = forwardRef<HTMLDivElement, Props>(
 									Patronymic={data.Patronymic}
 									NewDate={data.NewDate}
 									FilePhoto={data.FilePhoto}
+									QrKey={data.QrKey}
 									Print={true}
 									template={SelectedTemplate}
 								/>

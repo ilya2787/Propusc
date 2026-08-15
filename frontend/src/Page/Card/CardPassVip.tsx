@@ -1,4 +1,4 @@
-import { useContext, useState, type FC } from 'react'
+import { useContext, useEffect, useRef, useState, type FC } from 'react'
 import { AppContext } from '../../App'
 import { formatDate } from '../../components/FormatDate/FormatDate'
 import FrontForm from '../../components/FrontForm/FrontForm'
@@ -17,6 +17,7 @@ const CardPassVip: FC = () => {
 	const NewDate = AllContext.NewDate
 	const Number_Tabs = AllContext.Number_Tabs
 	const FilePhoto = AllContext.FilePhoto
+	const QrKey = AllContext.QrKey
 	const Organization = AllContext.Organization
 	const Post = AllContext.Post
 	const setFocusOrganization = AllContext.setFocusOrganization
@@ -25,7 +26,19 @@ const CardPassVip: FC = () => {
 	const setFocusPost = AllContext.setFocusPost
 	const SelectedTemplate = AllContext.SelectedTemplate
 	const [isBackVisible, setIsBackVisible] = useState(false)
+	const previewRef = useRef<HTMLDivElement>(null)
+	const [previewMaxWidth, setPreviewMaxWidth] = useState(514)
 	const backVisible = isBackVisible || FocusOrganization || FocusPost
+
+	useEffect(() => {
+		const container = previewRef.current
+		if (!container) return
+		const updatePreviewWidth = () => setPreviewMaxWidth(Math.min(514, Math.max(240, container.clientWidth - 32)))
+		updatePreviewWidth()
+		const observer = new ResizeObserver(updatePreviewWidth)
+		observer.observe(container)
+		return () => observer.disconnect()
+	}, [])
 
 	const rotationCard = () => {
 		setIsBackVisible(!backVisible)
@@ -40,7 +53,7 @@ const CardPassVip: FC = () => {
 				<FrontForm />
 				<div className='MainCard--content--Info--Preview' id={theme}>
 					<h2>Предпросмотр</h2>
-					<div className='MainCard--content--Info--Preview--content'>
+					<div ref={previewRef} className='MainCard--content--Info--Preview--content'>
 						<LayoutCardPassVip
 							Number_Tabs={Number_Tabs}
 							CurrentSingleOrganization={Organization}
@@ -50,8 +63,11 @@ const CardPassVip: FC = () => {
 							Patronymic={Patronymic}
 							NewDate={NewDate ? formatDate(NewDate) : ''}
 							FilePhoto={FilePhoto}
+							QrKey={QrKey}
 							Print={false}
 							template={SelectedTemplate}
+							previewMaxWidth={previewMaxWidth}
+							previewMaxHeight={363}
 							flipped={backVisible}
 						/>
 					</div>

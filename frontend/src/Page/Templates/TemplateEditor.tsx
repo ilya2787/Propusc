@@ -1,4 +1,5 @@
-import { useContext, useEffect, useMemo, useState, type PointerEvent } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useBlocker } from 'react-router'
 import { AppContext } from '../../App'
 import { deleteUploadedImage, uploadImage } from '../../api/images'
 import LayoutCardPass from '../../components/LayoutCard/LayoutCardPass'
@@ -20,8 +21,9 @@ import {
 	type TemplateElementLayout,
 	type TemplatePhotoSettings,
 	type TemplateTextStyle,
+	type TemplateCustomText,
 } from '../../model/templates'
-import { getCardDimensions } from '../../components/LayoutCard/cardDimensions'
+import { getA4PrintLayout, getCardDimensions } from '../../components/LayoutCard/cardDimensions'
 import './TemplateEditor.scss'
 
 const example = {
@@ -76,6 +78,54 @@ type CoordinateInputProps = {
 	onChange: (value: number) => void
 }
 
+type DraftNumberInputProps = {
+	value: number
+	min: number
+	max: number
+	step?: number
+	ariaLabel: string
+	onCommit: (value: number) => void
+}
+
+const DraftNumberInput = ({ value, min, max, step = 1, ariaLabel, onCommit }: DraftNumberInputProps) => {
+	const [draft, setDraft] = useState(String(value))
+	const [focused, setFocused] = useState(false)
+
+	const commit = () => {
+		const parsed = Number(draft.replace(',', '.'))
+		if (!Number.isFinite(parsed)) {
+			setDraft(String(value))
+			return
+		}
+		const nextValue = Math.min(max, Math.max(min, parsed))
+		setDraft(String(nextValue))
+		onCommit(nextValue)
+	}
+	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+		if (event.key === 'Enter') {
+			commit()
+			event.currentTarget.blur()
+		}
+		if (event.key === 'Escape') {
+			setDraft(String(value))
+			event.currentTarget.blur()
+		}
+	}
+
+	return <input
+		type='number'
+		min={min}
+		max={max}
+		step={step}
+		value={focused ? draft : String(value)}
+		onChange={event => setDraft(event.target.value)}
+		onFocus={() => { setDraft(String(value)); setFocused(true) }}
+		onBlur={() => { commit(); setFocused(false) }}
+		onKeyDown={handleKeyDown}
+		aria-label={ariaLabel}
+	/>
+}
+
 const CoordinateInput = ({ label, value, min, max, onChange }: CoordinateInputProps) => {
 	const setClampedValue = (nextValue: number) => {
 		if (Number.isFinite(nextValue)) onChange(Math.min(max, Math.max(min, nextValue)))
@@ -85,7 +135,7 @@ const CoordinateInput = ({ label, value, min, max, onChange }: CoordinateInputPr
 		<span>{label}</span>
 		<span className='TemplateEditor__numberInput TemplateEditor__coordinateNumber'>
 			<button type='button' onClick={() => setClampedValue(value - 1)} disabled={value <= min} aria-label={`Уменьшить: ${label}`}>−</button>
-			<span><input type='number' min={min} max={max} value={value} onChange={e => setClampedValue(Number(e.target.value))} aria-label={label} /></span>
+			<span><DraftNumberInput value={value} min={min} max={max} ariaLabel={label} onCommit={setClampedValue} /></span>
 			<button type='button' onClick={() => setClampedValue(value + 1)} disabled={value >= max} aria-label={`Увеличить: ${label}`}>+</button>
 		</span>
 	</div>
@@ -99,34 +149,71 @@ const TemplateEditor = () => {
 	const [editorSide, setEditorSide] = useState<'front' | 'back'>('front')
 	const [settingsTab, setSettingsTab] = useState<'main' | 'appearance' | 'layout'>('main')
 	const [selectedElement, setSelectedElement] = useState<TemplateElementKey>()
-	const [drag, setDrag] = useState<{ key: TemplateElementKey; pointerX: number; pointerY: number; x: number; y: number }>()
+	const [selectedCustomId, setSelectedCustomId] = useState<string>()
+	const [drag, setDrag] = useState<{ key?: TemplateElementKey; customId?: string; pointerX: number; pointerY: number; x: number; y: number }>()
 	const [backgroundError, setBackgroundError] = useState('')
 	const [previewPhoto, setPreviewPhoto] = useState('')
 	const [serverError, setServerError] = useState('')
 	const [isSaving, setIsSaving] = useState(false)
+	const undoHistory = useRef<PassTemplate[][]>([])
+	const redoHistory = useRef<PassTemplate[][]>([])
+	const skipHistory = useRef(false)
+	const dragSnapshot = useRef<PassTemplate[] | undefined>(undefined)
+	const previewCanvasRef = useRef<HTMLDivElement>(null)
+	const [previewMaxWidth, setPreviewMaxWidth] = useState(514)
+	const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false })
+	const navigationBlocker = useBlocker(!saved)
 	const selected = useMemo(
 		() => templates.find(template => template.id === selectedId) ?? templates[0],
 		[templates, selectedId],
 	)
 	const cardSize = selected.design.cardSize ?? DEFAULT_CARD_SIZE
-	const previewDimensions = getCardDimensions(selected, false)
+	const previewDimensions = getCardDimensions(selected, false, previewMaxWidth, 363)
+	const printLayout = getA4PrintLayout(selected, selected.kind)
+	const recordHistory = useCallback((snapshot: PassTemplate[]) => {
+		undoHistory.current.push(snapshot)
+		if (undoHistory.current.length > 50) undoHistory.current.shift()
+		redoHistory.current = []
+		setHistoryState({ canUndo: true, canRedo: false })
+	}, [])
 
 	useEffect(() => {
 		fetchTemplates().then(items => {
+			undoHistory.current = []
+			redoHistory.current = []
+			setHistoryState({ canUndo: false, canRedo: false })
 			setTemplates(items)
 			setSelectedId(current => items.some(item => item.id === current) ? current : items[0].id)
 		}).catch(() => setServerError('Не удалось загрузить шаблоны с сервера. Используется локальная копия.'))
 	}, [])
 
-	const update = (patch: Partial<PassTemplate>) => {
-		setSaved(false)
-		setTemplates(items =>
-			items.map(item => (item.id === selected.id ? { ...item, ...patch } : item)),
-		)
-	}
+	useEffect(() => {
+		if (saved) return
+		const warnBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault()
+		window.addEventListener('beforeunload', warnBeforeUnload)
+		return () => window.removeEventListener('beforeunload', warnBeforeUnload)
+	}, [saved])
 
-	const updateDesign = (patch: Partial<PassTemplate['design']>) =>
-		update({ design: { ...selected.design, ...patch } })
+	useEffect(() => {
+		const canvas = previewCanvasRef.current
+		if (!canvas) return
+		const updatePreviewWidth = () => setPreviewMaxWidth(Math.min(514, Math.max(240, canvas.clientWidth - 32)))
+		updatePreviewWidth()
+		const observer = new ResizeObserver(updatePreviewWidth)
+		observer.observe(canvas)
+		return () => observer.disconnect()
+	}, [])
+
+	const update = useCallback((patch: Partial<PassTemplate>) => {
+		setSaved(false)
+		setTemplates(items => {
+			if (!skipHistory.current) recordHistory(items)
+			return items.map(item => (item.id === selected.id ? { ...item, ...patch } : item))
+		})
+	}, [recordHistory, selected.id])
+
+	const updateDesign = useCallback((patch: Partial<PassTemplate['design']>) =>
+		update({ design: { ...selected.design, ...patch } }), [selected.design, update])
 	const updateFontSize = (field: keyof TemplateFontSizes, value: number) =>
 		updateDesign({
 			fontSizes: {
@@ -208,13 +295,37 @@ const TemplateEditor = () => {
 		: undefined
 	const selectedFontFields = selectedElement ? elementFontFields[selectedElement] ?? [] : []
 	const selectedTextStyle = selectedElement ? selected.design.textStyles?.[selectedElement] ?? {} : {}
+	const hasIndividualCorners = selectedTextStyle.borderTopLeftRadius !== undefined
 	const selectedFixedText = selectedElement && fixedTextElements.has(selectedElement)
 		? selected.design.fixedTexts?.[selectedElement] ?? DEFAULT_FIXED_TEXTS[selectedElement] ?? ''
 		: undefined
+	const toggleIndividualCorners = () => {
+		if (!selectedElement) return
+		if (hasIndividualCorners) {
+			updateTextStyle(selectedElement, {
+				borderRadius: selectedTextStyle.borderTopLeftRadius ?? selectedTextStyle.borderRadius ?? 0,
+				borderTopLeftRadius: undefined,
+				borderTopRightRadius: undefined,
+				borderBottomRightRadius: undefined,
+				borderBottomLeftRadius: undefined,
+			})
+			return
+		}
+		const radius = selectedTextStyle.borderRadius ?? 0
+		updateTextStyle(selectedElement, {
+			borderTopLeftRadius: radius,
+			borderTopRightRadius: radius,
+			borderBottomRightRadius: radius,
+			borderBottomLeftRadius: radius,
+		})
+	}
 	const selectedPhotoKey = selectedElement === 'passPhoto' || selectedElement === 'certificatePhoto' ? selectedElement : undefined
 	const selectedPhoto = selectedPhotoKey
 		? { ...DEFAULT_PHOTO_SETTINGS, ...selected.design.photos?.[selectedPhotoKey] }
 		: undefined
+	const currentCustomSide: TemplateCustomText['side'] = selected.kind === 'pass' ? 'pass' : editorSide
+	const currentCustomTexts = selected.design.customTexts?.filter(item => item.side === currentCustomSide) ?? []
+	const selectedCustomText = currentCustomTexts.find(item => item.id === selectedCustomId)
 	const directorElementKeys: TemplateElementKey[] = selected.kind === 'pass'
 		? ['passDirectorPost', 'passDirectorName']
 		: ['certificateDirectorPost', 'certificateDirectorName']
@@ -238,28 +349,119 @@ const TemplateEditor = () => {
 		}
 		updateDesign({ hiddenElements: [...hidden], showDirector })
 	}
-	const updateElement = (key: TemplateElementKey, patch: Partial<TemplateElementLayout>) => {
+	const updateElement = useCallback((key: TemplateElementKey, patch: Partial<TemplateElementLayout>) => {
 		const current = selected.design.elements?.[key] ?? DEFAULT_ELEMENT_LAYOUTS[key]
 		updateDesign({ elements: { ...selected.design.elements, [key]: { ...current, ...patch } } })
-	}
+	}, [selected.design.elements, updateDesign])
 	const updatePhoto = (key: 'passPhoto' | 'certificatePhoto', patch: Partial<TemplatePhotoSettings>) => {
 		const current = { ...DEFAULT_PHOTO_SETTINGS, ...selected.design.photos?.[key] }
 		updateDesign({ photos: { ...selected.design.photos, [key]: { ...current, ...patch } } })
 	}
+	const updateCustomText = useCallback((id: string, patch: Partial<TemplateCustomText>) =>
+		updateDesign({ customTexts: (selected.design.customTexts ?? []).map(item => item.id === id ? { ...item, ...patch } : item) }), [selected.design.customTexts, updateDesign])
 	const startElementDrag = (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => {
 		event.preventDefault()
 		event.currentTarget.setPointerCapture(event.pointerId)
+		dragSnapshot.current = templates
+		skipHistory.current = true
 		const current = selected.design.elements?.[key] ?? DEFAULT_ELEMENT_LAYOUTS[key]
 		setSelectedElement(key)
+		setSelectedCustomId(undefined)
 		setDrag({ key, pointerX: event.clientX, pointerY: event.clientY, x: current.x, y: current.y })
+	}
+	const startCustomTextDrag = (id: string, event: PointerEvent<HTMLElement>) => {
+		const current = selected.design.customTexts?.find(item => item.id === id)
+		if (!current) return
+		event.preventDefault()
+		event.currentTarget.setPointerCapture(event.pointerId)
+		dragSnapshot.current = templates
+		skipHistory.current = true
+		setSelectedElement(undefined)
+		setSelectedCustomId(id)
+		setDrag({ customId: id, pointerX: event.clientX, pointerY: event.clientY, x: current.layout.x, y: current.layout.y })
 	}
 	const moveElement = (event: PointerEvent<HTMLDivElement>) => {
 		if (!drag) return
-		updateElement(drag.key, {
+		if (dragSnapshot.current) {
+			recordHistory(dragSnapshot.current)
+			dragSnapshot.current = undefined
+		}
+		const position = {
 			x: Math.round(Math.min(514, Math.max(0, drag.x + (event.clientX - drag.pointerX) / previewDimensions.scaleX))),
 			y: Math.round(Math.min(363, Math.max(0, drag.y + (event.clientY - drag.pointerY) / previewDimensions.scaleY))),
-		})
+		}
+		if (drag.key) updateElement(drag.key, position)
+		if (drag.customId) {
+			const current = selected.design.customTexts?.find(item => item.id === drag.customId)
+			if (current) updateCustomText(drag.customId, { layout: { ...current.layout, ...position } })
+		}
 	}
+	const finishElementDrag = () => {
+		dragSnapshot.current = undefined
+		skipHistory.current = false
+		setDrag(undefined)
+	}
+	const createCustomText = () => {
+		const item: TemplateCustomText = { id: `text-${Date.now()}`, text: 'Новый текст', side: currentCustomSide, layout: { x: 120, y: 120, width: 220, align: 'center', zIndex: 1 }, fontSize: 20, lineHeight: 1.2, style: { color: '#111111' } }
+		updateDesign({ customTexts: [...(selected.design.customTexts ?? []), item] })
+		setSelectedElement(undefined)
+		setSelectedCustomId(item.id)
+	}
+	const duplicateCustomText = (source: TemplateCustomText) => {
+		const existingIds = new Set((selected.design.customTexts ?? []).map(item => item.id))
+		let copyNumber = 1
+		let copyId = `${source.id}-copy-${copyNumber}`
+		while (existingIds.has(copyId)) copyId = `${source.id}-copy-${++copyNumber}`
+		const item: TemplateCustomText = {
+			...source,
+			id: copyId,
+			text: `${source.text} — копия`,
+			layout: { ...source.layout, x: Math.min(514 - source.layout.width, source.layout.x + 16), y: Math.min(363, source.layout.y + 16), zIndex: Math.min(100, (source.layout.zIndex ?? 0) + 1) },
+			style: source.style ? { ...source.style } : undefined,
+		}
+		updateDesign({ customTexts: [...(selected.design.customTexts ?? []), item] })
+		setSelectedElement(undefined)
+		setSelectedCustomId(item.id)
+	}
+	const removeCustomText = (id: string) => {
+		updateDesign({ customTexts: (selected.design.customTexts ?? []).filter(item => item.id !== id) })
+		setSelectedCustomId(undefined)
+	}
+
+	useEffect(() => {
+		const handleEditorKeyDown = (event: globalThis.KeyboardEvent) => {
+			const target = event.target as HTMLElement | null
+			if (target?.closest('input, textarea, select, button, [contenteditable="true"]')) return
+			if (!selectedElement && !selectedCustomText) return
+			const isArrow = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)
+			if (!isArrow) return
+
+			if ((event.ctrlKey || event.metaKey) && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+				event.preventDefault()
+				const direction = event.key === 'ArrowUp' ? 1 : -1
+				if (selectedElement && selectedLayout) updateElement(selectedElement, { zIndex: Math.min(100, Math.max(0, (selectedLayout.zIndex ?? 0) + direction)) })
+				if (selectedCustomText) updateCustomText(selectedCustomText.id, { layout: { ...selectedCustomText.layout, zIndex: Math.min(100, Math.max(0, (selectedCustomText.layout.zIndex ?? 0) + direction)) } })
+				return
+			}
+
+			event.preventDefault()
+			const step = event.shiftKey ? 10 : 1
+			const move = (layout: TemplateElementLayout) => {
+				const width = layout.width ?? 0
+				const height = layout.height ?? 0
+				const dx = event.key === 'ArrowLeft' ? -step : event.key === 'ArrowRight' ? step : 0
+				const dy = event.key === 'ArrowUp' ? -step : event.key === 'ArrowDown' ? step : 0
+				return {
+					x: Math.min(Math.max(0, 514 - width), Math.max(0, layout.x + dx)),
+					y: Math.min(Math.max(0, 363 - height), Math.max(0, layout.y + dy)),
+				}
+			}
+			if (selectedElement && selectedLayout) updateElement(selectedElement, move(selectedLayout))
+			if (selectedCustomText) updateCustomText(selectedCustomText.id, { layout: { ...selectedCustomText.layout, ...move(selectedCustomText.layout) } })
+		}
+		window.addEventListener('keydown', handleEditorKeyDown)
+		return () => window.removeEventListener('keydown', handleEditorKeyDown)
+	}, [selectedElement, selectedLayout, selectedCustomText, updateCustomText, updateElement])
 
 	const createTemplate = () => {
 		const copy: PassTemplate = {
@@ -270,6 +472,7 @@ const TemplateEditor = () => {
 			design: { ...selected.design },
 		}
 		const next = [...templates, copy]
+		recordHistory(templates)
 		setTemplates(next)
 		setSelectedId(copy.id)
 		setSaved(false)
@@ -278,19 +481,19 @@ const TemplateEditor = () => {
 	const removeTemplate = () => {
 		if (selected.isBuiltIn) return
 		const next = templates.filter(item => item.id !== selected.id)
+		recordHistory(templates)
 		setTemplates(next)
 		setSelectedId(next[0].id)
-		void persistTemplates(next).catch(error => setServerError(error.message))
-		setSaved(true)
+		setSaved(false)
 	}
 
 	const resetBuiltIns = () => {
 		const custom = templates.filter(item => !item.isBuiltIn)
 		const next = [...DEFAULT_TEMPLATES, ...custom]
+		recordHistory(templates)
 		setTemplates(next)
-		setSelectedId(DEFAULT_TEMPLATES[0].id)
-		void persistTemplates(next).catch(error => setServerError(error.message))
-		setSaved(true)
+		setSelectedId(current => next.some(item => item.id === current) ? current : DEFAULT_TEMPLATES[0].id)
+		setSaved(false)
 	}
 	const saveAllTemplates = async () => {
 		setIsSaving(true)
@@ -298,16 +501,65 @@ const TemplateEditor = () => {
 		try {
 			await persistTemplates(templates)
 			setSaved(true)
+			return true
 		} catch (error) {
 			saveTemplates(templates)
 			setServerError(error instanceof Error ? error.message : 'Не удалось сохранить шаблоны')
+			return false
 		} finally {
 			setIsSaving(false)
 		}
 	}
+	const saveAndLeave = async () => {
+		if (await saveAllTemplates()) navigationBlocker.proceed?.()
+	}
+	const undo = useCallback(() => {
+		const previous = undoHistory.current.pop()
+		if (!previous) return
+		redoHistory.current.push(templates)
+		setTemplates(previous)
+		setSelectedId(current => previous.some(item => item.id === current) ? current : previous[0].id)
+		setSaved(false)
+		setHistoryState({ canUndo: undoHistory.current.length > 0, canRedo: true })
+	}, [templates])
+	const redo = useCallback(() => {
+		const next = redoHistory.current.pop()
+		if (!next) return
+		undoHistory.current.push(templates)
+		setTemplates(next)
+		setSelectedId(current => next.some(item => item.id === current) ? current : next[0].id)
+		setSaved(false)
+		setHistoryState({ canUndo: true, canRedo: redoHistory.current.length > 0 })
+	}, [templates])
+
+	useEffect(() => {
+		const handleHistoryShortcut = (event: globalThis.KeyboardEvent) => {
+			const target = event.target as HTMLElement | null
+			if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+			if (!(event.ctrlKey || event.metaKey)) return
+			const key = event.key.toLowerCase()
+			if (key !== 'z' && key !== 'y') return
+			event.preventDefault()
+			if (key === 'y' || event.shiftKey) redo()
+			else undo()
+		}
+		window.addEventListener('keydown', handleHistoryShortcut)
+		return () => window.removeEventListener('keydown', handleHistoryShortcut)
+	}, [redo, undo])
 
 	return (
 		<main className='TemplateEditor' id={theme}>
+			{navigationBlocker.state === 'blocked' && <div className='TemplateEditor__leaveOverlay' role='presentation'>
+				<div className='TemplateEditor__leaveDialog' role='dialog' aria-modal='true' aria-labelledby='leave-dialog-title'>
+					<h2 id='leave-dialog-title'>Сохранить изменения?</h2>
+					<p>В шаблонах есть несохранённые изменения. Сохранить их перед переходом?</p>
+					<div>
+						<button type='button' className='secondary' onClick={() => navigationBlocker.reset?.()} disabled={isSaving}>Отмена</button>
+						<button type='button' className='danger' onClick={() => navigationBlocker.proceed?.()} disabled={isSaving}>Не сохранять</button>
+						<button type='button' className='primary' onClick={saveAndLeave} disabled={isSaving}>{isSaving ? 'Сохранение…' : 'Сохранить'}</button>
+					</div>
+				</div>
+			</div>}
 			<header className='TemplateEditor__header'>
 				<div>
 					<p className='TemplateEditor__eyebrow'>Конструктор</p>
@@ -369,12 +621,12 @@ const TemplateEditor = () => {
 						<div className='TemplateEditor__sizeSettings'>
 							<h3>Физический размер</h3>
 							<div className='TemplateEditor__row'>
-								<div className='TemplateEditor__sizeField'><span>Ширина</span><div className='TemplateEditor__numberInput TemplateEditor__sizeNumber'><button type='button' onClick={() => updateCardSize('widthMm', cardSize.widthMm - 1)} disabled={cardSize.widthMm <= 30} aria-label='Уменьшить ширину'>−</button><span><input type='number' min='30' max='180' step='.1' value={cardSize.widthMm} onChange={e => updateCardSize('widthMm', Number(e.target.value))} aria-label='Ширина пропуска в миллиметрах' /><small>мм</small></span><button type='button' onClick={() => updateCardSize('widthMm', cardSize.widthMm + 1)} disabled={cardSize.widthMm >= 180} aria-label='Увеличить ширину'>+</button></div></div>
-								<div className='TemplateEditor__sizeField'><span>Высота</span><div className='TemplateEditor__numberInput TemplateEditor__sizeNumber'><button type='button' onClick={() => updateCardSize('heightMm', cardSize.heightMm - 1)} disabled={cardSize.heightMm <= 20} aria-label='Уменьшить высоту'>−</button><span><input type='number' min='20' max='250' step='.1' value={cardSize.heightMm} onChange={e => updateCardSize('heightMm', Number(e.target.value))} aria-label='Высота пропуска в миллиметрах' /><small>мм</small></span><button type='button' onClick={() => updateCardSize('heightMm', cardSize.heightMm + 1)} disabled={cardSize.heightMm >= 250} aria-label='Увеличить высоту'>+</button></div></div>
+								<div className='TemplateEditor__sizeField'><span>Ширина</span><div className='TemplateEditor__numberInput TemplateEditor__sizeNumber'><button type='button' onClick={() => updateCardSize('widthMm', cardSize.widthMm - 1)} disabled={cardSize.widthMm <= 30} aria-label='Уменьшить ширину'>−</button><span><DraftNumberInput value={cardSize.widthMm} min={30} max={180} step={0.1} onCommit={value => updateCardSize('widthMm', value)} ariaLabel='Ширина пропуска в миллиметрах' /><small>мм</small></span><button type='button' onClick={() => updateCardSize('widthMm', cardSize.widthMm + 1)} disabled={cardSize.widthMm >= 180} aria-label='Увеличить ширину'>+</button></div></div>
+								<div className='TemplateEditor__sizeField'><span>Высота</span><div className='TemplateEditor__numberInput TemplateEditor__sizeNumber'><button type='button' onClick={() => updateCardSize('heightMm', cardSize.heightMm - 1)} disabled={cardSize.heightMm <= 20} aria-label='Уменьшить высоту'>−</button><span><DraftNumberInput value={cardSize.heightMm} min={20} max={250} step={0.1} onCommit={value => updateCardSize('heightMm', value)} ariaLabel='Высота пропуска в миллиметрах' /><small>мм</small></span><button type='button' onClick={() => updateCardSize('heightMm', cardSize.heightMm + 1)} disabled={cardSize.heightMm >= 250} aria-label='Увеличить высоту'>+</button></div></div>
 							</div>
 							<button type='button' className='TemplateEditor__sizePreset TemplateEditor__resetButton' onClick={() => updateDesign({ cardSize: { ...DEFAULT_CARD_SIZE } })}><span aria-hidden='true'>↺</span> Стандартный размер 70 × 48 мм</button>
 							<p className='TemplateEditor__hint'>В предпросмотре размер автоматически масштабируется. Значения в миллиметрах применяются без масштабирования только при печати.</p>
-							{selected.kind === 'certificate' && cardSize.widthMm * 2 + 3 > 190 && <p className='TemplateEditor__error'>Две стороны удостоверения шириной {cardSize.widthMm} мм не помещаются рядом в печатную область A4.</p>}
+							{!printLayout.fits && <p className='TemplateEditor__error'>Размер {printLayout.itemWidthMm} × {printLayout.itemHeightMm} мм с учётом двух сторон удостоверения не помещается в печатную область A4.</p>}
 						</div>
 						<div className='TemplateEditor__danger'><button onClick={resetBuiltIns}>Сбросить стандартные</button>{!selected.isBuiltIn && <button onClick={removeTemplate}>Удалить шаблон</button>}</div>
 					</div>}
@@ -383,20 +635,15 @@ const TemplateEditor = () => {
 					{selected.kind === 'pass' && <>
 						<label>Фон<select value={selected.design.background} onChange={e => updateDesign({ background: e.target.value as PassTemplate['design']['background'] })}><option value='flag'>Флаг</option><option value='emblem'>Герб</option></select></label>
 						<div className='TemplateEditor__backgroundUpload'><span>Собственное изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'pass')} />Выбрать файл</label>{selected.design.backgroundImage && <><small>{selected.design.backgroundImageName}</small><button onClick={() => clearBackground('pass')}>Удалить фон</button></>}</div>
-						<label>Цвет основного текста<input type='color' value={selected.design.textColor ?? '#111111'} onChange={e => updateDesign({ textColor: e.target.value })} /></label>
-						<div className='TemplateEditor__row'><label>Цвет полосы<input type='color' value={selected.design.accentColor} onChange={e => updateDesign({ accentColor: e.target.value })} /></label><label>Цвет заголовка<input type='color' value={selected.design.titleColor} onChange={e => updateDesign({ titleColor: e.target.value })} /></label></div>
 						<label className='TemplateEditor__check'><input type='checkbox' checked={selected.design.showDirector} onChange={e => updateDesign({ showDirector: e.target.checked })} />Показывать подпись руководителя</label>
 					</>}
 					{selected.kind === 'certificate' && editorSide === 'front' && <>
 						<label>Фон лицевой стороны<select value={selected.design.frontBackground ?? selected.design.background} onChange={e => updateDesign({ frontBackground: e.target.value as PassTemplate['design']['background'] })}><option value='flag'>Флаг</option><option value='emblem'>Герб</option></select></label>
 						<div className='TemplateEditor__backgroundUpload'><span>Собственное изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'front')} />Выбрать файл</label>{selected.design.frontBackgroundImage && <><small>{selected.design.frontBackgroundImageName}</small><button onClick={() => clearBackground('front')}>Удалить фон</button></>}</div>
-						<label>Цвет текста лицевой стороны<input type='color' value={selected.design.frontTextColor ?? '#111111'} onChange={e => updateDesign({ frontTextColor: e.target.value })} /></label>
-						<div className='TemplateEditor__row'><label>Акцентный цвет<input type='color' value={selected.design.accentColor} onChange={e => updateDesign({ accentColor: e.target.value })} /></label><label>Цвет заголовка<input type='color' value={selected.design.titleColor} onChange={e => updateDesign({ titleColor: e.target.value })} /></label></div>
 					</>}
 					{selected.kind === 'certificate' && editorSide === 'back' && <>
 						<label>Фон оборотной стороны<select value={selected.design.backBackground ?? 'emblem'} onChange={e => updateDesign({ backBackground: e.target.value as PassTemplate['design']['background'] })}><option value='flag'>Флаг</option><option value='emblem'>Герб</option></select></label>
 						<div className='TemplateEditor__backgroundUpload'><span>Собственное изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'back')} />Выбрать файл</label>{selected.design.backBackgroundImage && <><small>{selected.design.backBackgroundImageName}</small><button onClick={() => clearBackground('back')}>Удалить фон</button></>}</div>
-						<label>Цвет текста оборотной стороны<input type='color' value={selected.design.backTextColor ?? '#111111'} onChange={e => updateDesign({ backTextColor: e.target.value })} /></label>
 						<label className='TemplateEditor__check'><input type='checkbox' checked={selected.design.showDirector} onChange={e => updateDesign({ showDirector: e.target.checked })} />Показывать подпись руководителя</label>
 					</>}
 					<label>Шрифт<select value={selected.design.fontFamily} onChange={e => updateDesign({ fontFamily: e.target.value })}><option value='Times New Roman'>Times New Roman</option><option value='Arial'>Arial</option><option value='Georgia'>Georgia</option></select></label>
@@ -407,50 +654,109 @@ const TemplateEditor = () => {
 					<div className='TemplateEditor__elementSettings'>
 						<h3>Расположение элементов</h3>
 						<div className='TemplateEditor__fieldVisibility'><h4>Поля на пропуске</h4>{availableElements.map(key => <label key={key}><span>{elementLabels[key]}</span><input type='checkbox' checked={isElementVisible(key)} onChange={() => toggleElementVisibility(key)} /><i aria-hidden='true'></i></label>)}</div>
-						<label>Выбранный блок<select value={selectedElement && availableElements.includes(selectedElement) ? selectedElement : ''} onChange={e => setSelectedElement(e.target.value as TemplateElementKey || undefined)}><option value=''>Выберите на макете…</option>{availableElements.map(key => <option key={key} value={key}>{elementLabels[key]}{isElementVisible(key) ? '' : ' (скрыто)'}</option>)}</select></label>
+						<label>Выбранный блок<select value={selectedElement && availableElements.includes(selectedElement) ? selectedElement : ''} onChange={e => { setSelectedElement(e.target.value as TemplateElementKey || undefined); setSelectedCustomId(undefined); e.currentTarget.blur() }}><option value=''>Выберите на макете…</option>{availableElements.map(key => <option key={key} value={key}>{elementLabels[key]}{isElementVisible(key) ? '' : ' (скрыто)'}</option>)}</select></label>
+						{(selectedElement || selectedCustomText) && <div className='TemplateEditor__keyboardHint'><strong>Точное перемещение</strong><span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> на 1 px</span><span><kbd>Shift</kbd> + стрелки на 10 px</span><span><kbd>Ctrl/⌘</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd> выше или ниже</span></div>}
+						<button type='button' className='TemplateEditor__addTextButton' onClick={createCustomText}>＋ Добавить текстовый блок</button>
+						{currentCustomTexts.length > 0 && <div className='TemplateEditor__customTextList'><h4>Добавленные блоки</h4>{currentCustomTexts.map((item, index) => <div key={item.id} className={`TemplateEditor__customTextListItem ${selectedCustomId === item.id ? 'active' : ''}`}><button type='button' className='TemplateEditor__customTextSelect' onClick={event => { setSelectedElement(undefined); setSelectedCustomId(item.id); event.currentTarget.blur() }}><span>{index + 1}</span><div><strong>{item.text || 'Без текста'}</strong><small>{item.layout.x} × {item.layout.y}px</small></div></button><div className='TemplateEditor__customTextQuickActions'><button type='button' onClick={() => duplicateCustomText(item)} title='Дублировать блок' aria-label={`Дублировать блок «${item.text || 'Без текста'}»`}>⧉</button><button type='button' className='danger' onClick={() => removeCustomText(item.id)} title='Удалить блок' aria-label={`Удалить блок «${item.text || 'Без текста'}»`}>×</button></div></div>)}</div>}
 						{selectedLayout && availableElements.includes(selectedElement!) && <>
-							{selectedFixedText !== undefined && <div className='TemplateEditor__fixedTextSettings'>
-								<h3>Текст блока</h3>
+							{selectedFixedText !== undefined && <details className='TemplateEditor__settingsGroup' open>
+								<summary>Содержимое</summary><div className='TemplateEditor__settingsGroupBody TemplateEditor__fixedTextSettings'>
 								<label>Содержимое<textarea value={selectedFixedText} rows={3} onChange={e => updateFixedText(selectedElement!, e.target.value)} /></label>
 								<button type='button' className='TemplateEditor__resetButton' onClick={() => updateFixedText(selectedElement!, DEFAULT_FIXED_TEXTS[selectedElement!] ?? '')}><span aria-hidden='true'>↺</span> Вернуть исходный текст</button>
-							</div>}
-							{selectedPhotoKey && selectedPhoto && <div className='TemplateEditor__photoSettings'>
-								<h3>Настройки фотографии</h3>
-								<label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => selectPreviewPhoto(e.target.files?.[0])} />{previewPhoto ? 'Заменить тестовое фото' : 'Выбрать тестовое фото'}</label>
-								<label>Высота рамки: {selectedPhoto.height}px<input type='range' min='60' max='300' value={selectedPhoto.height} onChange={e => updatePhoto(selectedPhotoKey, { height: Number(e.target.value) })} /></label>
-								<label>Заполнение<select value={selectedPhoto.fit} onChange={e => updatePhoto(selectedPhotoKey, { fit: e.target.value as TemplatePhotoSettings['fit'] })}><option value='cover'>Заполнить рамку</option><option value='contain'>Показать полностью</option></select></label>
-								<label>Масштаб: {selectedPhoto.scale}%<input type='range' min='50' max='200' value={selectedPhoto.scale} onChange={e => updatePhoto(selectedPhotoKey, { scale: Number(e.target.value) })} /></label>
-								<div className='TemplateEditor__row'><label>Позиция X: {selectedPhoto.positionX}%<input type='range' min='0' max='100' value={selectedPhoto.positionX} onChange={e => updatePhoto(selectedPhotoKey, { positionX: Number(e.target.value) })} /></label><label>Позиция Y: {selectedPhoto.positionY}%<input type='range' min='0' max='100' value={selectedPhoto.positionY} onChange={e => updatePhoto(selectedPhotoKey, { positionY: Number(e.target.value) })} /></label></div>
+								</div></details>}
+							{selectedPhotoKey && selectedPhoto && <details className='TemplateEditor__settingsGroup' open>
+								<summary>Фотография</summary><div className='TemplateEditor__settingsGroupBody TemplateEditor__photoSettings'>
+								<label>Содержимое блока<select value={selectedPhoto.mode} onChange={e => updatePhoto(selectedPhotoKey, { mode: e.target.value as TemplatePhotoSettings['mode'] })}><option value='photo'>Фотография</option><option value='qr'>QR-код с ключом</option></select></label>
+								{selectedPhoto.mode === 'photo' ? <>
+									<label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => selectPreviewPhoto(e.target.files?.[0])} />{previewPhoto ? 'Заменить тестовое фото' : 'Выбрать тестовое фото'}</label>
+									<label>Заполнение<select value={selectedPhoto.fit} onChange={e => updatePhoto(selectedPhotoKey, { fit: e.target.value as TemplatePhotoSettings['fit'] })}><option value='cover'>Заполнить рамку</option><option value='contain'>Показать полностью</option></select></label>
+									<label>Масштаб: {selectedPhoto.scale}%<input type='range' min='50' max='200' value={selectedPhoto.scale} onChange={e => updatePhoto(selectedPhotoKey, { scale: Number(e.target.value) })} /></label>
+									<div className='TemplateEditor__row'><label>Позиция X: {selectedPhoto.positionX}%<input type='range' min='0' max='100' value={selectedPhoto.positionX} onChange={e => updatePhoto(selectedPhotoKey, { positionX: Number(e.target.value) })} /></label><label>Позиция Y: {selectedPhoto.positionY}%<input type='range' min='0' max='100' value={selectedPhoto.positionY} onChange={e => updatePhoto(selectedPhotoKey, { positionY: Number(e.target.value) })} /></label></div>
+									</> : <div className='TemplateEditor__qrSettings'>
+									<p className='TemplateEditor__hint'>Для настройки внешнего вида используется тестовое значение <strong>ТЕСТОВЫЙ-QR-КЛЮЧ</strong>. Настоящий ключ вводится при заполнении пропуска.</p>
+									<div className='TemplateEditor__row'><div className='TemplateEditor__colorField'><span>Цвет кода</span><input type='color' value={selectedPhoto.qrDarkColor} onChange={e => updatePhoto(selectedPhotoKey, { qrDarkColor: e.target.value })} aria-label='Цвет QR-кода' /></div><div className='TemplateEditor__colorField'><span>Цвет фона QR</span><input type='color' value={selectedPhoto.qrLightColor} onChange={e => updatePhoto(selectedPhotoKey, { qrLightColor: e.target.value })} aria-label='Цвет фона QR-кода' /></div></div>
+								</div>}
 								<label>Скругление рамки: {selectedPhoto.borderRadius}px<input type='range' min='0' max='40' value={selectedPhoto.borderRadius} onChange={e => updatePhoto(selectedPhotoKey, { borderRadius: Number(e.target.value) })} /></label>
-							</div>}
-							{selectedFontFields.length > 0 && <div className='TemplateEditor__fontSizes TemplateEditor__selectedFontSizes'>
-								<h3>Параметры выбранного текста</h3>
+								</div></details>}
+							{selectedFontFields.length > 0 && <details className='TemplateEditor__settingsGroup' open>
+								<summary>Текст и оформление</summary><div className='TemplateEditor__settingsGroupBody TemplateEditor__fontSizes TemplateEditor__selectedFontSizes'>
+								<h4 className='TemplateEditor__optionGroupTitle TemplateEditor__typographyTitle'>Текст</h4>
 								<div className='TemplateEditor__textToolbar'>
-									<label>Цвет<input type='color' value={selectedTextStyle.color ?? '#111111'} onChange={e => updateTextStyle(selectedElement!, { color: e.target.value })} /></label>
+									<div className='TemplateEditor__colorField'><span>Цвет текста</span><input type='color' value={selectedTextStyle.color ?? '#111111'} onChange={e => updateTextStyle(selectedElement!, { color: e.target.value })} aria-label='Выбрать цвет текста' /></div>
 									<div className='TemplateEditor__formatButtons' aria-label='Начертание текста'>
 										<button type='button' className={(selectedTextStyle.fontWeight ?? 400) >= 700 ? 'active' : ''} onClick={() => updateTextStyle(selectedElement!, { fontWeight: (selectedTextStyle.fontWeight ?? 400) >= 700 ? 400 : 700 })} aria-pressed={(selectedTextStyle.fontWeight ?? 400) >= 700}><strong>Ж</strong></button>
 										<button type='button' className={selectedTextStyle.fontStyle === 'italic' ? 'active' : ''} onClick={() => updateTextStyle(selectedElement!, { fontStyle: selectedTextStyle.fontStyle === 'italic' ? 'normal' : 'italic' })} aria-pressed={selectedTextStyle.fontStyle === 'italic'}><em>К</em></button>
 									</div>
 								</div>
-								<label>Регистр<select value={selectedTextStyle.textTransform ?? 'none'} onChange={e => updateTextStyle(selectedElement!, { textTransform: e.target.value as TemplateTextStyle['textTransform'] })}><option value='none'>Как введено</option><option value='uppercase'>ПРОПИСНЫЕ</option><option value='lowercase'>строчные</option></select></label>
-								<label>Межбуквенный интервал: {selectedTextStyle.letterSpacing ?? 0}px<input type='range' min='-2' max='8' step='.1' value={selectedTextStyle.letterSpacing ?? 0} onChange={e => updateTextStyle(selectedElement!, { letterSpacing: Number(e.target.value) })} /></label>
+								<h4 className='TemplateEditor__optionGroupTitle TemplateEditor__blockTitle'>Блок</h4>
+								<div className='TemplateEditor__fillSettings'>
+									<div className='TemplateEditor__colorField'><span>Заливка блока</span><input type='color' value={selectedTextStyle.backgroundColor ?? '#ffffff'} onChange={e => updateTextStyle(selectedElement!, { backgroundColor: e.target.value })} aria-label='Выбрать цвет заливки блока' /></div>
+									{selectedTextStyle.backgroundColor
+										? <button type='button' onClick={() => updateTextStyle(selectedElement!, { backgroundColor: undefined })}>Убрать заливку</button>
+										: <button type='button' onClick={() => updateTextStyle(selectedElement!, { backgroundColor: '#ffffff' })}>Добавить заливку</button>}
+								</div>
+								<label className='TemplateEditor__fillOpacity'>Прозрачность заливки: {Math.round((selectedTextStyle.backgroundOpacity ?? 1) * 100)}%<input type='range' min='0' max='1' step='.05' value={selectedTextStyle.backgroundOpacity ?? 1} disabled={!selectedTextStyle.backgroundColor} onChange={e => updateTextStyle(selectedElement!, { backgroundOpacity: Number(e.target.value) })} /></label>
+								<label className='TemplateEditor__blockPadding'>Внутренний отступ: {selectedTextStyle.padding ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.padding ?? 0} onChange={e => updateTextStyle(selectedElement!, { padding: Number(e.target.value) })} /></label>
+								<div className='TemplateEditor__cornerSettings'>
+									<div className='TemplateEditor__cornerMode'><span>Скругление углов</span><button type='button' className={!hasIndividualCorners ? 'active' : ''} onClick={() => hasIndividualCorners && toggleIndividualCorners()}>Все вместе</button><button type='button' className={hasIndividualCorners ? 'active' : ''} onClick={() => !hasIndividualCorners && toggleIndividualCorners()}>По отдельности</button></div>
+									{!hasIndividualCorners
+										? <label>Все углы: {selectedTextStyle.borderRadius ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.borderRadius ?? 0} onChange={e => updateTextStyle(selectedElement!, { borderRadius: Number(e.target.value) })} /></label>
+										: <div className='TemplateEditor__cornerGrid'>
+											<label>Верхний левый: {selectedTextStyle.borderTopLeftRadius ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.borderTopLeftRadius ?? 0} onChange={e => updateTextStyle(selectedElement!, { borderTopLeftRadius: Number(e.target.value) })} /></label>
+											<label>Верхний правый: {selectedTextStyle.borderTopRightRadius ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.borderTopRightRadius ?? 0} onChange={e => updateTextStyle(selectedElement!, { borderTopRightRadius: Number(e.target.value) })} /></label>
+											<label>Нижний левый: {selectedTextStyle.borderBottomLeftRadius ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.borderBottomLeftRadius ?? 0} onChange={e => updateTextStyle(selectedElement!, { borderBottomLeftRadius: Number(e.target.value) })} /></label>
+											<label>Нижний правый: {selectedTextStyle.borderBottomRightRadius ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.borderBottomRightRadius ?? 0} onChange={e => updateTextStyle(selectedElement!, { borderBottomRightRadius: Number(e.target.value) })} /></label>
+										</div>}
+								</div>
+								<label className='TemplateEditor__blockOpacity'>Прозрачность блока: {Math.round((selectedTextStyle.opacity ?? 1) * 100)}%<input type='range' min='.1' max='1' step='.05' value={selectedTextStyle.opacity ?? 1} onChange={e => updateTextStyle(selectedElement!, { opacity: Number(e.target.value) })} /></label>
+								<label className='TemplateEditor__textTransform'>Регистр<select value={selectedTextStyle.textTransform ?? 'none'} onChange={e => updateTextStyle(selectedElement!, { textTransform: e.target.value as TemplateTextStyle['textTransform'] })}><option value='none'>Как введено</option><option value='uppercase'>ПРОПИСНЫЕ</option><option value='lowercase'>строчные</option></select></label>
+								<label className='TemplateEditor__letterSpacing'>Межбуквенный интервал: {selectedTextStyle.letterSpacing ?? 0}px<input type='range' min='-2' max='8' step='.1' value={selectedTextStyle.letterSpacing ?? 0} onChange={e => updateTextStyle(selectedElement!, { letterSpacing: Number(e.target.value) })} /></label>
+								<label className='TemplateEditor__textRotation'>Поворот текста<span><input type='range' min='-180' max='180' value={selectedTextStyle.rotation ?? 0} onChange={e => updateTextStyle(selectedElement!, { rotation: Number(e.target.value) })} /><span className='TemplateEditor__rotationNumber'><DraftNumberInput value={selectedTextStyle.rotation ?? 0} min={-180} max={180} ariaLabel='Угол поворота текста' onCommit={value => updateTextStyle(selectedElement!, { rotation: value })} /><small>°</small></span></span></label>
 								{selectedFontFields.map(([field, label]) => {
 									const value = selected.design.fontSizes?.[field] ?? DEFAULT_FONT_SIZES[field]
 									const lineHeight = selected.design.lineHeights?.[field] ?? 1.2
 									return <div className='TemplateEditor__textFieldSettings' key={field}>
-										<label>{label}<span><input type='range' min='8' max='42' value={value} onChange={e => updateFontSize(field, Number(e.target.value))} /><span className='TemplateEditor__numberInput'><button type='button' onClick={() => updateFontSize(field, normalizeFontSize(value - 1))} disabled={value <= 8} aria-label={`Уменьшить размер: ${label}`}>−</button><span><input type='number' min='8' max='42' value={value} onChange={e => updateFontSize(field, normalizeFontSize(Number(e.target.value)))} aria-label={`Размер шрифта: ${label}`} /><small>px</small></span><button type='button' onClick={() => updateFontSize(field, normalizeFontSize(value + 1))} disabled={value >= 42} aria-label={`Увеличить размер: ${label}`}>+</button></span></span></label>
+										<label>Размер шрифта<span><input type='range' min='8' max='42' value={value} onChange={e => updateFontSize(field, Number(e.target.value))} /><span className='TemplateEditor__numberInput'><button type='button' onClick={() => updateFontSize(field, normalizeFontSize(value - 1))} disabled={value <= 8} aria-label={`Уменьшить размер: ${label}`}>−</button><span><DraftNumberInput value={value} min={8} max={42} onCommit={nextValue => updateFontSize(field, normalizeFontSize(nextValue))} ariaLabel={`Размер шрифта: ${label}`} /><small>px</small></span><button type='button' onClick={() => updateFontSize(field, normalizeFontSize(value + 1))} disabled={value >= 42} aria-label={`Увеличить размер: ${label}`}>+</button></span></span></label>
 										<label>Межстрочный интервал<span><input type='range' min='.8' max='2' step='.05' value={lineHeight} onChange={e => updateLineHeight(field, Number(e.target.value))} /><span className='TemplateEditor__lineHeightValue'>{lineHeight.toFixed(2)}</span></span></label>
 									</div>
 								})}
 								<button type='button' className='TemplateEditor__resetTextStyle TemplateEditor__resetButton' onClick={() => resetTextStyle(selectedElement!)}><span aria-hidden='true'>↺</span> Сбросить оформление текста</button>
-							</div>}
+								</div></details>}
+							<details className='TemplateEditor__settingsGroup' open>
+								<summary>Положение и размеры</summary><div className='TemplateEditor__settingsGroupBody'>
 							<div className='TemplateEditor__coordinates'>
 								<CoordinateInput label='X, px' min={0} max={514} value={selectedLayout.x} onChange={value => updateElement(selectedElement!, { x: value })} />
 								<CoordinateInput label='Y, px' min={0} max={363} value={selectedLayout.y} onChange={value => updateElement(selectedElement!, { y: value })} />
 								<CoordinateInput label='Ширина' min={30} max={514} value={selectedLayout.width} onChange={value => updateElement(selectedElement!, { width: value })} />
+								{selectedPhotoKey && selectedPhoto
+									? <CoordinateInput label='Высота' min={60} max={300} value={selectedPhoto.height} onChange={value => updatePhoto(selectedPhotoKey, { height: value })} />
+									: <CoordinateInput label='Высота' min={10} max={363} value={selectedLayout.height ?? 40} onChange={value => updateElement(selectedElement!, { height: value })} />}
+							</div>
+							<div className='TemplateEditor__layerControls'>
+								<span>Порядок отображения</span>
+								<div><button type='button' disabled={(selectedLayout.zIndex ?? 0) <= 0} onClick={() => updateElement(selectedElement!, { zIndex: Math.max(0, (selectedLayout.zIndex ?? 0) - 1) })}>На слой ниже</button><strong>{selectedLayout.zIndex ?? 0}</strong><button type='button' disabled={(selectedLayout.zIndex ?? 0) >= 100} onClick={() => updateElement(selectedElement!, { zIndex: Math.min(100, (selectedLayout.zIndex ?? 0) + 1) })}>На слой выше</button></div>
+								<small>Используйте, если элементы перекрывают друг друга</small>
 							</div>
 							<label>Выравнивание<select value={selectedLayout.align} onChange={e => updateElement(selectedElement!, { align: e.target.value as TemplateElementLayout['align'] })}><option value='left'>По левому краю</option><option value='center'>По центру</option><option value='right'>По правому краю</option></select></label>
+								</div></details>
 						</>}
+						{selectedCustomText && <div className='TemplateEditor__customTextSettings'>
+							<p className='TemplateEditor__customBadge'>Произвольный текст</p>
+							<details className='TemplateEditor__settingsGroup' open><summary>Содержимое</summary><div className='TemplateEditor__settingsGroupBody'><label>Текст<textarea rows={3} value={selectedCustomText.text} onChange={e => updateCustomText(selectedCustomText.id, { text: e.target.value })} /></label></div></details>
+							<details className='TemplateEditor__settingsGroup' open><summary>Текст и оформление</summary><div className='TemplateEditor__settingsGroupBody'>
+								<h4 className='TemplateEditor__optionGroupTitle TemplateEditor__typographyTitle'>Текст</h4>
+								<div className='TemplateEditor__textToolbar'><div className='TemplateEditor__colorField'><span>Цвет текста</span><input type='color' value={selectedCustomText.style?.color ?? '#111111'} onChange={e => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, color: e.target.value } })} aria-label='Цвет произвольного текста' /></div><div className='TemplateEditor__formatButtons'><button type='button' className={(selectedCustomText.style?.fontWeight ?? 400) >= 700 ? 'active' : ''} onClick={() => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, fontWeight: (selectedCustomText.style?.fontWeight ?? 400) >= 700 ? 400 : 700 } })}><strong>Ж</strong></button><button type='button' className={selectedCustomText.style?.fontStyle === 'italic' ? 'active' : ''} onClick={() => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, fontStyle: selectedCustomText.style?.fontStyle === 'italic' ? 'normal' : 'italic' } })}><em>К</em></button></div></div>
+								<label className='TemplateEditor__customFontSize'>Размер шрифта: {selectedCustomText.fontSize}px<input type='range' min='8' max='72' value={selectedCustomText.fontSize} onChange={e => updateCustomText(selectedCustomText.id, { fontSize: Number(e.target.value) })} /></label>
+								<label className='TemplateEditor__customLineHeight'>Межстрочный интервал: {selectedCustomText.lineHeight.toFixed(2)}<input type='range' min='.8' max='2' step='.05' value={selectedCustomText.lineHeight} onChange={e => updateCustomText(selectedCustomText.id, { lineHeight: Number(e.target.value) })} /></label>
+								<label className='TemplateEditor__letterSpacing'>Межбуквенный интервал: {selectedCustomText.style?.letterSpacing ?? 0}px<input type='range' min='-2' max='8' step='.1' value={selectedCustomText.style?.letterSpacing ?? 0} onChange={e => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, letterSpacing: Number(e.target.value) } })} /></label>
+								<label className='TemplateEditor__textTransform'>Регистр<select value={selectedCustomText.style?.textTransform ?? 'none'} onChange={e => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, textTransform: e.target.value as TemplateTextStyle['textTransform'] } })}><option value='none'>Как введено</option><option value='uppercase'>ПРОПИСНЫЕ</option><option value='lowercase'>строчные</option></select></label>
+								<h4 className='TemplateEditor__optionGroupTitle TemplateEditor__blockTitle'>Блок</h4>
+								<div className='TemplateEditor__fillSettings'><div className='TemplateEditor__colorField'><span>Заливка блока</span><input type='color' value={selectedCustomText.style?.backgroundColor ?? '#ffffff'} onChange={e => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, backgroundColor: e.target.value } })} aria-label='Заливка произвольного текста' /></div>{selectedCustomText.style?.backgroundColor ? <button type='button' onClick={() => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, backgroundColor: undefined } })}>Убрать заливку</button> : <button type='button' onClick={() => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, backgroundColor: '#ffffff' } })}>Добавить заливку</button>}</div>
+								<label className='TemplateEditor__textRotation'>Поворот: {selectedCustomText.style?.rotation ?? 0}°<input type='range' min='-180' max='180' value={selectedCustomText.style?.rotation ?? 0} onChange={e => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, rotation: Number(e.target.value) } })} /></label>
+							</div></details>
+							<details className='TemplateEditor__settingsGroup' open><summary>Положение и размеры</summary><div className='TemplateEditor__settingsGroupBody'><div className='TemplateEditor__coordinates'><CoordinateInput label='X, px' min={0} max={514} value={selectedCustomText.layout.x} onChange={value => updateCustomText(selectedCustomText.id, { layout: { ...selectedCustomText.layout, x: value } })} /><CoordinateInput label='Y, px' min={0} max={363} value={selectedCustomText.layout.y} onChange={value => updateCustomText(selectedCustomText.id, { layout: { ...selectedCustomText.layout, y: value } })} /><CoordinateInput label='Ширина' min={30} max={514} value={selectedCustomText.layout.width} onChange={value => updateCustomText(selectedCustomText.id, { layout: { ...selectedCustomText.layout, width: value } })} /></div><label>Выравнивание<select value={selectedCustomText.layout.align} onChange={e => updateCustomText(selectedCustomText.id, { layout: { ...selectedCustomText.layout, align: e.target.value as TemplateElementLayout['align'] } })}><option value='left'>По левому краю</option><option value='center'>По центру</option><option value='right'>По правому краю</option></select></label></div></details>
+							<div className='TemplateEditor__customTextActions'><button type='button' className='TemplateEditor__duplicateTextButton' onClick={() => duplicateCustomText(selectedCustomText)}>Дублировать блок</button><button type='button' className='TemplateEditor__removeTextButton' onClick={() => removeCustomText(selectedCustomText.id)}>Удалить блок</button></div>
+						</div>}
 					</div>
 					</div>}
 				</section>
@@ -461,13 +767,19 @@ const TemplateEditor = () => {
 							<span>3</span>
 							<div><h2>Предпросмотр</h2><p>{selected.kind === 'certificate' ? (editorSide === 'front' ? 'Лицевая сторона' : 'Оборотная сторона') : 'Изменения отображаются сразу'}</p></div>
 						</div>
-						<span className={`TemplateEditor__saveState ${saved ? 'saved' : ''}`}>{saved ? 'Все изменения сохранены' : 'Есть несохранённые изменения'}</span>
+						<div className='TemplateEditor__previewControls'>
+							<span className={`TemplateEditor__saveState ${saved ? 'saved' : ''}`}>{saved ? 'Все изменения сохранены' : 'Есть несохранённые изменения'}</span>
+							<div className='TemplateEditor__historyActions'>
+								<button type='button' onClick={undo} disabled={!historyState.canUndo} title='Отменить (Ctrl/⌘ + Z)' aria-label='Отменить последнее изменение'>↶</button>
+								<button type='button' onClick={redo} disabled={!historyState.canRedo} title='Повторить (Ctrl/⌘ + Shift + Z)' aria-label='Повторить последнее изменение'>↷</button>
+							</div>
+						</div>
 					</div>
 					{selected.kind === 'certificate' && <div className='TemplateEditor__previewTabs TemplateEditor__tabs'><button className={editorSide === 'front' ? 'active' : ''} onClick={() => setEditorSide('front')}>Лицевая сторона</button><button className={editorSide === 'back' ? 'active' : ''} onClick={() => setEditorSide('back')}>Оборотная сторона</button></div>}
-					<div className='TemplateEditor__canvas' onPointerMove={moveElement} onPointerUp={() => setDrag(undefined)} onPointerCancel={() => setDrag(undefined)}>
+					<div ref={previewCanvasRef} className='TemplateEditor__canvas' tabIndex={0} aria-label='Макет шаблона. Используйте стрелки для перемещения выбранного элемента' onPointerDownCapture={event => event.currentTarget.focus({ preventScroll: true })} onPointerMove={moveElement} onPointerUp={finishElementDrag} onPointerCancel={finishElementDrag}>
 						{selected.kind === 'pass'
-							? <LayoutCardPass {...example} FilePhoto={previewPhoto} template={selected} editor={{ selected: selectedElement, onSelect: startElementDrag }} director={{ post: 'Руководитель аппарата', name: 'П. П. Петров' }} />
-							: <LayoutCardPassVip {...example} FilePhoto={previewPhoto} template={selected} previewSide={editorSide} editor={{ selected: selectedElement, onSelect: startElementDrag }} director={{ post: 'Руководитель аппарата', name: 'П. П. Петров' }} />}
+							? <LayoutCardPass {...example} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} editor={{ selected: selectedElement, selectedCustomId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag }} director={{ post: 'Руководитель аппарата', name: 'П. П. Петров' }} />
+							: <LayoutCardPassVip {...example} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} previewSide={editorSide} editor={{ selected: selectedElement, selectedCustomId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag }} director={{ post: 'Руководитель аппарата', name: 'П. П. Петров' }} />}
 					</div>
 				</section>
 			</div>

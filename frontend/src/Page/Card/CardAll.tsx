@@ -25,7 +25,7 @@ import CardPass from './CardPass'
 import CardPassVip from './CardPassVip'
 import './CardStyle.scss'
 import { fetchTemplates, loadTemplates, TEMPLATE_CHANGE_EVENT, type PassTemplate } from '../../model/templates'
-import { getCardsPerA4Page } from '../../components/LayoutCard/cardDimensions'
+import { getA4PrintLayout } from '../../components/LayoutCard/cardDimensions'
 
 type TypeContext = {
 	CurrentSingleOrganization: string
@@ -46,6 +46,8 @@ type TypeContext = {
 	setFilePhoto: Dispatch<SetStateAction<string>>
 	FilePhotoName: string
 	setFilePhotoName: Dispatch<SetStateAction<string>>
+	QrKey: string
+	setQrKey: Dispatch<SetStateAction<string>>
 	ListPrint: TListPrint[]
 	setListPrint: Dispatch<SetStateAction<TListPrint[]>>
 	Organization: string
@@ -85,6 +87,8 @@ export const Context = createContext<TypeContext>({
 	setFilePhoto: () => {},
 	FilePhotoName: '',
 	setFilePhotoName: () => {},
+	QrKey: '',
+	setQrKey: () => {},
 	ListPrint: [],
 	setListPrint: () => {},
 	Organization: '',
@@ -136,6 +140,7 @@ const CardAll = () => {
 	const [NewDate, setNewDate] = useState<string>('')
 	const [FilePhoto, setFilePhoto] = useState<string>('')
 	const [FilePhotoName, setFilePhotoName] = useState<string>('')
+	const [QrKey, setQrKey] = useState<string>('')
 	////////////
 
 	//Фокус объектов
@@ -173,7 +178,8 @@ const CardAll = () => {
 	//Общий список на печать
 	const [ListPrint, setListPrint] = useState<TListPrint[]>([])
 	const ActivePrintVip = SelectedTemplate.kind === 'certificate'
-	const NumberObjectPage = getCardsPerA4Page(SelectedTemplate, SelectedTemplate.kind)
+	const printLayout = getA4PrintLayout(SelectedTemplate, SelectedTemplate.kind)
+	const NumberObjectPage = printLayout.cardsPerPage
 
 	//Удаление строки
 	const deleteLineCard = (Id: string) => {
@@ -202,6 +208,7 @@ const CardAll = () => {
 		setNumber_Tabs(0)
 		setFilePhoto('')
 		setFilePhotoName('')
+		setQrKey('')
 	}
 
 	// Печать
@@ -251,6 +258,8 @@ const CardAll = () => {
 				setFilePhoto,
 				FilePhotoName,
 				setFilePhotoName,
+				QrKey,
+				setQrKey,
 				ListPrint,
 				setListPrint,
 				Organization,
@@ -385,6 +394,9 @@ const CardAll = () => {
 				onClose={() => setOpenModal(false)}
 			>
 				<div className='Print'>
+					{!printLayout.fits && <div className='Print_SizeWarning' role='alert'>
+						Этот шаблон имеет размер {printLayout.itemWidthMm} × {printLayout.itemHeightMm} мм с учётом двух сторон удостоверения и не помещается в печатную область A4. Уменьшите размер шаблона в редакторе.
+					</div>}
 					<div className='Print--content'>
 						<A4Sheet
 							ref={printRef}
@@ -392,7 +404,7 @@ const CardAll = () => {
 							NumberObject={NumberObjectPage}
 						/>
 					</div>
-					<button className='Print_BTN' onClick={() => { setPrintDialogClosed(false); handlePrint() }}>
+					<button className='Print_BTN' disabled={!printLayout.fits} onClick={() => { setPrintDialogClosed(false); handlePrint() }}>
 						<span>{ICON.Print}</span>Печать
 					</button>
 					{PrintDialogClosed && <div className='PrintConfirm_Backdrop' role='dialog' aria-modal='true' aria-labelledby='photo-cleanup-title'>

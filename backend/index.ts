@@ -10,6 +10,7 @@ import mysql from 'mysql2'
 dotenv.config()
 
 const app = express()
+app.disable('x-powered-by')
 app.use(
 	cors({
 		origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
@@ -17,7 +18,7 @@ app.use(
 		credentials: true,
 	}),
 )
-app.use(express.json())
+app.use(express.json({ limit: '2mb' }))
 app.use(cookieParser())
 const publicDirectory = fileURLToPath(new URL('./public', import.meta.url))
 const uploadsDirectory = join(publicDirectory, 'uploads')
@@ -70,12 +71,6 @@ app.delete('/UploadedImage', (req, res) => {
 	})
 })
 
-app.use((error: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
-	if (!(error instanceof Error)) return next(error)
-	if (error.message.includes('File too large')) return res.status(413).json({ message: 'Размер изображения не должен превышать 5 МБ' })
-	return res.status(400).json({ message: error.message })
-})
-
 const PORT = parseInt(process.env.PORT || '5173', 10)
 
 const DB = mysql.createConnection({
@@ -115,6 +110,29 @@ type PassTemplatePayload = {
 	design: Record<string, unknown>
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const validString = (value: unknown, maxLength: number) =>
+	typeof value === 'string' && value.trim().length > 0 && value.trim().length <= maxLength
+
+const validateTemplate = (value: unknown): value is PassTemplatePayload => {
+	if (!isRecord(value)) return false
+	return validString(value.id, 191)
+		&& /^[a-zA-Z0-9_-]+$/.test(value.id as string)
+		&& validString(value.name, 255)
+		&& typeof value.description === 'string'
+		&& value.description.length <= 5000
+		&& (value.kind === 'pass' || value.kind === 'certificate')
+		&& typeof value.isBuiltIn === 'boolean'
+		&& isRecord(value.design)
+}
+
+const readOptionPayload = (body: unknown) => {
+	if (!isRecord(body) || !validString(body.value, 191) || !validString(body.label, 255)) return undefined
+	return { value: (body.value as string).trim(), label: (body.label as string).trim() }
+}
+
 app.get('/Templates', (_req, res) => {
 	DB.query('SELECT id, name, description, kind, is_built_in, design FROM pass_templates ORDER BY is_built_in DESC, name', (err, rows: any[]) => {
 		if (err) return res.status(500).json({ message: 'Не удалось загрузить шаблоны' })
@@ -134,10 +152,12 @@ app.get('/Templates', (_req, res) => {
 })
 
 app.post('/TemplatesSync', (req, res) => {
-	const templates = req.body?.templates as PassTemplatePayload[]
-	if (!Array.isArray(templates) || templates.some(template => !template.id || !template.name || !['pass', 'certificate'].includes(template.kind))) {
+	const templates = isRecord(req.body) ? req.body.templates : undefined
+	if (!Array.isArray(templates) || templates.length > 100 || templates.some(template => !validateTemplate(template))) {
 		return res.status(400).json({ message: 'Некорректные данные шаблонов' })
 	}
+	const templateIds = new Set(templates.map(template => template.id))
+	if (templateIds.size !== templates.length) return res.status(400).json({ message: 'Идентификаторы шаблонов не должны повторяться' })
 
 	DB.beginTransaction(transactionError => {
 		if (transactionError) return res.status(500).json({ message: 'Не удалось начать сохранение' })
@@ -164,55 +184,96 @@ app.post('/TemplatesSync', (req, res) => {
 	})
 })
 
-app.get('/AllListOrganization', (reg, res) => {
+app.get('/AllListOrganization', (_req, res) => {
 	const sql = 'SELECT * FROM Organization'
 	DB.query(sql, (err, data) => {
-		if (err) return res.json(err)
+		if (err) {
+			console.error('Ошибка загрузки организаций:', err)
+			return res.status(500).json({ message: 'Не удалось загрузить список организаций' })
+		}
 		return res.json(data)
 	})
 })
 
-app.get('/AllListPost', (reg, res) => {
+app.get('/AllListPost', (_req, res) => {
 	const sql = 'SELECT * FROM Post'
 	DB.query(sql, (err, data) => {
-		if (err) return res.json(err)
+		if (err) {
+			console.error('Ошибка загрузки должностей:', err)
+			return res.status(500).json({ message: 'Не удалось загрузить список должностей' })
+		}
 		return res.json(data)
 	})
 })
 
-app.post('/AddOrganization', (reg, res) => {
+app.post('/AddOrganization', (req, res) => {
+	const payload = readOptionPayload(req.body)
+	if (!payload) return res.status(400).json({ message: 'Укажите корректное название организации' })
 	const sql = 'INSERT INTO Organization (value, label) VALUE (?)'
-	const value = [reg.body.value, reg.body.label]
+	const value = [payload.value, payload.label]
 	DB.query(sql, [value], (err, data) => {
-		if (err) return res.json(err)
-		return res.json(data)
+		if (err) {
+			console.error('Ошибка добавления организации:', err)
+			return res.status(err.code === 'ER_DUP_ENTRY' ? 409 : 500).json({ message: err.code === 'ER_DUP_ENTRY' ? 'Такая организация уже существует' : 'Не удалось добавить организацию' })
+		}
+		return res.status(201).json(data)
 	})
 })
 
-app.post('/AddPost', (reg, res) => {
+app.post('/AddPost', (req, res) => {
+	const payload = readOptionPayload(req.body)
+	if (!payload) return res.status(400).json({ message: 'Укажите корректное название должности' })
 	const sql = 'INSERT INTO Post (value, label) VALUE (?)'
-	const value = [reg.body.value, reg.body.label]
+	const value = [payload.value, payload.label]
 	DB.query(sql, [value], (err, data) => {
-		if (err) return res.json(err)
-		return res.json(data)
+		if (err) {
+			console.error('Ошибка добавления должности:', err)
+			return res.status(err.code === 'ER_DUP_ENTRY' ? 409 : 500).json({ message: err.code === 'ER_DUP_ENTRY' ? 'Такая должность уже существует' : 'Не удалось добавить должность' })
+		}
+		return res.status(201).json(data)
 	})
 })
 
-app.get('/Director', (reg, res) => {
+app.get('/Director', (_req, res) => {
 	const sql = 'SELECT * FROM director'
 	DB.query(sql, (err, data) => {
-		if(err) return res.json(err)
-			return res.json(data)
+		if (err) {
+			console.error('Ошибка загрузки руководителя:', err)
+			return res.status(500).json({ message: 'Не удалось загрузить данные руководителя' })
+		}
+		return res.json(data)
 	})
 })
 
-app.post('/DirectorUpdate', (reg, res) => {
+app.post('/DirectorUpdate', (req, res) => {
+	if (!isRecord(req.body) || !validString(req.body.Name, 255) || !validString(req.body.Post, 255) || !Number.isInteger(req.body.id) || (req.body.id as number) <= 0) {
+		return res.status(400).json({ message: 'Некорректные данные руководителя' })
+	}
 	const sql = 'UPDATE director SET Name = ?, Post = ? WHERE id = ?'
-	const value = [reg.body.Name, reg.body.Post, reg.body.id]
+	const value = [(req.body.Name as string).trim(), (req.body.Post as string).trim(), req.body.id]
 	DB.query(sql, value, (err, data) => {
-		if (err) return res.json(err)
-			return res.json({Status: 'success'})
-	})	
+		if (err) {
+			console.error('Ошибка обновления руководителя:', err)
+			return res.status(500).json({ message: 'Не удалось обновить данные руководителя' })
+		}
+		const result = data as mysql.ResultSetHeader
+		if (result.affectedRows === 0) return res.status(404).json({ message: 'Руководитель не найден' })
+		return res.json({ status: 'success' })
+	})
+})
+
+app.use((_req, res) => res.status(404).json({ message: 'Маршрут не найден' }))
+
+app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+	if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
+		return res.status(413).json({ message: 'Размер изображения не должен превышать 5 МБ' })
+	}
+	if (error instanceof SyntaxError) return res.status(400).json({ message: 'Некорректный формат JSON' })
+	if (error instanceof Error && error.message === 'Поддерживаются только JPEG, PNG и WebP') {
+		return res.status(400).json({ message: error.message })
+	}
+	console.error('Необработанная ошибка сервера:', error)
+	return res.status(500).json({ message: 'Внутренняя ошибка сервера' })
 })
 
 app.listen(PORT, () => {

@@ -14,11 +14,23 @@ export type TemplateElementLayout = {
 	x: number
 	y: number
 	width: number
+	height?: number
+	zIndex?: number
 	align: 'left' | 'center' | 'right'
 }
 
 export type TemplateTextStyle = {
 	color?: string
+	backgroundColor?: string
+	backgroundOpacity?: number
+	padding?: number
+	borderRadius?: number
+	borderTopLeftRadius?: number
+	borderTopRightRadius?: number
+	borderBottomRightRadius?: number
+	borderBottomLeftRadius?: number
+	opacity?: number
+	rotation?: number
 	fontWeight?: number
 	fontStyle?: 'normal' | 'italic'
 	letterSpacing?: number
@@ -26,21 +38,37 @@ export type TemplateTextStyle = {
 }
 
 export type TemplatePhotoSettings = {
+	mode: 'photo' | 'qr'
 	height: number
 	fit: 'cover' | 'contain'
 	scale: number
 	positionX: number
 	positionY: number
 	borderRadius: number
+	qrDarkColor: string
+	qrLightColor: string
+}
+
+export type TemplateCustomText = {
+	id: string
+	text: string
+	side: 'pass' | 'front' | 'back'
+	layout: TemplateElementLayout
+	fontSize: number
+	lineHeight: number
+	style?: TemplateTextStyle
 }
 
 export const DEFAULT_PHOTO_SETTINGS: TemplatePhotoSettings = {
+	mode: 'photo',
 	height: 227,
 	fit: 'cover',
 	scale: 100,
 	positionX: 50,
 	positionY: 50,
 	borderRadius: 5,
+	qrDarkColor: '#111111',
+	qrLightColor: '#ffffff',
 }
 
 export type TemplateElementKey =
@@ -117,7 +145,7 @@ export type PassTemplate = {
 	description: string
 	kind: TemplateKind
 	isBuiltIn: boolean
-	design: {
+			design: {
 		cardSize?: TemplateCardSize
 		background: 'flag' | 'emblem'
 		frontBackground?: 'flag' | 'emblem'
@@ -140,6 +168,7 @@ export type PassTemplate = {
 		lineHeights?: TemplateLineHeights
 		fixedTexts?: Partial<Record<TemplateElementKey, string>>
 		textStyles?: Partial<Record<TemplateElementKey, TemplateTextStyle>>
+		customTexts?: TemplateCustomText[]
 		photos?: Partial<Record<'passPhoto' | 'certificatePhoto', TemplatePhotoSettings>>
 		hiddenElements?: TemplateElementKey[]
 		elements?: Partial<Record<TemplateElementKey, TemplateElementLayout>>
@@ -166,7 +195,22 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 			fontFamily: 'Times New Roman',
 			borderRadius: 5,
 			showDirector: true,
-			fontSizes: { ...DEFAULT_FONT_SIZES },
+			fontSizes: {
+				...DEFAULT_FONT_SIZES,
+				passDirectorPost: 14,
+				passDirectorName: 14,
+			},
+			elements: {
+				passName: { x: 60, y: 142, width: 275, align: 'left' },
+				passPost: { x: 60, y: 227, width: 275, align: 'left' },
+				passDirectorPost: { x: 60, y: 296, width: 285, height: 60, align: 'left' },
+			},
+			textStyles: {
+				passName: { letterSpacing: 0 },
+			},
+			lineHeights: {
+				passName: 1.55,
+			},
 		},
 	},
 	{
@@ -189,6 +233,12 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 			borderRadius: 10,
 			showDirector: true,
 			fontSizes: { ...DEFAULT_FONT_SIZES },
+			elements: {
+				certificateNumber: { x: 7, y: 58, width: 498, align: 'center' },
+				certificateIntro: { x: 8, y: 86, width: 498, align: 'center' },
+				certificateName: { x: 19, y: 147, width: 300, align: 'center' },
+				certificateDirectorPost: { x: 14, y: 294, width: 330, height: 60, align: 'left' },
+			},
 		},
 	},
 ]

@@ -18,6 +18,11 @@
 		flex-wrap: wrap;
 		gap: 3mm;
 	}
+	.a4-page:last-child,
+	.a4-page_Vip:last-child {
+		page-break-after: auto;
+		break-after: auto;
+	}
 	.a4-page_Vip {
 		width: 190mm;
 		padding: 0;

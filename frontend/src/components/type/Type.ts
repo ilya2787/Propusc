@@ -8,6 +8,7 @@ export interface TListPrint {
 	Organization: string
 	Post: string
 	FilePhoto: string
+	QrKey: string
 }
 export interface TDirector {
 	Name: string

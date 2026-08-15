@@ -4,11 +4,12 @@ import './StyleCard.scss'
 import { Context } from '../../Page/Card/CardAll'
 import FlagBackground from '../../assets/Flag.jpg'
 import EmblemBackground from '../../assets/gerbT.png'
-import { DEFAULT_ELEMENT_LAYOUTS, DEFAULT_FIXED_TEXTS, DEFAULT_FONT_SIZES, DEFAULT_PHOTO_SETTINGS, getTemplate, type PassTemplate, type TemplateElementKey } from '../../model/templates'
+import { DEFAULT_ELEMENT_LAYOUTS, DEFAULT_FIXED_TEXTS, DEFAULT_FONT_SIZES, DEFAULT_PHOTO_SETTINGS, getTemplate, type PassTemplate, type TemplateElementKey, type TemplateTextStyle } from '../../model/templates'
 import { useAutoFitText } from './useAutoFitText'
 import { resolvePhotoSource } from './resolvePhotoSource'
 import { resolveServerImageUrl } from '../../api/images'
 import { getCardDimensions } from './cardDimensions'
+import QrCodeImage from './QrCodeImage'
 
 interface TypeProps {
 	Number_Tabs: number
@@ -19,10 +20,24 @@ interface TypeProps {
 	FirstName: string
 	Patronymic: string
 	FilePhoto?: string
+	QrKey?: string
 	Print: boolean
 	template?: PassTemplate
 	director?: { post: string; name: string }
-	editor?: { selected?: TemplateElementKey; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void }
+	previewMaxWidth?: number
+	previewMaxHeight?: number
+	editor?: { selected?: TemplateElementKey; selectedCustomId?: string; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void; onSelectCustom?: (id: string, event: PointerEvent<HTMLElement>) => void }
+}
+
+const colorWithOpacity = (color?: string, opacity = 1) => {
+	if (!color || opacity >= 1) return color
+	const match = color.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i)
+	return match ? `rgba(${parseInt(match[1], 16)}, ${parseInt(match[2], 16)}, ${parseInt(match[3], 16)}, ${opacity})` : color
+}
+
+const textBorderRadius = (style: TemplateTextStyle | undefined, scale: number) => {
+	if (style?.borderTopLeftRadius === undefined) return style?.borderRadius !== undefined ? `${style.borderRadius * scale}px` : undefined
+	return `${style.borderTopLeftRadius * scale}px ${(style.borderTopRightRadius ?? 0) * scale}px ${(style.borderBottomRightRadius ?? 0) * scale}px ${(style.borderBottomLeftRadius ?? 0) * scale}px`
 }
 
 const LayoutCardPass: FC<TypeProps> = ({
@@ -34,16 +49,19 @@ const LayoutCardPass: FC<TypeProps> = ({
 	FirstName,
 	Patronymic,
 	FilePhoto,
+	QrKey,
 	Print,
 	template,
 	director,
+	previewMaxWidth,
+	previewMaxHeight,
 	editor,
 }) => {
 	const AllContext = useContext(Context)
 	const NameDirector = director?.name ?? AllContext.NameDirector
 	const PostDirector = director?.post ?? AllContext.PostDirector
 	const activeTemplate = template ?? getTemplate('standard-pass')
-	const dimensions = getCardDimensions(activeTemplate, false, Print ? 335 : 514, Print ? 240 : 363)
+	const dimensions = getCardDimensions(activeTemplate, false, Print ? 335 : previewMaxWidth ?? 514, Print ? 240 : previewMaxHeight ?? 363)
 	const printDimensions = getCardDimensions(activeTemplate, true)
 	const sizes = { ...DEFAULT_FONT_SIZES, ...activeTemplate.design.fontSizes }
 	const nameWidth = activeTemplate.design.elements?.passName?.width ?? DEFAULT_ELEMENT_LAYOUTS.passName.width
@@ -87,11 +105,12 @@ const LayoutCardPass: FC<TypeProps> = ({
 		const isPhoto = key === 'passPhoto'
 		const textStyle = activeTemplate.design.textStyles?.[key]
 		return {
-			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, height: isPhoto ? photoSettings.height * dimensions.scaleY : undefined, maxWidth: 'none', borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : undefined, textAlign: layout.align, color: textStyle?.color, fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
+			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), opacity: textStyle?.opacity, zIndex: layout.zIndex, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
 			onPointerDown: editor && !Print ? (event: PointerEvent<HTMLElement>) => editor.onSelect(key, event) : undefined,
 			'data-editor-selected': editor && !Print ? editor.selected === key : undefined,
 		}
 	}
+	const customTexts = activeTemplate.design.customTexts?.filter(item => item.side === 'pass') ?? []
 	return (
 		<div
 			className={Print ? 'layoutCardPass__Print' : 'layoutCardPass'}
@@ -175,6 +194,12 @@ const LayoutCardPass: FC<TypeProps> = ({
 					<div {...editable('passDirectorPost')} className={Print ? 'layoutCardPass__Print--Card--DirectorPost' : 'layoutCardPass--Card--DirectorPost'}><p>{PostDirector}</p></div>
 					<div {...editable('passDirectorName')} className={Print ? 'layoutCardPass__Print--Card--DirectorName' : 'layoutCardPass--Card--DirectorName'}><p>{NameDirector}</p></div>
 				</>}
+				{customTexts.map(item => <div
+					key={item.id}
+					style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, fontSize: item.fontSize * dimensions.contentScale, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties}
+					onPointerDown={editor?.onSelectCustom && !Print ? event => editor.onSelectCustom!(item.id, event) : undefined}
+					data-editor-selected={editor && !Print ? editor.selectedCustomId === item.id : undefined}
+				>{item.text}</div>)}
 				<div
 					{...editable('passPhoto')}
 					className={
@@ -183,7 +208,9 @@ const LayoutCardPass: FC<TypeProps> = ({
 							: 'layoutCardPass--Card--Photo'
 					}
 				>
-					{FilePhoto ? (
+					{photoSettings.mode === 'qr' ? (
+						<QrCodeImage value={QrKey || 'ТЕСТОВЫЙ-QR-КЛЮЧ'} darkColor={photoSettings.qrDarkColor} lightColor={photoSettings.qrLightColor} />
+					) : FilePhoto ? (
 						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
 					) : (
 						<span>{ICON.Photo}</span>

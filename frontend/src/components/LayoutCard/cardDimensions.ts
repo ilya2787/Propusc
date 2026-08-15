@@ -6,6 +6,8 @@ const PREVIEW_MAX_WIDTH = 514
 const PREVIEW_MAX_HEIGHT = 363
 const CSS_PIXELS_PER_MM = 96 / 25.4
 export const PRINT_GAP_MM = 3
+export const A4_PRINTABLE_WIDTH_MM = 190
+export const A4_PRINTABLE_HEIGHT_MM = 277
 
 export const getCardSize = (template: PassTemplate): TemplateCardSize => ({
 	widthMm: template.design.cardSize?.widthMm ?? DEFAULT_CARD_SIZE.widthMm,
@@ -38,12 +40,21 @@ export const getCardDimensions = (
 	}
 }
 
-export const getCardsPerA4Page = (template: PassTemplate, kind: TemplateKind) => {
+export const getA4PrintLayout = (template: PassTemplate, kind: TemplateKind) => {
 	const { widthMm, heightMm } = getCardSize(template)
 	const itemWidth = kind === 'certificate' ? widthMm * 2 + PRINT_GAP_MM : widthMm
-	const printableWidth = 190
-	const printableHeight = 277
-	const columns = Math.max(1, Math.floor((printableWidth + PRINT_GAP_MM) / (itemWidth + PRINT_GAP_MM)))
-	const rows = Math.max(1, Math.floor((printableHeight + PRINT_GAP_MM) / (heightMm + PRINT_GAP_MM)))
-	return columns * rows
+	const columns = Math.floor((A4_PRINTABLE_WIDTH_MM + PRINT_GAP_MM) / (itemWidth + PRINT_GAP_MM))
+	const rows = Math.floor((A4_PRINTABLE_HEIGHT_MM + PRINT_GAP_MM) / (heightMm + PRINT_GAP_MM))
+	const fits = columns > 0 && rows > 0
+	return {
+		fits,
+		columns,
+		rows,
+		cardsPerPage: fits ? columns * rows : 1,
+		itemWidthMm: itemWidth,
+		itemHeightMm: heightMm,
+	}
 }
+
+export const getCardsPerA4Page = (template: PassTemplate, kind: TemplateKind) =>
+	getA4PrintLayout(template, kind).cardsPerPage

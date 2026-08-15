@@ -10,7 +10,7 @@ import {
 import { AppContext } from '../../App'
 import { deleteUploadedImage, uploadImage } from '../../api/images'
 import { Context } from '../../Page/Card/CardAll'
-import type { TemplateElementKey } from '../../model/templates'
+import { DEFAULT_PHOTO_SETTINGS, type TemplateElementKey } from '../../model/templates'
 import { formatDate } from '../FormatDate/FormatDate'
 import { ICON } from '../icon/Icon'
 import ModalWindows from '../ModalWindows/ModalWindows'
@@ -48,6 +48,8 @@ const FrontForm: FC = () => {
 	const setFilePhoto = AllContext.setFilePhoto
 	const FilePhotoName = AllContext.FilePhotoName
 	const setFilePhotoName = AllContext.setFilePhotoName
+	const QrKey = AllContext.QrKey
+	const setQrKey = AllContext.setQrKey
 	const setListPrint = AllContext.setListPrint
 	const CleaningForm = AllContext.CleaningForm
 	const Organization = AllContext.Organization
@@ -74,6 +76,9 @@ const FrontForm: FC = () => {
 	const showName = fieldVisible('passName', 'certificateName')
 	const showDate = fieldVisible('passDate', 'certificateDate')
 	const showPhoto = fieldVisible('passPhoto', 'certificatePhoto')
+	const photoElementKey = SelectedTemplate.kind === 'pass' ? 'passPhoto' : 'certificatePhoto'
+	const photoSettings = { ...DEFAULT_PHOTO_SETTINGS, ...SelectedTemplate.design.photos?.[photoElementKey] }
+	const usesQr = showPhoto && photoSettings.mode === 'qr'
 	const showDirectorPost = SelectedTemplate.design.showDirector && fieldVisible('passDirectorPost', 'certificateDirectorPost')
 	const showDirectorName = SelectedTemplate.design.showDirector && fieldVisible('passDirectorName', 'certificateDirectorName')
 
@@ -109,7 +114,7 @@ const FrontForm: FC = () => {
 			(!showDate || NewDate !== '') &&
 			(!showOrganization || Organization !== '') &&
 			(!showPost || Post !== '') &&
-			(!showPhoto || FilePhoto !== '')
+			(!showPhoto || (usesQr ? QrKey.trim() !== '' : FilePhoto !== ''))
 		) {
 			const value = {
 				Id: crypto.randomUUID(),
@@ -120,10 +125,11 @@ const FrontForm: FC = () => {
 				NewDate: showDate && NewDate ? formatDate(NewDate) : '',
 				Organization: Organization,
 				Post: Post,
-				FilePhoto: showPhoto ? FilePhoto : '',
+				FilePhoto: showPhoto && !usesQr ? FilePhoto : '',
+				QrKey: usesQr ? QrKey.trim() : '',
 			}
 			setListPrint(ListPrint => [...ListPrint, value])
-			CleaningForm(showPhoto)
+			CleaningForm(showPhoto && !usesQr)
 			AddCardPrint()
 		} else {
 			ErrorAddCard()
@@ -362,7 +368,11 @@ const FrontForm: FC = () => {
 						onFocus={FocusD}
 					/>
 				</div>}
-				{showPhoto && <div className='FormFront--DateAndPhoto--Photo' ref={ActivePhotoFile}>
+				{showPhoto && (usesQr ? <div className='FormFront--DateAndPhoto--Qr' id={theme}>
+					<h3>Ключ QR-кода</h3>
+					<input type='text' value={QrKey} placeholder='Введите ключ' onChange={e => setQrKey(e.target.value)} onFocus={FocusPhotoF} />
+					<small>QR-код обновляется в предпросмотре автоматически</small>
+				</div> : <div className='FormFront--DateAndPhoto--Photo' ref={ActivePhotoFile}>
 					<input
 						type='file'
 						name=''
@@ -373,7 +383,7 @@ const FrontForm: FC = () => {
 					/>
 					<span>{ICON.Upload}</span>
 					<p>{FilePhotoName || 'Выберите фотографию'}</p>
-				</div>}
+				</div>)}
 			</div>}
 			<div className='FormFront--BTN'>
 				<button
