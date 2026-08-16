@@ -193,6 +193,26 @@ body.Dark .RouteLoader { color: #aeb8ca; }
 	transform: none;
 }
 
+.MainContent__header--Menu--MoreButton { display: none; }
+.MobileMore { display: none; }
+
+@media (max-width: 700px) {
+	.MainContent__header--Menu--MoreItem { display: none !important; }
+	.MainContent__header--Menu--MoreButton { display: flex; color: inherit; background: transparent; p { margin: 0; } > span { display: grid; place-items: center; font-size: 14px !important; font-weight: 900; letter-spacing: 1px; } }
+	.MobileMore { position: fixed; z-index: 150; inset: 0; display: flex; align-items: flex-end; padding: 14px 12px calc(80px + env(safe-area-inset-bottom)); background: rgba(11, 17, 32, .46); animation: mobileMoreBackdrop CL.$MotionFast; }
+	.MobileMore__sheet { box-sizing: border-box; width: 100%; max-height: min(560px, calc(100vh - 104px)); overflow-y: auto; padding: 8px 14px 14px; border-radius: 14px; color: #172033; background: #fff; box-shadow: 0 8px 24px rgba(11,17,32,.2); animation: mobileMoreSheet CL.$MotionBase; }
+	.MobileMore__handle { width: 38px; height: 4px; margin: 0 auto 10px; border-radius: 999px; background: #d5dbe5; }
+	.MobileMore header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 2px 12px; border-bottom: 1px solid #e4e8ef; h2 { font-size: 20px; line-height: 1.2; } p { margin-top: 2px; color: #748095; font-size: 11px; } > button { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 8px; color: #69768a; background: #f1f4f8; font-size: 24px; line-height: 1; &:focus-visible { outline: 3px solid CL.$FocusRing; outline-offset: 2px; } } }
+	.MobileMore nav { display: grid; gap: 5px; padding: 10px 0; a { display: grid; min-height: 56px; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 7px 9px; border-radius: 9px; color: #26344c; text-decoration: none; &:hover, &.active { background: #eef3ff; } > span:first-child { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 9px; color: CL.$PrimaryBlue; background: #e7edff; font-size: 19px; } strong, small { display: block; } strong { font-size: 13px; } small { margin-top: 3px; color: #758196; font-size: 11px; } b { color: CL.$PrimaryBlue; font-size: 18px; font-weight: 400; } } }
+	.MobileMore__logout { display: flex; width: 100%; min-height: 44px; align-items: center; justify-content: center; gap: 8px; border-top: 1px solid #e4e8ef; border-radius: 8px; color: #a13b3b; background: #fff5f5; font-size: 12px; font-weight: 750; svg { font-size: 18px; } }
+	body.Dark .MobileMore__sheet { color: #eef2f8; background: #1d2434; .MobileMore__handle { background: #4b566b; } header { border-color: #374156; p { color: #9da9ba; } > button { color: #cbd4e2; background: #2a3346; } } nav a { color: #eef2f8; &:hover, &.active { background: #293958; } > span:first-child { color: #bcd4ff; background: #303d55; } small { color: #aab5c7; } } .MobileMore__logout { border-color: #374156; color: #ffb6b6; background: #402b33; } }
+}
+
+@keyframes mobileMoreBackdrop { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mobileMoreSheet { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) { .MobileMore, .MobileMore__sheet { animation: none; } }
+
 .MainContent__header--Logo--eyebrow,
 .MainContent__header--account--info small { font-size: 11px; }
 

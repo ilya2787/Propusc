@@ -46,6 +46,11 @@ const Home = () => {
 				<span><strong>Журнал</strong><small>Входы и критичные действия</small></span>
 				<b aria-hidden='true'>→</b>
 			</Link>
+			<Link className='HomeAction' to={ROUTES.System}>
+				<span className='HomeAction__icon HomeAction__icon--system'>{ICON.Setting}</span>
+				<span><strong>Система</strong><small>Первичная проверка и резервная копия</small></span>
+				<b aria-hidden='true'>→</b>
+			</Link>
 			</nav>
 		</section>}
 	</main>

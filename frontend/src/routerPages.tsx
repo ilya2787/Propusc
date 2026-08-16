@@ -8,6 +8,7 @@ const NotFound = lazy(() => import('./Page/NotFound/NotFound'))
 const Login = lazy(() => import('./Page/Login/Login'))
 const Users = lazy(() => import('./Page/Users/Users'))
 const Audit = lazy(() => import('./Page/Audit/Audit'))
+const System = lazy(() => import('./Page/System/System'))
 
 const RouteLoader = () => <div className='RouteLoader' role='status' aria-live='polite'>
 	<span className='RouteLoader__mark' aria-hidden='true' />
@@ -22,4 +23,5 @@ export const CardPage = () => <Deferred><CardAll /></Deferred>
 export const TemplatesPage = () => <Deferred><RequireRole role='admin'><TemplateEditor /></RequireRole></Deferred>
 export const UsersPage = () => <Deferred><RequireRole role='admin'><Users /></RequireRole></Deferred>
 export const AuditPage = () => <Deferred><RequireRole role='admin'><Audit /></RequireRole></Deferred>
+export const SystemPage = () => <Deferred><RequireRole role='admin'><System /></RequireRole></Deferred>
 export const NotFoundPage = () => <Deferred><NotFound /></Deferred>

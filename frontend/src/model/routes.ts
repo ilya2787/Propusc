@@ -7,6 +7,7 @@ export const ROUTES = {
 	Templates: '/Templates',
 	Users: '/Users',
 	Audit: '/Audit',
+	System: '/System',
 } as const
 
 export type PathParams = {

@@ -2,7 +2,7 @@ import { MantineProvider } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { Notifications } from '@mantine/notifications'
 import '@mantine/notifications/styles.css'
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router'
 import mascotLogo from './assets/pass-mascot-logo-v2.png'
 import { ICON } from './components/icon/Icon'
@@ -24,6 +24,8 @@ function App() {
 	const { pathname } = useLocation()
 	const { user, logout } = useAuth()
 	const isHomePage = pathname === ROUTES.HOME
+	const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+	const mobileMenuCloseRef = useRef<HTMLButtonElement>(null)
 	const [theme, setTheme] = useState<string>(() => {
 		const mode = JSON.parse(localStorage.getItem('mode')!)
 		return mode || 'Light'
@@ -52,6 +54,14 @@ function App() {
 			delete document.body.dataset.theme
 		}
 	}, [theme])
+
+	useEffect(() => {
+		if (!mobileMenuOpen) return
+		mobileMenuCloseRef.current?.focus()
+		const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setMobileMenuOpen(false) }
+		window.addEventListener('keydown', closeOnEscape)
+		return () => window.removeEventListener('keydown', closeOnEscape)
+	}, [mobileMenuOpen])
 
 	return (
 		<div className={`MainContent ${theme}`} data-theme={theme.toLowerCase()}>
@@ -92,7 +102,7 @@ function App() {
 					{user?.role === 'admin' && <NavLink
 						to={ROUTES.Users}
 						className={({ isActive }) =>
-							`MainContent__header--Menu--Link ${theme} ${isActive ? 'Active' : ''}`
+							`MainContent__header--Menu--Link MainContent__header--Menu--MoreItem ${theme} ${isActive ? 'Active' : ''}`
 						}
 					>
 						<span>{ICON.Users}</span>
@@ -101,12 +111,25 @@ function App() {
 					{user?.role === 'admin' && <NavLink
 						to={ROUTES.Audit}
 						className={({ isActive }) =>
-							`MainContent__header--Menu--Link ${theme} ${isActive ? 'Active' : ''}`
+							`MainContent__header--Menu--Link MainContent__header--Menu--MoreItem ${theme} ${isActive ? 'Active' : ''}`
 						}
 					>
 						<span>{ICON.Audit}</span>
 						<p>Журнал</p>
 					</NavLink>}
+					{user?.role === 'admin' && <NavLink
+						to={ROUTES.System}
+						className={({ isActive }) =>
+							`MainContent__header--Menu--Link MainContent__header--Menu--MoreItem ${theme} ${isActive ? 'Active' : ''}`
+						}
+					>
+						<span>{ICON.Setting}</span>
+						<p>Система</p>
+					</NavLink>}
+					{user?.role === 'admin' && <button type='button' className={`MainContent__header--Menu--Link MainContent__header--Menu--MoreButton ${theme} ${[ROUTES.Users, ROUTES.Audit, ROUTES.System].some(route => pathname === route) ? 'Active' : ''}`} onClick={() => setMobileMenuOpen(true)} aria-haspopup='dialog' aria-expanded={mobileMenuOpen}>
+						<span aria-hidden='true'>•••</span>
+						<p>Ещё</p>
+					</button>}
 				</div>
 				<div className='MainContent__header--account'>
 					<div className='MainContent__header--account--identity'>
@@ -140,6 +163,18 @@ function App() {
 					</label>
 				</div>
 			</div>
+			{mobileMenuOpen && <div className='MobileMore' role='presentation' onPointerDown={event => { if (event.target === event.currentTarget) setMobileMenuOpen(false) }}>
+				<section className='MobileMore__sheet' role='dialog' aria-modal='true' aria-labelledby='mobile-more-title'>
+					<div className='MobileMore__handle' aria-hidden='true' />
+					<header><div><h2 id='mobile-more-title'>Ещё</h2><p>Управление системой</p></div><button ref={mobileMenuCloseRef} type='button' onClick={() => setMobileMenuOpen(false)} aria-label='Закрыть меню'>×</button></header>
+					<nav aria-label='Дополнительные разделы'>
+						<NavLink to={ROUTES.Users} onClick={() => setMobileMenuOpen(false)}><span>{ICON.Users}</span><span><strong>Пользователи</strong><small>Учётные записи и роли</small></span><b aria-hidden='true'>→</b></NavLink>
+						<NavLink to={ROUTES.Audit} onClick={() => setMobileMenuOpen(false)}><span>{ICON.Audit}</span><span><strong>Журнал</strong><small>Входы и критичные действия</small></span><b aria-hidden='true'>→</b></NavLink>
+						<NavLink to={ROUTES.System} onClick={() => setMobileMenuOpen(false)}><span>{ICON.Setting}</span><span><strong>Система</strong><small>Проверка и резервные копии</small></span><b aria-hidden='true'>→</b></NavLink>
+					</nav>
+					<button className='MobileMore__logout' type='button' onClick={() => void logout()}>{ICON.Exit}<span>Выйти из системы</span></button>
+				</section>
+			</div>}
 			<div className={`MainContent_content ${theme} ${isHomePage ? 'HomeBackground' : ''}`}>
 				<AppContext.Provider value={{ theme }}>
 					<Outlet />

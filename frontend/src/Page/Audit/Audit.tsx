@@ -30,6 +30,7 @@ const actionLabels: Record<string, string> = {
 	'directory.director_updated': 'Изменены данные руководителя',
 	'pass.created': 'Пропуск добавлен в очередь',
 	'pass.printed': 'Пропуска отправлены на печать',
+	'system.backup_created': 'Создана резервная копия',
 }
 const serverUrl = () => import.meta.env.VITE_APP_SERVER
 const formatDate = (value: string) => new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(value))
@@ -91,7 +92,7 @@ const Audit = () => {
 		{error && <div className='AuditPage__error' role='alert'>{error}</div>}
 		{notice && <div className='AuditPage__notice' role='status'>{notice}</div>}
 		<section className='AuditPage__toolbar'>
-			<label>Категория<select value={category} onChange={event => { setCategory(event.target.value); setPage(1) }}><option value=''>Все события</option><option value='auth'>Вход в систему</option><option value='user'>Пользователи</option><option value='template'>Шаблоны</option><option value='directory'>Справочники</option><option value='pass'>Пропуска</option></select></label>
+			<label>Категория<select value={category} onChange={event => { setCategory(event.target.value); setPage(1) }}><option value=''>Все события</option><option value='auth'>Вход в систему</option><option value='user'>Пользователи</option><option value='template'>Шаблоны</option><option value='directory'>Справочники</option><option value='pass'>Пропуска</option><option value='system'>Система</option></select></label>
 			<div className='AuditPage__cleanup'><label>Удалить записи старше<select value={cleanupDays} onChange={event => setCleanupDays(event.target.value)}><option value='30'>30 дней</option><option value='90'>90 дней</option><option value='180'>180 дней</option></select></label><button type='button' onClick={() => void cleanup()}>Очистить</button></div>
 		</section>
 		<section className='AuditPage__list'>

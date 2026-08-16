@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	DEFAULT_TEMPLATES,
 	TEMPLATE_CHANGE_EVENT,
+	createTemplateArchive,
 	loadTemplates,
+	parseTemplateArchive,
 	persistTemplates,
 	saveTemplates,
 	type PassTemplate,
@@ -80,5 +82,17 @@ describe('template server persistence', () => {
 	it('returns the backend message when saving fails', async () => {
 		vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, json: async () => ({ message: 'Ошибка проверки' }) }))
 		await expect(persistTemplates(DEFAULT_TEMPLATES)).rejects.toThrow('Ошибка проверки')
+	})
+})
+
+describe('template archive', () => {
+	it('exports and safely imports a versioned archive', () => {
+		const archive = createTemplateArchive(DEFAULT_TEMPLATES)
+		expect(parseTemplateArchive(JSON.stringify(archive))).toEqual(DEFAULT_TEMPLATES)
+	})
+
+	it('rejects unknown and malformed archives', () => {
+		expect(() => parseTemplateArchive('{"templates":[]}')).toThrow('неподдерживаемого формата')
+		expect(() => parseTemplateArchive(JSON.stringify({ format: 'propusk-templates', version: 1, templates: [{}] }))).toThrow('некорректные данные')
 	})
 })

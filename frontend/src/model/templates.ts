@@ -274,6 +274,56 @@ const migrateTemplateBackgrounds = (template: PassTemplate): PassTemplate => {
 
 const migrateTemplates = (templates: PassTemplate[]) => templates.map(migrateTemplateBackgrounds)
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const isImportableTemplate = (value: unknown): value is PassTemplate => {
+	if (!isRecord(value) || !isRecord(value.design)) return false
+	return typeof value.id === 'string'
+		&& /^[a-zA-Z0-9_-]{1,191}$/.test(value.id)
+		&& typeof value.name === 'string'
+		&& value.name.trim().length > 0
+		&& value.name.length <= 255
+		&& typeof value.description === 'string'
+		&& value.description.length <= 5000
+		&& (value.kind === 'pass' || value.kind === 'certificate')
+		&& typeof value.isBuiltIn === 'boolean'
+		&& typeof value.design.accentColor === 'string'
+		&& typeof value.design.titleColor === 'string'
+		&& typeof value.design.fontFamily === 'string'
+		&& typeof value.design.borderRadius === 'number'
+		&& typeof value.design.showDirector === 'boolean'
+}
+
+export type TemplateArchive = {
+	format: 'propusk-templates'
+	version: 1
+	exportedAt: string
+	templates: PassTemplate[]
+}
+
+export const createTemplateArchive = (templates: PassTemplate[]): TemplateArchive => ({
+	format: 'propusk-templates',
+	version: 1,
+	exportedAt: new Date().toISOString(),
+	templates,
+})
+
+export const parseTemplateArchive = (source: string): PassTemplate[] => {
+	if (source.length > 2 * 1024 * 1024) throw new Error('Файл шаблонов превышает допустимый размер 2 МБ')
+	let parsed: unknown
+	try { parsed = JSON.parse(source) } catch { throw new Error('Файл не является корректным JSON') }
+	if (!isRecord(parsed) || parsed.format !== 'propusk-templates' || parsed.version !== 1 || !Array.isArray(parsed.templates)) {
+		throw new Error('Выбран файл неподдерживаемого формата')
+	}
+	if (parsed.templates.length === 0 || parsed.templates.length > 100 || parsed.templates.some(item => !isImportableTemplate(item))) {
+		throw new Error('Файл содержит некорректные данные шаблонов')
+	}
+	const ids = new Set(parsed.templates.map(item => item.id))
+	if (ids.size !== parsed.templates.length) throw new Error('В файле повторяются идентификаторы шаблонов')
+	return migrateTemplates(parsed.templates)
+}
+
 export const loadTemplates = (): PassTemplate[] => {
 	try {
 		const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')

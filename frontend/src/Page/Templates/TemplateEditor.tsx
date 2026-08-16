@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { useBlocker } from 'react-router'
 import { AppContext } from '../../App'
 import { AUTH_EXPIRED_EVENT } from '../../auth/AuthContext'
@@ -12,8 +12,10 @@ import {
 	DEFAULT_FONT_SIZES,
 	DEFAULT_ELEMENT_LAYOUTS,
 	DEFAULT_PHOTO_SETTINGS,
+	createTemplateArchive,
 	fetchTemplates,
 	loadTemplates,
+	parseTemplateArchive,
 	persistTemplates,
 	saveTemplates,
 	type PassTemplate,
@@ -156,6 +158,11 @@ const TemplateEditor = () => {
 	const [previewPhoto, setPreviewPhoto] = useState('')
 	const [serverError, setServerError] = useState('')
 	const [isSaving, setIsSaving] = useState(false)
+	const [showGrid, setShowGrid] = useState(true)
+	const [snapToGrid, setSnapToGrid] = useState(false)
+	const [gridStep, setGridStep] = useState(5)
+	const importInputRef = useRef<HTMLInputElement>(null)
+	const fileMenuRef = useRef<HTMLDetailsElement>(null)
 	const undoHistory = useRef<PassTemplate[][]>([])
 	const redoHistory = useRef<PassTemplate[][]>([])
 	const skipHistory = useRef(false)
@@ -211,6 +218,14 @@ const TemplateEditor = () => {
 		const observer = new ResizeObserver(updatePreviewWidth)
 		observer.observe(canvas)
 		return () => observer.disconnect()
+	}, [])
+
+	useEffect(() => {
+		const closeFileMenu = (event: MouseEvent) => {
+			if (!fileMenuRef.current?.contains(event.target as Node)) fileMenuRef.current?.removeAttribute('open')
+		}
+		document.addEventListener('pointerdown', closeFileMenu)
+		return () => document.removeEventListener('pointerdown', closeFileMenu)
 	}, [])
 
 	const update = useCallback((patch: Partial<PassTemplate>) => {
@@ -395,9 +410,10 @@ const TemplateEditor = () => {
 			recordHistory(dragSnapshot.current)
 			dragSnapshot.current = undefined
 		}
+		const snap = (value: number) => snapToGrid ? Math.round(value / gridStep) * gridStep : Math.round(value)
 		const position = {
-			x: Math.round(Math.min(514, Math.max(0, drag.x + (event.clientX - drag.pointerX) / previewDimensions.scaleX))),
-			y: Math.round(Math.min(363, Math.max(0, drag.y + (event.clientY - drag.pointerY) / previewDimensions.scaleY))),
+			x: snap(Math.min(514, Math.max(0, drag.x + (event.clientX - drag.pointerX) / previewDimensions.scaleX))),
+			y: snap(Math.min(363, Math.max(0, drag.y + (event.clientY - drag.pointerY) / previewDimensions.scaleY))),
 		}
 		if (drag.key) updateElement(drag.key, position)
 		if (drag.customId) {
@@ -522,6 +538,40 @@ const TemplateEditor = () => {
 	const saveAndLeave = async () => {
 		if (await saveAllTemplates()) navigationBlocker.proceed?.()
 	}
+	const exportTemplates = () => {
+		const blob = new Blob([JSON.stringify(createTemplateArchive(templates), null, 2)], { type: 'application/json' })
+		const url = URL.createObjectURL(blob)
+		const anchor = document.createElement('a')
+		anchor.href = url
+		anchor.download = `propusk-templates-${new Date().toISOString().slice(0, 10)}.json`
+		anchor.click()
+		URL.revokeObjectURL(url)
+		fileMenuRef.current?.removeAttribute('open')
+	}
+	const importTemplates = async (file?: File) => {
+		if (!file) return
+		setServerError('')
+		try {
+			const imported = parseTemplateArchive(await file.text())
+			const existingIds = new Set(templates.map(item => item.id))
+			const stamp = Date.now()
+			const copies = imported.map((item, index) => {
+				let id = item.id
+				if (existingIds.has(id)) id = `${id}-imported-${stamp}-${index + 1}`
+				existingIds.add(id)
+				return { ...item, id, name: existingIds.has(item.id) && id !== item.id ? `${item.name} — импорт` : item.name, isBuiltIn: false }
+			})
+			recordHistory(templates)
+			setTemplates(current => [...current, ...copies])
+			setSelectedId(copies[0].id)
+			setSaved(false)
+			setServerError(`Импортировано шаблонов: ${copies.length}. Проверьте их и нажмите «Сохранить».`)
+		} catch (error) {
+			setServerError(error instanceof Error ? error.message : 'Не удалось импортировать шаблоны')
+		} finally {
+			if (importInputRef.current) importInputRef.current.value = ''
+		}
+	}
 	const undo = useCallback(() => {
 		const previous = undoHistory.current.pop()
 		if (!previous) return
@@ -576,6 +626,14 @@ const TemplateEditor = () => {
 					<p>Настройте оформление, создайте вариант и сразу проверьте результат.</p>
 				</div>
 				<div className='TemplateEditor__actions'>
+					<input ref={importInputRef} hidden type='file' accept='application/json,.json' onChange={event => void importTemplates(event.target.files?.[0])} />
+					<details ref={fileMenuRef} className='TemplateEditor__fileMenu'>
+						<summary aria-label='Открыть меню импорта и экспорта'>Файл</summary>
+						<div>
+							<button type='button' onClick={() => { fileMenuRef.current?.removeAttribute('open'); importInputRef.current?.click() }}><span aria-hidden='true'>↑</span><span><strong>Импортировать</strong><small>Добавить шаблоны из JSON</small></span></button>
+							<button type='button' onClick={exportTemplates}><span aria-hidden='true'>↓</span><span><strong>Экспортировать</strong><small>Сохранить резервную копию</small></span></button>
+						</div>
+					</details>
 					<button className='secondary' onClick={createTemplate}>Создать копию</button>
 					<button
 						className='primary'
@@ -780,8 +838,13 @@ const TemplateEditor = () => {
 							<span>3</span>
 							<div><h2>Предпросмотр</h2><p>{selected.kind === 'certificate' ? (editorSide === 'front' ? 'Лицевая сторона' : 'Оборотная сторона') : 'Изменения отображаются сразу'}</p></div>
 						</div>
-						<div className='TemplateEditor__previewControls'>
-						<span className={`TemplateEditor__saveState ${saved ? 'saved' : ''}`} role='status' aria-live='polite'>{saved ? 'Все изменения сохранены' : 'Есть несохранённые изменения'}</span>
+					<div className='TemplateEditor__previewControls'>
+						<div className='TemplateEditor__gridControls' aria-label='Сетка макета'>
+							<button type='button' className={showGrid ? 'active' : ''} onClick={() => setShowGrid(value => !value)} aria-pressed={showGrid}>Сетка</button>
+							<button type='button' className={snapToGrid ? 'active' : ''} onClick={() => setSnapToGrid(value => !value)} aria-pressed={snapToGrid}>Привязка</button>
+							<select value={gridStep} onChange={event => setGridStep(Number(event.target.value))} aria-label='Шаг сетки'><option value='5'>5 px</option><option value='10'>10 px</option><option value='20'>20 px</option></select>
+						</div>
+					<span className={`TemplateEditor__saveState ${saved ? 'saved' : ''}`} role='status' aria-live='polite'>{saved ? 'Все изменения сохранены' : 'Есть несохранённые изменения'}</span>
 							<div className='TemplateEditor__historyActions'>
 								<button type='button' onClick={undo} disabled={!historyState.canUndo} title='Отменить (Ctrl/⌘ + Z)' aria-label='Отменить последнее изменение'>↶</button>
 								<button type='button' onClick={redo} disabled={!historyState.canRedo} title='Повторить (Ctrl/⌘ + Shift + Z)' aria-label='Повторить последнее изменение'>↷</button>
@@ -789,7 +852,7 @@ const TemplateEditor = () => {
 						</div>
 					</div>
 					{selected.kind === 'certificate' && <div className='TemplateEditor__previewTabs TemplateEditor__tabs'><button className={editorSide === 'front' ? 'active' : ''} onClick={() => setEditorSide('front')}>Лицевая сторона</button><button className={editorSide === 'back' ? 'active' : ''} onClick={() => setEditorSide('back')}>Оборотная сторона</button></div>}
-					<div ref={previewCanvasRef} className='TemplateEditor__canvas' tabIndex={0} aria-label='Макет шаблона. Используйте стрелки для перемещения выбранного элемента' onPointerDownCapture={event => event.currentTarget.focus({ preventScroll: true })} onPointerMove={moveElement} onPointerUp={finishElementDrag} onPointerCancel={finishElementDrag}>
+					<div ref={previewCanvasRef} className={`TemplateEditor__canvas ${showGrid ? 'is-grid' : ''}`} style={{ '--editor-grid-step': `${gridStep * previewDimensions.scaleX}px` } as CSSProperties} tabIndex={0} aria-label='Макет шаблона. Используйте стрелки для перемещения выбранного элемента' onPointerDownCapture={event => event.currentTarget.focus({ preventScroll: true })} onPointerMove={moveElement} onPointerUp={finishElementDrag} onPointerCancel={finishElementDrag}>
 						{selected.kind === 'pass'
 							? <LayoutCardPass {...example} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} editor={{ selected: selectedElement, selectedCustomId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag }} director={{ post: 'Руководитель аппарата', name: 'П. П. Петров' }} />
 							: <LayoutCardPassVip {...example} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} previewSide={editorSide} editor={{ selected: selectedElement, selectedCustomId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag }} director={{ post: 'Руководитель аппарата', name: 'П. П. Петров' }} />}

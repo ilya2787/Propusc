@@ -2,8 +2,9 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
-import { mkdirSync, unlink } from 'node:fs'
-import { extname, join } from 'node:path'
+import { mkdirSync, readdirSync, unlink } from 'node:fs'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { extname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import multer from 'multer'
 import mysql from 'mysql2'
@@ -13,6 +14,8 @@ import { ensureAuthSchema } from './src/auth/schema.js'
 import { createUsersRouter } from './src/auth/usersRouter.js'
 import { createAuditRouter } from './src/auth/auditRouter.js'
 import { writeAuditLog } from './src/auth/audit.js'
+import { createBackupFilename, createDatabaseBackup } from './src/databaseBackup.js'
+import { inspectDatabaseBackup, restoreDatabaseBackup } from './src/databaseRestore.js'
 dotenv.config()
 
 const app = express()
@@ -22,6 +25,7 @@ app.use(
 		origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
 		methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'],
 		credentials: true,
+		exposedHeaders: ['Content-Disposition'],
 	}),
 )
 app.use(express.json({ limit: '2mb' }))
@@ -56,17 +60,26 @@ const uploadImage = multer({
 		callback(null, true)
 	},
 })
+const uploadRestore = multer({
+	storage: multer.memoryStorage(),
+	limits: { fileSize: 50 * 1024 * 1024, files: 1 },
+	fileFilter: (_req, file, callback) => {
+		if (!file.originalname.toLowerCase().endsWith('.sql')) return callback(new Error('Выберите SQL-файл резервной копии'))
+		callback(null, true)
+	},
+})
 
 const PORT = parseInt(process.env.PORT || '5173', 10)
 const HOST = process.env.HOST || '127.0.0.1'
 
-const DB = mysql.createConnection({
+const databaseConfig = {
 	host: process.env.DB_HOST || 'localhost',
 	port: parseInt(process.env.DB_PORT || '3306', 10),
 	user: process.env.DB_USER || 'root',
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
-})
+}
+const DB = mysql.createConnection(databaseConfig)
 DB.connect(err => {
 	if (err) console.error('Ошибка подключения к базе данных:', err)
 	else {
@@ -104,6 +117,114 @@ const editor = requireRole('admin', 'operator')
 app.use('/Auth', createAuthRouter(database))
 app.use('/Admin/Users', authenticated, administrator, createUsersRouter(database))
 app.use('/Admin/Audit', authenticated, administrator, createAuditRouter(database))
+
+app.get('/Admin/System/Status', authenticated, administrator, async (_req, res) => {
+	try {
+		const [[templateCount], [userCount], [organizationCount]] = await Promise.all([
+			database.query<mysql.RowDataPacket[]>('SELECT COUNT(*) AS count FROM pass_templates'),
+			database.query<mysql.RowDataPacket[]>('SELECT COUNT(*) AS count FROM users'),
+			database.query<mysql.RowDataPacket[]>('SELECT COUNT(*) AS count FROM Organization'),
+		])
+		const uploadedFiles = ['backgrounds', 'photos'].reduce((count, folder) => {
+			try { return count + readdirSync(join(uploadsDirectory, folder), { withFileTypes: true }).filter(item => item.isFile()).length } catch { return count }
+		}, 0)
+		return res.json({
+			database: 'connected',
+			databaseName: process.env.DB_NAME || '',
+			templates: Number(templateCount[0]?.count ?? 0),
+			users: Number(userCount[0]?.count ?? 0),
+			organizations: Number(organizationCount[0]?.count ?? 0),
+			uploadedFiles,
+		})
+	} catch (error) {
+		console.error('Ошибка проверки системы:', error)
+		return res.status(500).json({ message: 'Не удалось проверить состояние системы' })
+	}
+})
+
+app.post('/Admin/System/Backup', authenticated, administrator, async (req, res) => {
+	const databaseName = process.env.DB_NAME
+	if (!databaseName) return res.status(500).json({ message: 'В настройках сервера не указано имя базы данных' })
+	const backupConnection = mysql.createConnection(databaseConfig).promise()
+	try {
+		const backup = await createDatabaseBackup(backupConnection, databaseName)
+		const filename = createBackupFilename()
+		void writeAuditLog(database, req, { action: 'system.backup_created', entityType: 'database', details: { tableCount: backup.tableCount } })
+		res.setHeader('Content-Type', 'application/sql; charset=utf-8')
+		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+		return res.send(backup.sql)
+	} catch (error) {
+		console.error('Ошибка создания резервной копии:', error)
+		return res.status(500).json({ message: 'Не удалось создать резервную копию' })
+	} finally {
+		await backupConnection.end().catch(() => undefined)
+	}
+})
+
+app.post('/Admin/System/Restore/Inspect', authenticated, administrator, uploadRestore.single('backup'), (req, res) => {
+	if (!req.file) return res.status(400).json({ message: 'Выберите SQL-файл резервной копии' })
+	const databaseName = process.env.DB_NAME
+	if (!databaseName) return res.status(500).json({ message: 'В настройках сервера не указано имя базы данных' })
+	try {
+		return res.json(inspectDatabaseBackup(req.file.buffer.toString('utf8'), databaseName))
+	} catch (error) {
+		return res.status(400).json({ message: error instanceof Error ? error.message : 'Некорректная резервная копия' })
+	}
+})
+
+app.post('/Admin/System/Restore', authenticated, administrator, uploadRestore.single('backup'), async (req, res) => {
+	if (!req.file) return res.status(400).json({ message: 'Выберите SQL-файл резервной копии' })
+	if (req.body?.confirmation !== 'ВОССТАНОВИТЬ') return res.status(400).json({ message: 'Введите слово ВОССТАНОВИТЬ для подтверждения' })
+	const databaseName = process.env.DB_NAME
+	if (!databaseName) return res.status(500).json({ message: 'В настройках сервера не указано имя базы данных' })
+	const source = req.file.buffer.toString('utf8')
+	try {
+		inspectDatabaseBackup(source, databaseName)
+	} catch (error) {
+		return res.status(400).json({ message: error instanceof Error ? error.message : 'Некорректная резервная копия' })
+	}
+
+	const currentBackupConnection = mysql.createConnection(databaseConfig).promise()
+	let safetyBackup = ''
+	let safetyFilename = ''
+	try {
+		const backup = await createDatabaseBackup(currentBackupConnection, databaseName)
+		safetyBackup = backup.sql
+		safetyFilename = `pre-restore-${createBackupFilename()}`
+		const backupDirectory = resolve('backups')
+		await mkdir(backupDirectory, { recursive: true })
+		await writeFile(resolve(backupDirectory, safetyFilename), safetyBackup, { encoding: 'utf8', mode: 0o600 })
+	} catch (error) {
+		console.error('Не удалось создать страховочную копию:', error)
+		return res.status(500).json({ message: 'Восстановление отменено: не удалось создать страховочную копию текущей базы' })
+	} finally {
+		await currentBackupConnection.end().catch(() => undefined)
+	}
+
+	const restoreConnection = mysql.createConnection({ ...databaseConfig, multipleStatements: true }).promise()
+	try {
+		const info = await restoreDatabaseBackup(restoreConnection, source, databaseName)
+		await restoreConnection.execute('DELETE FROM user_sessions')
+		await restoreConnection.execute(
+			'INSERT INTO audit_log (actor_user_id, action, entity_type, details, ip_address, user_agent) VALUES (NULL, ?, ?, ?, ?, ?)',
+			['system.database_restored', 'database', JSON.stringify({ restoredFrom: req.file.originalname, backupCreatedAt: info.createdAt, safetyFilename }), req.ip?.slice(0, 45) || null, req.get('user-agent')?.slice(0, 500) || null],
+		)
+		res.clearCookie('propusk_session', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/' })
+		return res.json({ status: 'success', safetyFilename, restoredAt: info.createdAt })
+	} catch (error) {
+		console.error('Ошибка восстановления базы:', error)
+		try {
+			await restoreDatabaseBackup(restoreConnection, safetyBackup, databaseName)
+			console.warn(`Исходная база восстановлена из страховочной копии ${safetyFilename}`)
+			return res.status(500).json({ message: 'Архив не удалось применить. Исходное состояние базы автоматически восстановлено.' })
+		} catch (rollbackError) {
+			console.error('Критическая ошибка отката базы:', rollbackError)
+			return res.status(500).json({ message: `Восстановление и автоматический откат не выполнены. Используйте страховочную копию ${safetyFilename}.` })
+		}
+	} finally {
+		await restoreConnection.end().catch(() => undefined)
+	}
+})
 
 app.post('/UploadImage', authenticated, editor, (req, res, next) => {
 	if (req.query.kind === 'background' && req.authUser?.role !== 'admin') return res.status(403).json({ message: 'Изменять фон шаблона может только администратор' })
