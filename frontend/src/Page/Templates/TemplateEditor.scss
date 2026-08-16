@@ -5,7 +5,7 @@
 	&__eyebrow { color: CL.$PrimaryBlue !important; text-transform: uppercase; font-weight: 700; letter-spacing: .12em; font-size: 12px; }
 	&__actions { display: flex; gap: 10px; button { padding: 11px 18px; border-radius: 8px; } .primary { background: CL.$PrimaryBlue; color: white; } .secondary { border: 1px solid #ccd4e0; } }
 	&__historyActions { display: flex; overflow: hidden; border: 1px solid #ccd4e0; border-radius: 8px; background: white; button { display: grid; min-width: 42px; min-height: 36px; padding: 0 12px; place-items: center; border-radius: 0; color: CL.$PrimaryBlue; font-size: 21px; line-height: 1; &:first-child { border-right: 1px solid #dce2ea; } &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #b5bdc9; cursor: not-allowed; } } }
-	&__leaveOverlay { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(13, 23, 41, .58); backdrop-filter: blur(3px); }
+	&__leaveOverlay { position: fixed; z-index: var(--z-modal); inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(13, 23, 41, .58); backdrop-filter: blur(3px); }
 	&__leaveDialog { width: min(440px, 100%); padding: 24px; border: 1px solid #dce3ee; border-radius: 14px; background: white; box-shadow: 0 24px 70px rgba(15, 29, 54, .28); h2 { margin-bottom: 8px; color: #172033; font-size: 21px; } p { color: #697386; font-size: 14px; line-height: 1.5; } > div { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; } button { min-height: 40px; padding: 9px 14px; border-radius: 8px; font-weight: 700; &.primary { color: white; background: CL.$PrimaryBlue; } &.secondary { border: 1px solid #ccd4e0; color: #526078; } &.danger { border: 1px solid #e3b4b4; color: #a53737; background: #fff2f2; } &:disabled { opacity: .6; cursor: not-allowed; } } }
 	&__serverError { margin: -10px 0 18px; padding: 11px 14px; border: 1px solid #efb8b8; border-radius: 9px; color: #9f3030; background: #fff1f1; font-size: 13px; }
 	&__workspace { display: grid; grid-template-columns: 220px 300px minmax(520px, 1fr); gap: 18px; align-items: start; }
@@ -52,10 +52,13 @@
 	&__error { padding: 9px; border-radius: 7px; color: #a52f2f; background: #fff0f0; font-size: 12px; }
 	&__numberInput { display: grid !important; grid-template-columns: 30px 1fr 30px !important; gap: 0 !important; overflow: hidden; border: 1px solid #ccd4e0; border-radius: 7px; background: white; > button { display: grid; place-items: center; min-width: 30px; padding: 0; color: CL.$PrimaryBlue; background: #f3f6fa; font-size: 18px; font-weight: 500; line-height: 1; transition: background .15s ease, color .15s ease; &:first-child { border-right: 1px solid #dce2ea; } &:last-child { border-left: 1px solid #dce2ea; } &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #b3bbc8; cursor: not-allowed; } } > span { position: relative; display: block; } input { height: 32px; padding: 5px 21px 5px 4px; border: 0; border-radius: 0; text-align: right; appearance: textfield; -moz-appearance: textfield; &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { margin: 0; appearance: none; } &:focus { outline: 2px solid rgba(CL.$PrimaryBlue, .25); outline-offset: -2px; } } small { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #667085; font-size: 10px; pointer-events: none; } }
 	&__elementSettings { display: flex; flex-direction: column; gap: 10px; padding-top: 4px; border-top: 1px solid #e5e9f0; h3 { border: 0; } }
-	&__addTextButton { padding: 10px 12px; border: 1px solid CL.$PrimaryBlue; border-radius: 8px; color: white; background: CL.$PrimaryBlue; font-size: 12px; font-weight: 800; transition: background .15s ease, transform .15s ease; &:hover { background: CL.$PrimaryButtonHover; transform: translateY(-1px); } }
+	&__addTextButton { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 5px; padding: 7px 10px; border: 1px solid CL.$PrimaryBlue; border-radius: 8px; color: white; background: CL.$PrimaryBlue; font-size: 12px; font-weight: 800; white-space: nowrap; transition: background .15s ease, transform .15s ease; &:hover { background: CL.$PrimaryButtonHover; transform: translateY(-1px); } > span { font-size: 16px; line-height: 1; } }
 	&__keyboardHint { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 9px 10px; border: 1px solid #d7e2f2; border-radius: 8px; color: #68768b; background: #f5f8fc; font-size: 9px; line-height: 1.5; strong { flex: 1 0 100%; color: #3c4d68; font-size: 10px; } span { display: inline-flex; align-items: center; gap: 3px; } kbd { display: inline-grid; min-width: 19px; height: 19px; place-items: center; padding: 0 4px; border: 1px solid #bdcadb; border-bottom-width: 2px; border-radius: 4px; color: #40516c; background: white; font-family: inherit; font-size: 9px; font-weight: 700; } }
 	&__customTextSettings { display: flex; flex-direction: column; gap: 10px; }
-	&__customTextList { display: flex; flex-direction: column; gap: 5px; padding: 9px; border: 1px solid #dce5f2; border-radius: 9px; background: #f8faff; h4 { margin-bottom: 2px; font-size: 11px; } }
+	&__customTextLibrary { display: flex; flex-direction: column; gap: 9px; margin-top: 4px; padding-top: 14px; border-top: 1px solid #dce5f2; }
+	&__customTextLibraryHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; > div { min-width: 0; } h4 { color: #29456f; font-size: 13px; } span { display: block; margin-top: 3px; color: #778398; font-size: 11px; } }
+	&__customTextEmpty { padding: 8px 0 2px; color: #7b8798; font-size: 11px; line-height: 1.45; }
+	&__customTextList { display: flex; flex-direction: column; gap: 5px; padding: 9px; border: 1px solid #dce5f2; border-radius: 9px; background: #f8faff; }
 	&__customTextListItem { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; overflow: hidden; border: 1px solid transparent; border-radius: 7px; transition: border-color .15s ease, background .15s ease; &:hover { border-color: #b8cae7; background: white; } &.active { border-color: CL.$PrimaryBlue; background: #eaf2ff; .TemplateEditor__customTextSelect > span { color: white; background: CL.$PrimaryBlue; } } }
 	&__customTextSelect { display: grid; min-width: 0; grid-template-columns: 24px minmax(0, 1fr); align-items: center; gap: 8px; padding: 7px; text-align: left; > span { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; color: #53627a; background: #e8edf5; font-size: 10px; font-weight: 800; } div { min-width: 0; } strong, small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } strong { color: #344158; font-size: 11px; } small { margin-top: 2px; color: #8390a3; font-size: 9px; } }
 	&__customTextQuickActions { display: flex; align-items: center; gap: 3px; padding: 5px; button { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: #245ba9; background: #e7effb; font-size: 16px; line-height: 1; transition: color .15s ease, background .15s ease; &:hover { color: white; background: CL.$PrimaryBlue; } &.danger { color: #a52f2f; background: #fdeaea; &:hover { color: white; background: #b83d3d; } } } }
@@ -83,7 +86,7 @@
 }
 
 .TemplateEditor__canvas [data-editor-selected] { touch-action: none; user-select: none; transition: outline-color .15s ease, box-shadow .15s ease; &:hover { outline: 1px dashed #5a8ed8; outline-offset: 3px; } &[data-editor-selected='true'] { z-index: 10; outline: 2px solid CL.$PrimaryBlue; outline-offset: 4px; box-shadow: 0 0 0 5px rgba(CL.$PrimaryBlue, .12); } }
-#Dark.TemplateEditor { color: #edf1f8; .panel { background: rgba(30,35,51,.96); border-color: #353c50; } input, select, textarea { color: #edf1f8; background: #252b3c; border-color: #465068; } .TemplateEditor__list button.active { background: #273d61; } .TemplateEditor__settingsTabs button { color: #b8c1d1; background: #272e40; &.active { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__selectedFontSizes, .TemplateEditor__fixedTextSettings, .TemplateEditor__photoSettings, .TemplateEditor__fieldVisibility, .TemplateEditor__hint, .TemplateEditor__backgroundUpload, .TemplateEditor__sizeSettings { background: #272e40; border-color: #465068; } .TemplateEditor__settingsGroup { border-color: #465068; background: #272e40; summary { color: #e4eaf4; &:hover { background: #303a50; } } &[open] summary { border-color: #465068; } } .TemplateEditor__cornerSettings { border-color: #465068; background: #252b3c; } .TemplateEditor__cornerMode button { color: #c6cfdd; background: #303749; &.active { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__layerControls > div { border-color: #465068; background: #252b3c; button { color: #bcd4ff; background: #303749; &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #657086; } } strong { color: #edf1f8; border-color: #465068; } } .TemplateEditor__layerControls > small { color: #929db0; } .TemplateEditor__hint { color: #b8c1d1; } .TemplateEditor__fileButton { background: #303d55; } .TemplateEditor__resetButton { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: white; border-color: #789ff0; background: CL.$PrimaryBlue; } } .TemplateEditor__fillSettings button { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__formatButtons { border-color: #465068; background: #252b3c; button { color: #d7deea; border-color: #465068; &.active { color: white; background: CL.$PrimaryBlue; } } } .TemplateEditor__error { color: #ffb6b6; background: #482d35; } .TemplateEditor__numberInput { background: #252b3c; border-color: #465068; > button { background: #303749; border-color: #465068; &:hover:not(:disabled) { background: CL.$PrimaryBlue; } } } .TemplateEditor__coordinateNumber > button:disabled, .TemplateEditor__coordinateNumber > button:disabled:hover { color: #657086; background: #303749; } }
+body.Dark .TemplateEditor { color: #edf1f8; .panel { background: rgba(30,35,51,.96); border-color: #353c50; } input, select, textarea { color: #edf1f8; background: #252b3c; border-color: #465068; } .TemplateEditor__list button.active { background: #273d61; } .TemplateEditor__settingsTabs button { color: #b8c1d1; background: #272e40; &.active { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__selectedFontSizes, .TemplateEditor__fixedTextSettings, .TemplateEditor__photoSettings, .TemplateEditor__fieldVisibility, .TemplateEditor__hint, .TemplateEditor__backgroundUpload, .TemplateEditor__sizeSettings { background: #272e40; border-color: #465068; } .TemplateEditor__settingsGroup { border-color: #465068; background: #272e40; summary { color: #e4eaf4; &:hover { background: #303a50; } } &[open] summary { border-color: #465068; } } .TemplateEditor__cornerSettings { border-color: #465068; background: #252b3c; } .TemplateEditor__cornerMode button { color: #c6cfdd; background: #303749; &.active { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__layerControls > div { border-color: #465068; background: #252b3c; button { color: #bcd4ff; background: #303749; &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #657086; } } strong { color: #edf1f8; border-color: #465068; } } .TemplateEditor__layerControls > small { color: #929db0; } .TemplateEditor__hint { color: #b8c1d1; } .TemplateEditor__fileButton { background: #303d55; } .TemplateEditor__resetButton { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: white; border-color: #789ff0; background: CL.$PrimaryBlue; } } .TemplateEditor__fillSettings button { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__formatButtons { border-color: #465068; background: #252b3c; button { color: #d7deea; border-color: #465068; &.active { color: white; background: CL.$PrimaryBlue; } } } .TemplateEditor__error { color: #ffb6b6; background: #482d35; } .TemplateEditor__numberInput { background: #252b3c; border-color: #465068; > button { background: #303749; border-color: #465068; &:hover:not(:disabled) { background: CL.$PrimaryBlue; } } } .TemplateEditor__coordinateNumber > button:disabled, .TemplateEditor__coordinateNumber > button:disabled:hover { color: #657086; background: #303749; } }
 
 @keyframes editorTabIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -106,7 +109,7 @@
 	&__canvas { min-height: clamp(480px, 65vh, 700px); }
 }
 
-#Dark.TemplateEditor {
+	body.Dark .TemplateEditor {
 	.TemplateEditor__historyActions { border-color: #465068; background: #252b3c; button { color: #bcd4ff; border-color: #465068; &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #657086; } } }
 	.TemplateEditor__leaveDialog { color: #edf1f8; border-color: #465068; background: #252b3c; h2 { color: #f4f7fc; } p { color: #b8c2d2; } button.secondary { color: #d7deea; border-color: #59647a; } button.danger { color: #ffb6b6; border-color: #80505a; background: #482d35; } }
 	.TemplateEditor__header h1 { color: #f4f7fc; }
@@ -119,6 +122,9 @@
 	.TemplateEditor__settingsTabs { border-color: #3b4458; background: rgba(30,35,51,.96); }
 	.TemplateEditor__saveState { color: #ffd58f !important; background: #4c3d28; &.saved { color: #9fe0bb !important; background: #274335; } }
 	.TemplateEditor__customTextList { border-color: #465068; background: #272e40; }
+	.TemplateEditor__customTextLibrary { border-color: #465068; }
+	.TemplateEditor__customTextLibraryHeader { h4 { color: #e4eaf4; } span { color: #aab5c7; } }
+	.TemplateEditor__customTextEmpty { color: #9ca8ba; }
 	.TemplateEditor__customTextListItem { &:hover { border-color: #58709a; background: #303749; } &.active { border-color: #789ff0; background: #293958; } }
 	.TemplateEditor__customTextSelect { strong { color: #e4eaf4; } > span { color: #bdc7d7; background: #303749; } }
 	.TemplateEditor__customTextQuickActions button { color: #bcd4ff; background: #34435c; &:hover { color: white; background: CL.$PrimaryBlue; } &.danger { color: #ffb6b6; background: #482d35; &:hover { color: white; background: #b83d3d; } } }
@@ -139,3 +145,36 @@
 @media (max-width: 400px) {
 	.TemplateEditor { &__coordinates, &__cornerGrid { grid-template-columns: 1fr; } &__previewControls { align-items: stretch; flex-direction: column; } &__historyActions button { flex: 1; } &__saveState { align-self: flex-start; } &__canvas { min-height: 340px; padding: 10px; } }
 }
+
+// Keep the dense editor legible and touch-friendly.
+.TemplateEditor {
+	label,
+	&__layerControls > span,
+	&__sizeField > span { font-size: 13px; }
+	&__hint,
+	&__keyboardHint,
+	&__layerControls > small { font-size: 11px; }
+	&__settingsTabs button { min-height: 40px; font-size: 12px; }
+	&__saveState { font-size: 11px !important; }
+	&__customTextSelect { strong { font-size: 12px; } small { font-size: 11px; } }
+	&__customBadge,
+	&__customTextEmpty,
+	&__customTextLibraryHeader span { font-size: 11px; }
+	&__settingsGroup summary::after { content: '+'; display: grid; width: 22px; height: 22px; margin-left: auto; place-items: center; border-radius: 6px; color: CL.$PrimaryBlue; background: rgba(CL.$PrimaryBlue, .08); font-size: 16px; font-weight: 500; transition: background CL.$MotionFast; }
+	&__settingsGroup[open] summary::after { content: '−'; background: rgba(CL.$PrimaryBlue, .14); }
+}
+
+body.Dark .TemplateEditor .TemplateEditor__settingsGroup summary::after { color: #bcd4ff; background: #303d55; }
+
+@media (max-width: 720px) {
+	.TemplateEditor {
+		label,
+		&__hint,
+		&__keyboardHint,
+		&__layerControls > small { font-size: 12px; }
+		&__settingsTabs button { min-height: 44px; }
+		&__customTextLibraryHeader { align-items: stretch; flex-direction: column; .TemplateEditor__addTextButton { width: 100%; min-height: 44px; } }
+	}
+}
+
+// The application theme is global; keep route styling independent from duplicate DOM ids.

@@ -1,18 +1,13 @@
 import { createBrowserRouter } from 'react-router'
 import App from './App'
 import { ROUTES } from './model/routes'
-import CardAll from './Page/Card/CardAll'
-import Home from './Page/Home'
-import TemplateEditor from './Page/Templates/TemplateEditor'
-import NotFound from './Page/NotFound/NotFound'
-import Login from './Page/Login/Login'
-import Users from './Page/Users/Users'
-import Audit from './Page/Audit/Audit'
-import { ProtectedRoute, RequireRole } from './auth/ProtectedRoute'
+import { ProtectedRoute } from './auth/ProtectedRoute'
+import { AuditPage, CardPage, HomePage, LoginPage, NotFoundPage, TemplatesPage, UsersPage } from './routerPages'
+
 export const router = createBrowserRouter([
 	{
 		path: ROUTES.Login,
-		element: <Login />,
+		element: <LoginPage />,
 	},
 	{
 		Component: ProtectedRoute,
@@ -20,12 +15,12 @@ export const router = createBrowserRouter([
 			{
 				Component: App,
 				children: [
-					{ path: ROUTES.HOME, element: <Home /> },
-					{ path: ROUTES.Card, element: <CardAll /> },
-					{ path: ROUTES.Templates, element: <RequireRole role='admin'><TemplateEditor /></RequireRole> },
-					{ path: ROUTES.Users, element: <RequireRole role='admin'><Users /></RequireRole> },
-					{ path: ROUTES.Audit, element: <RequireRole role='admin'><Audit /></RequireRole> },
-					{ path: '*', element: <NotFound /> },
+					{ path: ROUTES.HOME, element: <HomePage /> },
+					{ path: ROUTES.Card, element: <CardPage /> },
+					{ path: ROUTES.Templates, element: <TemplatesPage /> },
+					{ path: ROUTES.Users, element: <UsersPage /> },
+					{ path: ROUTES.Audit, element: <AuditPage /> },
+					{ path: '*', element: <NotFoundPage /> },
 				],
 			},
 		],

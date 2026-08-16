@@ -41,7 +41,7 @@ const Login = () => {
 		}
 	}
 
-	return <main className='LoginPage' id={theme}>
+	return <main className='LoginPage' data-theme={theme.toLowerCase()}>
 		<button type='button' className='LoginPage__theme' onClick={() => setTheme(current => current === 'Light' ? 'Dark' : 'Light')} title={theme === 'Light' ? 'Включить тёмную тему' : 'Включить светлую тему'} aria-label={theme === 'Light' ? 'Включить тёмную тему' : 'Включить светлую тему'}>
 			{theme === 'Light' ? <IoMoonOutline aria-hidden='true' /> : <IoSunnyOutline aria-hidden='true' />}
 			<span>{theme === 'Light' ? 'Тёмная тема' : 'Светлая тема'}</span>

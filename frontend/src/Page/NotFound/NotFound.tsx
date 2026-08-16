@@ -1,15 +1,11 @@
-import { useContext } from 'react'
 import { Link } from 'react-router'
-import { AppContext } from '../../App'
 import sadPass from '../../assets/sad-pass-404.png'
 import { ICON } from '../../components/icon/Icon'
 import { ROUTES } from '../../model/routes'
 import './NotFound.scss'
 
 const NotFound = () => {
-	const { theme } = useContext(AppContext)
-
-	return <main className='NotFound' id={theme}>
+	return <main className='NotFound'>
 		<div className='NotFound__glow' aria-hidden='true' />
 		<section className='NotFound__content'>
 			<div className='NotFound__illustration'>

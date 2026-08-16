@@ -284,7 +284,7 @@ const CardAll = () => {
 				SelectedTemplate,
 			}}
 		>
-			<div className='MainCard' id={theme}>
+			<div className={`MainCard ${theme}`}>
 				<header className='MainCard__pageHeader'>
 					<div>
 						<span className='MainCard__eyebrow'>Оформление</span>
@@ -297,36 +297,33 @@ const CardAll = () => {
 					</div>
 				</header>
 				<div className='MainCard--headerInfo'>
-					<div className='MainCard--headerInfo--TypePassCard' id={theme}>
+					<div className={`MainCard--headerInfo--TypePassCard ${theme}`}>
 						<div className='MainCard__sectionTitle'>
 							<span>1</span>
 							<div><h2>Выберите шаблон</h2><p>Поля формы подстроятся автоматически</p></div>
 						</div>
 						<div
-							className='MainCard--headerInfo--TypePassCard--content'
-							id={theme}
+							className={`MainCard--headerInfo--TypePassCard--content ${theme}`}
 						>
 							{Templates.map(template => (
-								<div
+								<button
+									type='button'
 									key={template.id}
-									className={`MainCard--headerInfo--TypePassCard--content--Item ${SelectedTemplate.id === template.id ? 'Active' : ''}`}
+									className={`MainCard--headerInfo--TypePassCard--content--Item ${theme} ${SelectedTemplate.id === template.id ? 'Active' : ''}`}
 									onClick={() => {
 										setSelectedTemplate(template)
 									}}
-									role='button'
-									tabIndex={0}
-									onKeyDown={event => event.key === 'Enter' && setSelectedTemplate(template)}
-									id={theme}
+									aria-pressed={SelectedTemplate.id === template.id}
 								>
-									<img src={template.kind === 'pass' ? '/img/maket1.png' : '/img/maket2.png'} alt='' />
+									<img src={template.kind === 'pass' ? '/img/maket1.png' : '/img/maket2.png'} alt='' aria-hidden='true' />
 									<div className='MainCard--headerInfo--TypePassCard--content--Item--text'>
 										<h2>{template.name}</h2><p>{template.description}</p>
 									</div>
-								</div>
+								</button>
 							))}
 						</div>
-						</div>
-						</div>
+					</div>
+				</div>
 					<div className='MainCard__workspace'>
 					<div className='MainCard__sectionTitle'>
 						<span>2</span>
@@ -334,14 +331,14 @@ const CardAll = () => {
 					</div>
 					{SelectedTemplate.kind === 'pass' ? <CardPass /> : <CardPassVip />}
 				</div>
-				<div className='MainCard--headerInfo--ListPrintCard' id={theme}>
+				<div className={`MainCard--headerInfo--ListPrintCard ${theme}`}>
 					<div className='MainCard__queueHeader'>
 						<div className='MainCard__sectionTitle'>
 							<span>3</span>
 							<div><h2>Очередь печати</h2><p>{ListPrint.length ? `Добавлено: ${ListPrint.length}` : 'Добавленные пропуска появятся здесь'}</p></div>
 						</div>
 						<div className='MainCard--headerInfo--ListPrintCard--BTN'>
-							<button className='MainCard--headerInfo--ListPrintCard--BTN--Clear' onClick={() => DeleteListCard()} id={theme} disabled={!ListPrint.length}>
+							<button className={`MainCard--headerInfo--ListPrintCard--BTN--Clear ${theme}`} onClick={() => DeleteListCard()} disabled={!ListPrint.length}>
 								<span>{ICON.DeleteCard}</span>Очистить
 							</button>
 							<button className='MainCard--headerInfo--ListPrintCard--BTN--View' onClick={() => ListPrint.length > 0 ? setOpenModal(true) : warningListPrint()}>
@@ -350,10 +347,9 @@ const CardAll = () => {
 						</div>
 					</div>
 						<div
-							className='MainCard--headerInfo--ListPrintCard--tables'
-							id={theme}
+							className={`MainCard--headerInfo--ListPrintCard--tables ${theme}`}
 						>
-							<table className='table' id={theme}>
+							<table className={`table ${theme}`}>
 								<thead>
 									<tr>
 										<th>Таб. №</th>
@@ -371,12 +367,14 @@ const CardAll = () => {
 											<td>{`${data.LastName} ${data.FirstName} ${data.Patronymic}`}</td>
 											<td>{data.Post}</td>
 											<td>
-												<div style={{ width: '300px' }}>
+											<div className='MainCard__organizationCell'>
 													{data.Organization}
 												</div>
 											</td>
 											<td className='DeleteListUserCard'>
 												<button
+													type='button'
+													aria-label={`Удалить пропуск: ${data.LastName} ${data.FirstName}`}
 													onClick={() => {
 									deleteLineCard(data.Id)
 													}}
@@ -408,7 +406,7 @@ const CardAll = () => {
 							NumberObject={NumberObjectPage}
 						/>
 					</div>
-					<button className='Print_BTN' disabled={!printLayout.fits} onClick={() => { setPrintDialogClosed(false); handlePrint() }}>
+					<button type='button' className='Print_BTN' disabled={!printLayout.fits} onClick={() => { setPrintDialogClosed(false); handlePrint() }}>
 						<span>{ICON.Print}</span>Печать
 					</button>
 					{PrintDialogClosed && <div className='PrintConfirm_Backdrop' role='dialog' aria-modal='true' aria-labelledby='photo-cleanup-title'>
@@ -416,8 +414,8 @@ const CardAll = () => {
 							<h2 id='photo-cleanup-title'>Удалить фотографии?</h2>
 							<p>Печать завершена. Удалить временные фотографии сотрудников с сервера и очистить список печати?</p>
 							<div className='PrintConfirm_Actions'>
-								<button className='PrintConfirm_Keep' onClick={() => setPrintDialogClosed(false)}>Нет, оставить</button>
-								<button className='PrintConfirm_Delete' onClick={finishPrintAndCleanup}>Да, удалить</button>
+								<button type='button' className='PrintConfirm_Keep' onClick={() => setPrintDialogClosed(false)}>Нет, оставить</button>
+								<button type='button' className='PrintConfirm_Delete' onClick={finishPrintAndCleanup}>Да, удалить</button>
 							</div>
 						</div>
 					</div>}

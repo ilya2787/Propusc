@@ -4,7 +4,7 @@
 
 .UsersPage {
 	&__notice { max-width: 1400px; margin: -12px auto 18px; padding: 11px 14px; border: 1px solid #b9dec5; border-radius: 10px; color: #2f7147; background: #edf9f1; font-size: 12px; }
-	&__modalBackdrop { position: fixed; z-index: 500; inset: 0; display: grid; padding: 20px; place-items: center; background: rgba(13, 20, 34, .54); backdrop-filter: blur(4px); }
+	&__modalBackdrop { position: fixed; z-index: var(--z-modal); inset: 0; display: grid; padding: 20px; place-items: center; background: rgba(13, 20, 34, .54); backdrop-filter: blur(4px); }
 	&__passwordModal { position: relative; display: grid; width: min(440px, 100%); gap: 14px; padding: 25px; border: 1px solid #dce3ed; border-radius: 17px; background: #fff; box-shadow: 0 24px 70px rgba(13, 25, 47, .25); > span { color: CL.$PrimaryBlue; font-size: 10px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; } h2 { color: #172033; font-size: 22px; font-weight: 800; } > p { color: #687487; font-size: 12px; line-height: 1.55; strong { color: #344158; } } label { display: grid; gap: 6px; color: #3e4a5e; font-size: 12px; font-weight: 750; } input { min-height: 42px; padding: 9px 11px; border: 1px solid #ccd5e2; border-radius: 9px; color: #202a3b; background: #fff; &:focus { border-color: CL.$PrimaryBlue; outline: 3px solid rgba(CL.$PrimaryBlue,.14); } } > div { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 3px; button { min-height: 40px; border: 1px solid #d3dae5; border-radius: 9px; color: #566276; background: #f4f6f9; font-size: 11px; font-weight: 800; &:last-child { border-color: CL.$PrimaryBlue; color: #fff; background: CL.$PrimaryBlue; } &:hover:not(:disabled) { filter: brightness(.96); } &:disabled { opacity: .6; cursor: wait; } } } }
 	&__modalClose { position: absolute; top: 13px; right: 13px; display: grid; width: 29px; height: 29px; place-items: center; border-radius: 8px; color: #7b8799; background: #f1f3f7; font-size: 20px; line-height: 1; &:hover { color: #a43b3b; background: #fdeaea; } }
 	&__modalError { padding: 9px 10px; border-radius: 8px; color: #a43b3b !important; background: #fff0f0; font-size: 11px !important; }
@@ -13,11 +13,51 @@
 	&__actionsDivider { height: 1px; margin: 2px 0; background: #e8ecf2; }
 }
 
-#Dark.UsersPage { color: #eef2f8; .UsersPage__header { h1 { color: #f4f7fc; } p { color: #b8c2d2; } > strong { border-color: #30394d; color: #aabfff; background: rgba(29,36,53,.88); small { color: #aab5c7; } } } .UsersPage__create, .UsersPage__list { border-color: #30394d; background: rgba(29,36,53,.88); } .UsersPage__create { label { color: #dbe1eb; } input,select { border-color: #465068; color: #eef2f8; background-color: #252b3c; } } .UsersPage__hint { color: #aeb8c8; background: #252d40; } .UsersPage__user { border-color: #30394d; } .UsersPage__userInfo small, .UsersPage__login { color: #99a5b7; } .UsersPage__login b { color: #d4dbe6; } .UsersPage__status { color: #9ed8b1; background: #284737; &--blocked { color: #ffb6b6; background: #482d35; } } .UsersPage__actions { select,button { border-color: #465068; } select { color: #bcd2f5; background: #303d55; } button { color: #9ed8b1; background: #284737; &.danger { color: #ffb6b6; background: #482d35; } } } .UsersPage__error { border-color: #80505a; color: #ffb6b6; background: #482d35; } }
+.UsersPage {
+	&__empty { display: grid; gap: 6px; strong { color: #46546a; font-size: 14px; } span { font-size: 12px; } }
+	&__skeleton { display: grid; }
+	&__skeletonRow { display: grid; grid-template-columns: 42px minmax(125px, 1fr) 80px 112px; align-items: center; gap: 12px; min-height: 67px; padding: 13px 10px; border-top: 1px solid #edf0f5; &:first-child { border-top: 0; } > i, b, small, em, strong { display: block; border-radius: 7px; background: #e9edf3; animation: skeletonPulse 1.5s ease-in-out infinite; } > i { width: 40px; height: 40px; border-radius: 10px; } > span { display: grid; gap: 7px; b { width: 62%; height: 12px; } small { width: 38%; height: 9px; } } > em { width: 68px; height: 22px; border-radius: 999px; } > strong { width: 100%; height: 34px; } }
+}
 
-#Dark.UsersPage { .UsersPage__notice { border-color: #3f6a50; color: #a9dfba; background: #263f31; } .UsersPage__passwordModal { border-color: #465068; color: #eef2f8; background: #202738; h2 { color: #f4f7fc; } > p { color: #aeb8c8; strong { color: #edf1f8; } } label { color: #dbe1eb; } input { border-color: #465068; color: #eef2f8; background: #252b3c; } > div button { border-color: #465068; color: #d4dbe6; background: #303749; &:last-child { border-color: CL.$PrimaryBlue; color: #fff; background: CL.$PrimaryBlue; } } } .UsersPage__modalClose { color: #aeb8c8; background: #303749; &:hover { color: #ffb6b6; background: #482d35; } } .UsersPage__modalError { color: #ffb6b6 !important; background: #482d35; } }
+body.Dark .UsersPage { .UsersPage__empty strong { color: #dce3ef; } .UsersPage__skeletonRow { border-color: #30394d; > i, b, small, em, strong { background: #30394d; } } }
 
-#Dark.UsersPage { .UsersPage__actions { summary { border-color: #465068; color: #c3ccda; background: #293143; &:hover { border-color: CL.$Dark_LightBlue; color: #d8dfff; background: #303a51; } } &[open] summary { border-color: CL.$Dark_LightBlue; color: #d8dfff; background: #303a51; } } .UsersPage__actionsMenu { border-color: #465068; background: #252c3d; box-shadow: 0 18px 42px rgba(0,0,0,.4); label { color: #aeb8c8; } select,button { border-color: #465068; } select { color: #c8d7ff; background-color: #303d55; } button { color: #d7deea; background: #303749; &:hover:not(:disabled) { border-color: #657695; color: #fff; background: #394359; } &.danger { color: #ffb6b6; background: #482d35; } } > small { color: #929db0; } } .UsersPage__actionsDivider { background: #414a5e; } }
+@keyframes skeletonPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+@media (max-width: 700px) { .UsersPage__skeletonRow { grid-template-columns: 40px minmax(0, 1fr) 44px; > em { grid-column: 3; grid-row: 1; width: 44px; } > strong { grid-column: 2 / 4; width: 100%; } } }
+
+body.Dark .UsersPage { color: #eef2f8; .UsersPage__header { h1 { color: #f4f7fc; } p { color: #b8c2d2; } > strong { border-color: #30394d; color: #aabfff; background: rgba(29,36,53,.88); small { color: #aab5c7; } } } .UsersPage__create, .UsersPage__list { border-color: #30394d; background: rgba(29,36,53,.88); } .UsersPage__create { label { color: #dbe1eb; } input,select { border-color: #465068; color: #eef2f8; background-color: #252b3c; } } .UsersPage__hint { color: #aeb8c8; background: #252d40; } .UsersPage__user { border-color: #30394d; } .UsersPage__userInfo small, .UsersPage__login { color: #99a5b7; } .UsersPage__login b { color: #d4dbe6; } .UsersPage__status { color: #9ed8b1; background: #284737; &--blocked { color: #ffb6b6; background: #482d35; } } .UsersPage__actions { select,button { border-color: #465068; } select { color: #bcd2f5; background: #303d55; } button { color: #9ed8b1; background: #284737; &.danger { color: #ffb6b6; background: #482d35; } } } .UsersPage__error { border-color: #80505a; color: #ffb6b6; background: #482d35; } }
+
+body.Dark .UsersPage { .UsersPage__notice { border-color: #3f6a50; color: #a9dfba; background: #263f31; } .UsersPage__passwordModal { border-color: #465068; color: #eef2f8; background: #202738; h2 { color: #f4f7fc; } > p { color: #aeb8c8; strong { color: #edf1f8; } } label { color: #dbe1eb; } input { border-color: #465068; color: #eef2f8; background: #252b3c; } > div button { border-color: #465068; color: #d4dbe6; background: #303749; &:last-child { border-color: CL.$PrimaryBlue; color: #fff; background: CL.$PrimaryBlue; } } } .UsersPage__modalClose { color: #aeb8c8; background: #303749; &:hover { color: #ffb6b6; background: #482d35; } } .UsersPage__modalError { color: #ffb6b6 !important; background: #482d35; } }
+
+body.Dark .UsersPage { .UsersPage__actions { summary { border-color: #465068; color: #c3ccda; background: #293143; &:hover { border-color: CL.$Dark_LightBlue; color: #d8dfff; background: #303a51; } } &[open] summary { border-color: CL.$Dark_LightBlue; color: #d8dfff; background: #303a51; } } .UsersPage__actionsMenu { border-color: #465068; background: #252c3d; box-shadow: 0 18px 42px rgba(0,0,0,.4); label { color: #aeb8c8; } select,button { border-color: #465068; } select { color: #c8d7ff; background-color: #303d55; } button { color: #d7deea; background: #303749; &:hover:not(:disabled) { border-color: #657695; color: #fff; background: #394359; } &.danger { color: #ffb6b6; background: #482d35; } } > small { color: #929db0; } } .UsersPage__actionsDivider { background: #414a5e; } }
 
 @media (max-width: 1050px) { .UsersPage { &__layout { grid-template-columns: 1fr; } &__create { position: static; } } }
 @media (max-width: 700px) { .UsersPage { padding: 24px 14px 40px; &__header { flex-direction: column; > strong { width: 100%; } } &__user { grid-template-columns: 38px minmax(0,1fr) auto; .UsersPage__status { grid-column: 3; } .UsersPage__login { grid-column: 2; text-align: left; } .UsersPage__actions { grid-column: 3; grid-row: 2 / span 2; } } } }
+
+// Readable density: compact without sub-10px operational text.
+.UsersPage {
+	&__header > div > span,
+	&__create > div span,
+	&__listHeader span { font-size: 12px; letter-spacing: .04em; text-transform: none; }
+	&__hint { font-size: 12px; }
+	&__userInfo strong { font-size: 14px; }
+	&__userInfo small,
+	&__status,
+	&__login { font-size: 11px; }
+	&__actions summary { min-height: 40px; font-size: 12px; }
+	&__actionsMenu {
+		label { font-size: 11px; }
+		select, button { min-height: 38px; font-size: 12px; }
+		> small { font-size: 11px; }
+	}
+}
+
+@media (max-width: 700px) {
+	.UsersPage {
+		&__user { padding: 14px 4px; }
+		&__status, &__login, &__userInfo small { font-size: 12px; }
+		&__actions summary { min-width: 44px; min-height: 44px; span { display: none; } }
+	}
+}
+
+// The application theme is global; keep route styling independent from duplicate DOM ids.

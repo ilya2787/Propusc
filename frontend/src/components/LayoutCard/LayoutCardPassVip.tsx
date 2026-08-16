@@ -70,13 +70,18 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 	const sizes = { ...DEFAULT_FONT_SIZES, ...activeTemplate.design.fontSizes }
 	const nameWidth = activeTemplate.design.elements?.certificateName?.width ?? DEFAULT_ELEMENT_LAYOUTS.certificateName.width
 	const nameRef = useAutoFitText('--font-certificate-name-fit', sizes.certificateName, [LastName, FirstName, Patronymic, nameWidth])
-	const frontBackgroundSource = resolveServerImageUrl(activeTemplate.design.frontBackgroundImage) || ((activeTemplate.design.frontBackground ?? activeTemplate.design.background) === 'emblem' ? EmblemBackground : FlagBackground)
-	const backBackgroundSource = resolveServerImageUrl(activeTemplate.design.backBackgroundImage) || ((activeTemplate.design.backBackground ?? 'emblem') === 'emblem' ? EmblemBackground : FlagBackground)
+	const resolveBackground = (source: string | null | undefined, legacy: 'flag' | 'emblem') => source === null
+		? ''
+		: source === 'builtin:flag' ? FlagBackground
+			: source === 'builtin:emblem' ? EmblemBackground
+				: resolveServerImageUrl(source) || (legacy === 'emblem' ? EmblemBackground : FlagBackground)
+	const frontBackgroundSource = resolveBackground(activeTemplate.design.frontBackgroundImage, (activeTemplate.design.frontBackground ?? activeTemplate.design.background) === 'emblem' ? 'emblem' : 'flag')
+	const backBackgroundSource = resolveBackground(activeTemplate.design.backBackgroundImage, (activeTemplate.design.backBackground ?? 'emblem') === 'flag' ? 'flag' : 'emblem')
 	const photoSettings = { ...DEFAULT_PHOTO_SETTINGS, ...activeTemplate.design.photos?.certificatePhoto }
 	const fixedText = (key: TemplateElementKey) => activeTemplate.design.fixedTexts?.[key] ?? DEFAULT_FIXED_TEXTS[key] ?? ''
 	const cardStyle = {
-		'--template-front-background': `url("${frontBackgroundSource}")`,
-		'--template-back-background': `url("${backBackgroundSource}")`,
+		'--template-front-background': frontBackgroundSource ? `url("${frontBackgroundSource}")` : 'none',
+		'--template-back-background': backBackgroundSource ? `url("${backBackgroundSource}")` : 'none',
 		'--template-accent': activeTemplate.design.accentColor,
 		'--template-title': activeTemplate.design.titleColor,
 		'--template-front-text': activeTemplate.design.frontTextColor ?? activeTemplate.design.textColor ?? '#111111',

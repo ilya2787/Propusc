@@ -280,14 +280,14 @@ const TemplateEditor = () => {
 	const clearBackground = async (side: 'pass' | 'front' | 'back') => {
 		const currentUrl = side === 'pass' ? selected.design.backgroundImage : side === 'front' ? selected.design.frontBackgroundImage : selected.design.backBackgroundImage
 		try {
-			await deleteUploadedImage(currentUrl)
+			await deleteUploadedImage(currentUrl ?? undefined)
 		} catch (error) {
 			setBackgroundError(error instanceof Error ? error.message : 'Не удалось удалить фон')
 			return
 		}
-		if (side === 'pass') updateDesign({ backgroundImage: undefined, backgroundImageName: undefined })
-		if (side === 'front') updateDesign({ frontBackgroundImage: undefined, frontBackgroundImageName: undefined })
-		if (side === 'back') updateDesign({ backBackgroundImage: undefined, backBackgroundImageName: undefined })
+		if (side === 'pass') updateDesign({ backgroundImage: null, backgroundImageName: undefined })
+		if (side === 'front') updateDesign({ frontBackgroundImage: null, frontBackgroundImageName: undefined })
+		if (side === 'back') updateDesign({ backBackgroundImage: null, backBackgroundImageName: undefined })
 		setBackgroundError('')
 	}
 	const selectPreviewPhoto = (file?: File) => {
@@ -557,7 +557,7 @@ const TemplateEditor = () => {
 	}, [redo, undo])
 
 	return (
-		<main className='TemplateEditor' id={theme}>
+		<main className='TemplateEditor' data-theme={theme.toLowerCase()}>
 			{navigationBlocker.state === 'blocked' && <div className='TemplateEditor__leaveOverlay' role='presentation'>
 				<div className='TemplateEditor__leaveDialog' role='dialog' aria-modal='true' aria-labelledby='leave-dialog-title'>
 					<h2 id='leave-dialog-title'>Сохранить изменения?</h2>
@@ -586,7 +586,7 @@ const TemplateEditor = () => {
 					</button>
 				</div>
 			</header>
-			{serverError && <div className='TemplateEditor__serverError'>{serverError}</div>}
+			{serverError && <div className='TemplateEditor__serverError' role='alert'>{serverError}</div>}
 
 			<section className='TemplateEditor__selector panel'>
 				<div className='TemplateEditor__sectionTitle'>
@@ -613,10 +613,10 @@ const TemplateEditor = () => {
 						<span>2</span>
 						<div><h2>Настройте шаблон</h2><p>{selected.name}</p></div>
 					</div>
-					<nav className='TemplateEditor__settingsTabs' aria-label='Разделы настроек'>
-						<button className={settingsTab === 'main' ? 'active' : ''} onClick={() => setSettingsTab('main')}>Основное</button>
-						<button className={settingsTab === 'appearance' ? 'active' : ''} onClick={() => setSettingsTab('appearance')}>Оформление</button>
-						<button className={settingsTab === 'layout' ? 'active' : ''} onClick={() => setSettingsTab('layout')}>Элементы</button>
+					<nav className='TemplateEditor__settingsTabs' aria-label='Разделы настроек' role='tablist'>
+						<button type='button' role='tab' aria-selected={settingsTab === 'main'} className={settingsTab === 'main' ? 'active' : ''} onClick={() => setSettingsTab('main')}>Основное</button>
+						<button type='button' role='tab' aria-selected={settingsTab === 'appearance'} className={settingsTab === 'appearance' ? 'active' : ''} onClick={() => setSettingsTab('appearance')}>Оформление</button>
+						<button type='button' role='tab' aria-selected={settingsTab === 'layout'} className={settingsTab === 'layout' ? 'active' : ''} onClick={() => setSettingsTab('layout')}>Элементы</button>
 					</nav>
 					{selected.kind === 'certificate' && <div className='TemplateEditor__tabs'>
 						<button className={editorSide === 'front' ? 'active' : ''} onClick={() => setEditorSide('front')}>Лицевая</button>
@@ -642,31 +642,35 @@ const TemplateEditor = () => {
 					{settingsTab === 'appearance' && <div className='TemplateEditor__tabContent'>
 					<h3>{selected.kind === 'certificate' ? (editorSide === 'front' ? 'Лицевая сторона' : 'Оборотная сторона') : 'Оформление пропуска'}</h3>
 					{selected.kind === 'pass' && <>
-						<label>Фон<select value={selected.design.background} onChange={e => updateDesign({ background: e.target.value as PassTemplate['design']['background'] })}><option value='flag'>Флаг</option><option value='emblem'>Герб</option></select></label>
-						<div className='TemplateEditor__backgroundUpload'><span>Собственное изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'pass')} />Выбрать файл</label>{selected.design.backgroundImage && <><small>{selected.design.backgroundImageName}</small><button onClick={() => clearBackground('pass')}>Удалить фон</button></>}</div>
+						<div className='TemplateEditor__backgroundUpload'><span>Фоновое изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'pass')} />{selected.design.backgroundImage ? 'Заменить' : 'Выбрать файл'}</label><small>{selected.design.backgroundImageName || 'PNG, JPG или WebP, до 5 МБ'}</small>{selected.design.backgroundImage && <button type='button' onClick={() => clearBackground('pass')}>Убрать фон</button>}</div>
 						<label className='TemplateEditor__check'><input type='checkbox' checked={selected.design.showDirector} onChange={e => updateDesign({ showDirector: e.target.checked })} />Показывать подпись руководителя</label>
 					</>}
 					{selected.kind === 'certificate' && editorSide === 'front' && <>
-						<label>Фон лицевой стороны<select value={selected.design.frontBackground ?? selected.design.background} onChange={e => updateDesign({ frontBackground: e.target.value as PassTemplate['design']['background'] })}><option value='flag'>Флаг</option><option value='emblem'>Герб</option></select></label>
-						<div className='TemplateEditor__backgroundUpload'><span>Собственное изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'front')} />Выбрать файл</label>{selected.design.frontBackgroundImage && <><small>{selected.design.frontBackgroundImageName}</small><button onClick={() => clearBackground('front')}>Удалить фон</button></>}</div>
+						<div className='TemplateEditor__backgroundUpload'><span>Фон лицевой стороны</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'front')} />{selected.design.frontBackgroundImage ? 'Заменить' : 'Выбрать файл'}</label><small>{selected.design.frontBackgroundImageName || 'PNG, JPG или WebP, до 5 МБ'}</small>{selected.design.frontBackgroundImage && <button type='button' onClick={() => clearBackground('front')}>Убрать фон</button>}</div>
 					</>}
 					{selected.kind === 'certificate' && editorSide === 'back' && <>
-						<label>Фон оборотной стороны<select value={selected.design.backBackground ?? 'emblem'} onChange={e => updateDesign({ backBackground: e.target.value as PassTemplate['design']['background'] })}><option value='flag'>Флаг</option><option value='emblem'>Герб</option></select></label>
-						<div className='TemplateEditor__backgroundUpload'><span>Собственное изображение</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'back')} />Выбрать файл</label>{selected.design.backBackgroundImage && <><small>{selected.design.backBackgroundImageName}</small><button onClick={() => clearBackground('back')}>Удалить фон</button></>}</div>
+						<div className='TemplateEditor__backgroundUpload'><span>Фон оборотной стороны</span><label className='TemplateEditor__fileButton'><input type='file' accept='image/png,image/jpeg,image/webp' onChange={e => uploadBackground(e.target.files?.[0], 'back')} />{selected.design.backBackgroundImage ? 'Заменить' : 'Выбрать файл'}</label><small>{selected.design.backBackgroundImageName || 'PNG, JPG или WebP, до 5 МБ'}</small>{selected.design.backBackgroundImage && <button type='button' onClick={() => clearBackground('back')}>Убрать фон</button>}</div>
 						<label className='TemplateEditor__check'><input type='checkbox' checked={selected.design.showDirector} onChange={e => updateDesign({ showDirector: e.target.checked })} />Показывать подпись руководителя</label>
 					</>}
 					<label>Шрифт<select value={selected.design.fontFamily} onChange={e => updateDesign({ fontFamily: e.target.value })}><option value='Times New Roman'>Times New Roman</option><option value='Arial'>Arial</option><option value='Georgia'>Georgia</option></select></label>
 					<label>Скругление: {selected.design.borderRadius}px<input type='range' min='0' max='24' value={selected.design.borderRadius} onChange={e => updateDesign({ borderRadius: Number(e.target.value) })} /></label>
-					{backgroundError && <p className='TemplateEditor__error'>{backgroundError}</p>}
+					{backgroundError && <p className='TemplateEditor__error' role='alert'>{backgroundError}</p>}
 					</div>}
 					{settingsTab === 'layout' && <div className='TemplateEditor__tabContent'>
 					<div className='TemplateEditor__elementSettings'>
 						<h3>Расположение элементов</h3>
 						<div className='TemplateEditor__fieldVisibility'><h4>Поля на пропуске</h4>{availableElements.map(key => <label key={key}><span>{elementLabels[key]}</span><input type='checkbox' checked={isElementVisible(key)} onChange={() => toggleElementVisibility(key)} /><i aria-hidden='true'></i></label>)}</div>
+						<section className='TemplateEditor__customTextLibrary' aria-labelledby='custom-text-title'>
+							<div className='TemplateEditor__customTextLibraryHeader'>
+								<div><h4 id='custom-text-title'>Текстовые блоки</h4><span>{currentCustomTexts.length ? `${currentCustomTexts.length} на этой стороне` : 'Добавьте подпись или примечание'}</span></div>
+								<button type='button' className='TemplateEditor__addTextButton' onClick={createCustomText}><span aria-hidden='true'>＋</span> Добавить</button>
+							</div>
+							{currentCustomTexts.length > 0
+								? <div className='TemplateEditor__customTextList'>{currentCustomTexts.map((item, index) => <div key={item.id} className={`TemplateEditor__customTextListItem ${selectedCustomId === item.id ? 'active' : ''}`}><button type='button' className='TemplateEditor__customTextSelect' onClick={event => { setSelectedElement(undefined); setSelectedCustomId(item.id); event.currentTarget.blur() }}><span>{index + 1}</span><div><strong>{item.text || 'Без текста'}</strong><small>{item.layout.x} × {item.layout.y}px</small></div></button><div className='TemplateEditor__customTextQuickActions'><button type='button' onClick={() => duplicateCustomText(item)} title='Дублировать блок' aria-label={`Дублировать блок «${item.text || 'Без текста'}»`}>⧉</button><button type='button' className='danger' onClick={() => removeCustomText(item.id)} title='Удалить блок' aria-label={`Удалить блок «${item.text || 'Без текста'}»`}>×</button></div></div>)}</div>
+								: <p className='TemplateEditor__customTextEmpty'>Дополнительных текстовых блоков пока нет.</p>}
+						</section>
 						<label>Выбранный блок<select value={selectedElement && availableElements.includes(selectedElement) ? selectedElement : ''} onChange={e => { setSelectedElement(e.target.value as TemplateElementKey || undefined); setSelectedCustomId(undefined); e.currentTarget.blur() }}><option value=''>Выберите на макете…</option>{availableElements.map(key => <option key={key} value={key}>{elementLabels[key]}{isElementVisible(key) ? '' : ' (скрыто)'}</option>)}</select></label>
 						{(selectedElement || selectedCustomText) && <div className='TemplateEditor__keyboardHint'><strong>Точное перемещение</strong><span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> на 1 px</span><span><kbd>Shift</kbd> + стрелки на 10 px</span><span><kbd>Ctrl/⌘</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd> выше или ниже</span></div>}
-						<button type='button' className='TemplateEditor__addTextButton' onClick={createCustomText}>＋ Добавить текстовый блок</button>
-						{currentCustomTexts.length > 0 && <div className='TemplateEditor__customTextList'><h4>Добавленные блоки</h4>{currentCustomTexts.map((item, index) => <div key={item.id} className={`TemplateEditor__customTextListItem ${selectedCustomId === item.id ? 'active' : ''}`}><button type='button' className='TemplateEditor__customTextSelect' onClick={event => { setSelectedElement(undefined); setSelectedCustomId(item.id); event.currentTarget.blur() }}><span>{index + 1}</span><div><strong>{item.text || 'Без текста'}</strong><small>{item.layout.x} × {item.layout.y}px</small></div></button><div className='TemplateEditor__customTextQuickActions'><button type='button' onClick={() => duplicateCustomText(item)} title='Дублировать блок' aria-label={`Дублировать блок «${item.text || 'Без текста'}»`}>⧉</button><button type='button' className='danger' onClick={() => removeCustomText(item.id)} title='Удалить блок' aria-label={`Удалить блок «${item.text || 'Без текста'}»`}>×</button></div></div>)}</div>}
 						{selectedLayout && availableElements.includes(selectedElement!) && <>
 							{selectedFixedText !== undefined && <details className='TemplateEditor__settingsGroup' open>
 								<summary>Содержимое</summary><div className='TemplateEditor__settingsGroupBody TemplateEditor__fixedTextSettings'>
@@ -687,7 +691,7 @@ const TemplateEditor = () => {
 								</div>}
 								<label>Скругление рамки: {selectedPhoto.borderRadius}px<input type='range' min='0' max='40' value={selectedPhoto.borderRadius} onChange={e => updatePhoto(selectedPhotoKey, { borderRadius: Number(e.target.value) })} /></label>
 								</div></details>}
-							{selectedFontFields.length > 0 && <details className='TemplateEditor__settingsGroup' open>
+							{selectedFontFields.length > 0 && <details className='TemplateEditor__settingsGroup'>
 								<summary>Текст и оформление</summary><div className='TemplateEditor__settingsGroupBody TemplateEditor__fontSizes TemplateEditor__selectedFontSizes'>
 								<h4 className='TemplateEditor__optionGroupTitle TemplateEditor__typographyTitle'>Текст</h4>
 								<div className='TemplateEditor__textToolbar'>
@@ -731,7 +735,7 @@ const TemplateEditor = () => {
 								})}
 								<button type='button' className='TemplateEditor__resetTextStyle TemplateEditor__resetButton' onClick={() => resetTextStyle(selectedElement!)}><span aria-hidden='true'>↺</span> Сбросить оформление текста</button>
 								</div></details>}
-							<details className='TemplateEditor__settingsGroup' open>
+							<details className='TemplateEditor__settingsGroup'>
 								<summary>Положение и размеры</summary><div className='TemplateEditor__settingsGroupBody'>
 							<div className='TemplateEditor__coordinates'>
 								<CoordinateInput label='X, px' min={0} max={514} value={selectedLayout.x} onChange={value => updateElement(selectedElement!, { x: value })} />
@@ -752,7 +756,7 @@ const TemplateEditor = () => {
 						{selectedCustomText && <div className='TemplateEditor__customTextSettings'>
 							<p className='TemplateEditor__customBadge'>Произвольный текст</p>
 							<details className='TemplateEditor__settingsGroup' open><summary>Содержимое</summary><div className='TemplateEditor__settingsGroupBody'><label>Текст<textarea rows={3} value={selectedCustomText.text} onChange={e => updateCustomText(selectedCustomText.id, { text: e.target.value })} /></label></div></details>
-							<details className='TemplateEditor__settingsGroup' open><summary>Текст и оформление</summary><div className='TemplateEditor__settingsGroupBody'>
+								<details className='TemplateEditor__settingsGroup'><summary>Текст и оформление</summary><div className='TemplateEditor__settingsGroupBody'>
 								<h4 className='TemplateEditor__optionGroupTitle TemplateEditor__typographyTitle'>Текст</h4>
 								<div className='TemplateEditor__textToolbar'><div className='TemplateEditor__colorField'><span>Цвет текста</span><input type='color' value={selectedCustomText.style?.color ?? '#111111'} onChange={e => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, color: e.target.value } })} aria-label='Цвет произвольного текста' /></div><div className='TemplateEditor__formatButtons'><button type='button' className={(selectedCustomText.style?.fontWeight ?? 400) >= 700 ? 'active' : ''} onClick={() => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, fontWeight: (selectedCustomText.style?.fontWeight ?? 400) >= 700 ? 400 : 700 } })}><strong>Ж</strong></button><button type='button' className={selectedCustomText.style?.fontStyle === 'italic' ? 'active' : ''} onClick={() => updateCustomText(selectedCustomText.id, { style: { ...selectedCustomText.style, fontStyle: selectedCustomText.style?.fontStyle === 'italic' ? 'normal' : 'italic' } })}><em>К</em></button></div></div>
 								<label className='TemplateEditor__customFontSize'>Размер шрифта: {selectedCustomText.fontSize}px<input type='range' min='8' max='72' value={selectedCustomText.fontSize} onChange={e => updateCustomText(selectedCustomText.id, { fontSize: Number(e.target.value) })} /></label>
@@ -777,7 +781,7 @@ const TemplateEditor = () => {
 							<div><h2>Предпросмотр</h2><p>{selected.kind === 'certificate' ? (editorSide === 'front' ? 'Лицевая сторона' : 'Оборотная сторона') : 'Изменения отображаются сразу'}</p></div>
 						</div>
 						<div className='TemplateEditor__previewControls'>
-							<span className={`TemplateEditor__saveState ${saved ? 'saved' : ''}`}>{saved ? 'Все изменения сохранены' : 'Есть несохранённые изменения'}</span>
+						<span className={`TemplateEditor__saveState ${saved ? 'saved' : ''}`} role='status' aria-live='polite'>{saved ? 'Все изменения сохранены' : 'Есть несохранённые изменения'}</span>
 							<div className='TemplateEditor__historyActions'>
 								<button type='button' onClick={undo} disabled={!historyState.canUndo} title='Отменить (Ctrl/⌘ + Z)' aria-label='Отменить последнее изменение'>↶</button>
 								<button type='button' onClick={redo} disabled={!historyState.canRedo} title='Повторить (Ctrl/⌘ + Shift + Z)' aria-label='Повторить последнее изменение'>↷</button>

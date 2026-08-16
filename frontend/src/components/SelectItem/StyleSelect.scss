@@ -1,11 +1,13 @@
 @use '@/style/setting/color' as CL;
 
-.css-b62m3t-container {
-	width: 100% !important;
-}
 .custom-select {
+	width: 100%;
+	min-width: 0;
+
 	&__control {
-		border-radius: 5px 0 0 5px !important;
+		min-height: CL.$ControlHeight !important;
+		height: CL.$ControlHeight;
+		border-radius: CL.$RadiusControl 0 0 CL.$RadiusControl !important;
 		box-shadow: none !important;
 		&--menu-is-open {
 			border-color: CL.$HoverBlue !important;
@@ -22,19 +24,24 @@
 		}
 	}
 	&__value-container {
+		height: 100%;
+		padding: 0 10px !important;
 		cursor: pointer !important;
 	}
 	&__input-container {
+		margin: 0 !important;
+		padding: 0 !important;
 		border: transparent !important;
 	}
+	&__indicators { height: 100%; }
 	&__indicator {
 		cursor: pointer !important;
 		svg {
-			transition: all 0.3s ease !important;
+			transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease !important;
 		}
 	}
 	&__menu {
-		border-radius: 5px !important;
+		border-radius: CL.$RadiusControl !important;
 		animation: isOpenMenu 0.35s ease-in-out;
 		z-index: 10 !important;
 	}
@@ -43,7 +50,7 @@
 	}
 }
 
-#Light .custom-select {
+body:not(.Dark) .custom-select {
 	&__control {
 		background: CL.$Sidebar !important;
 		border: 1px solid CL.$Divider !important;
@@ -59,7 +66,7 @@
 	}
 }
 
-#Dark .custom-select {
+body.Dark .custom-select {
 	&__control {
 		background: CL.$Dark_Sidebar !important;
 		border: 1px solid CL.$Dark_Divider !important;

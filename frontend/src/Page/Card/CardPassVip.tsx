@@ -47,11 +47,11 @@ const CardPassVip: FC = () => {
 	}
 
 	return (
-		<div className='MainCard--content' id={theme}>
+		<div className={`MainCard--content ${theme}`}>
 			<h1>Удостоверение</h1>
-			<div className='MainCard--content--Info' id={theme}>
+			<div className={`MainCard--content--Info ${theme}`}>
 				<FrontForm />
-				<div className='MainCard--content--Info--Preview' id={theme}>
+				<div className={`MainCard--content--Info--Preview ${theme}`}>
 					<h2>Предпросмотр</h2>
 					<div ref={previewRef} className='MainCard--content--Info--Preview--content'>
 						<LayoutCardPassVip

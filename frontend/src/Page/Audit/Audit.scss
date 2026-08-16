@@ -2,6 +2,36 @@
 
 .AuditPage { min-height: 100%; padding: 34px clamp(20px,3.5vw,54px) 60px; color: #202a3b; &__header { display: flex; max-width: 1400px; align-items: flex-start; justify-content: space-between; gap: 24px; margin: 0 auto 28px; > div > span { color: CL.$PrimaryBlue; font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; } h1 { margin: 6px 0 8px; color: #172033; font-size: clamp(30px,3vw,42px); line-height: 1.1; letter-spacing: -.035em; } p { color: #626e82; font-size: 15px; } > strong { display: grid; min-width: 142px; padding: 12px 16px; border: 1px solid #dfe5ef; border-radius: 14px; color: CL.$PrimaryBlue; background: rgba(255,255,255,.8); box-shadow: 0 8px 24px rgba(31,49,80,.06); font-size: 22px; small { margin-top: 3px; color: #7f8999; font-size: 10px; } } } &__toolbar, &__list { max-width: 1400px; margin: 0 auto; border: 1px solid #e1e6ef; border-radius: 16px; background: rgba(255,255,255,.84); box-shadow: 0 10px 34px rgba(29,45,75,.06); } &__toolbar { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 16px; padding: 16px; label { display: grid; gap: 6px; color: #657186; font-size: 10px; font-weight: 750; } select { min-width: 190px; min-height: 38px; padding: 7px 10px; border: 1px solid #ccd5e2; border-radius: 8px; color: #344158; background-color: #fff; } } &__cleanup { display: flex; align-items: end; gap: 8px; button { min-height: 38px; padding: 7px 13px; border: 1px solid #dfa2a2; border-radius: 8px; color: #9c3d3d; background: #fff0f0; font-size: 11px; font-weight: 800; &:hover { background: #fde4e4; } } } &__list { overflow: hidden; } &__event { display: grid; grid-template-columns: 10px minmax(180px,1fr) minmax(100px,auto) minmax(145px,auto); align-items: center; gap: 13px; padding: 13px 16px; border-top: 1px solid #edf0f5; &:first-child { border-top: 0; } } &__marker { width: 8px; height: 8px; border-radius: 50%; background: #8794a8; } &__event--auth &__marker { background: #d08a32; } &__event--user &__marker { background: CL.$PrimaryBlue; } &__event--audit &__marker { background: #aa4f5e; } &__eventMain { display: grid; gap: 4px; strong { font-size: 12px; } small { color: #7d8899; font-size: 9px; } } &__ip, time { color: #778398; font-size: 9px; } time { text-align: right; } &__empty { padding: 42px; color: #7d8899; text-align: center; } &__pagination { display: flex; max-width: 1400px; align-items: center; justify-content: center; gap: 14px; margin: 18px auto 0; button { min-width: 82px; padding: 8px 11px; border: 1px solid #ccd5e2; border-radius: 8px; color: CL.$PrimaryBlue; background: #fff; font-size: 10px; font-weight: 800; &:hover:not(:disabled) { background: #edf3ff; } &:disabled { opacity: .45; cursor: not-allowed; } } span { color: #657186; font-size: 10px; } } &__retention { margin-top: 12px; color: #8792a3; font-size: 9px; text-align: center; } &__error, &__notice { max-width: 1400px; margin: -12px auto 18px; padding: 11px 14px; border-radius: 10px; font-size: 12px; } &__error { border: 1px solid #efc4c4; color: #a43b3b; background: #fff0f0; } &__notice { border: 1px solid #b9dec5; color: #2f7147; background: #edf9f1; } }
 
-#Dark.AuditPage { color: #eef2f8; .AuditPage__header { h1 { color: #f4f7fc; } p { color: #b8c2d2; } > strong { border-color: #30394d; color: #aabfff; background: rgba(29,36,53,.88); small { color: #aab5c7; } } } .AuditPage__toolbar,.AuditPage__list { border-color: #30394d; background: rgba(29,36,53,.88); } .AuditPage__toolbar { label { color: #aeb8c8; } select { border-color: #465068; color: #eef2f8; background-color: #252b3c; } } .AuditPage__cleanup button { border-color: #80505a; color: #ffb6b6; background: #482d35; } .AuditPage__event { border-color: #30394d; } .AuditPage__eventMain small,.AuditPage__ip,time { color: #9ca8ba; } .AuditPage__pagination { button { border-color: #465068; color: #c5d4ff; background: #293143; &:hover:not(:disabled) { background: #35405a; } } span { color: #aeb8c8; } } .AuditPage__retention { color: #8f9bad; } .AuditPage__error { border-color: #80505a; color: #ffb6b6; background: #482d35; } .AuditPage__notice { border-color: #3f6a50; color: #a9dfba; background: #263f31; } }
+body.Dark .AuditPage { color: #eef2f8; .AuditPage__header { h1 { color: #f4f7fc; } p { color: #b8c2d2; } > strong { border-color: #30394d; color: #aabfff; background: rgba(29,36,53,.88); small { color: #aab5c7; } } } .AuditPage__toolbar,.AuditPage__list { border-color: #30394d; background: rgba(29,36,53,.88); } .AuditPage__toolbar { label { color: #aeb8c8; } select { border-color: #465068; color: #eef2f8; background-color: #252b3c; } } .AuditPage__cleanup button { border-color: #80505a; color: #ffb6b6; background: #482d35; } .AuditPage__event { border-color: #30394d; } .AuditPage__eventMain small,.AuditPage__ip,time { color: #9ca8ba; } .AuditPage__pagination { button { border-color: #465068; color: #c5d4ff; background: #293143; &:hover:not(:disabled) { background: #35405a; } } span { color: #aeb8c8; } } .AuditPage__retention { color: #8f9bad; } .AuditPage__error { border-color: #80505a; color: #ffb6b6; background: #482d35; } .AuditPage__notice { border-color: #3f6a50; color: #a9dfba; background: #263f31; } }
 
 @media (max-width: 700px) { .AuditPage { padding: 24px 14px 40px; &__header { flex-direction: column; > strong { width: 100%; } } &__toolbar { align-items: stretch; flex-direction: column; select { width: 100%; } } &__cleanup { align-items: stretch; flex-direction: column; } &__event { grid-template-columns: 10px minmax(0,1fr); .AuditPage__ip,time { grid-column: 2; text-align: left; } } } }
+
+.AuditPage {
+	&__header > div > span { font-size: 12px; letter-spacing: .04em; text-transform: none; }
+	&__toolbar label { font-size: 12px; }
+	&__cleanup button { min-height: 42px; font-size: 12px; }
+	&__eventMain strong { font-size: 14px; }
+	&__eventMain small,
+	&__ip,
+	time { font-size: 12px; }
+	&__pagination { button { min-height: 40px; font-size: 12px; } span { font-size: 12px; } }
+	&__retention { font-size: 11px; }
+}
+
+.AuditPage {
+	&__empty { display: grid; gap: 6px; strong { color: #46546a; font-size: 14px; } span { font-size: 12px; } }
+	&__skeleton { display: grid; }
+	&__skeletonRow { display: grid; grid-template-columns: 10px minmax(180px, 1fr) minmax(100px, auto) minmax(145px, auto); align-items: center; gap: 13px; min-height: 65px; padding: 13px 16px; border-top: 1px solid #edf0f5; &:first-child { border-top: 0; } > i, b, small, em, strong { display: block; border-radius: 7px; background: #e9edf3; animation: auditSkeletonPulse 1.5s ease-in-out infinite; } > i { width: 8px; height: 8px; border-radius: 50%; } > span { display: grid; gap: 7px; b { width: 42%; height: 11px; } small { width: 28%; height: 9px; } } > em { width: 92px; height: 10px; } > strong { justify-self: end; width: 125px; height: 10px; } }
+}
+
+body.Dark .AuditPage { .AuditPage__empty strong { color: #dce3ef; } .AuditPage__skeletonRow { border-color: #30394d; > i, b, small, em, strong { background: #30394d; } } }
+
+@media (max-width: 700px) { .AuditPage__skeletonRow { grid-template-columns: 10px minmax(0, 1fr); > em, > strong { grid-column: 2; justify-self: start; } } }
+
+@keyframes auditSkeletonPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+
+@media (max-width: 700px) {
+	.AuditPage { &__eventMain small, &__ip, time { font-size: 12px; } &__pagination button { min-height: 44px; } }
+}
+
+// The application theme is global; keep route styling independent from duplicate DOM ids.

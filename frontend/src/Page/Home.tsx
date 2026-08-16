@@ -12,8 +12,8 @@ const Home = () => {
 		<section className='HomePage__hero'>
 			<div className='HomePage__copy'>
 				<span className='HomePage__eyebrow'>Бюро пропусков</span>
-				<h2>Оформляйте пропуска<br />быстро и без ошибок</h2>
-				<p>Создавайте, настраивайте и печатайте пропуска в одном удобном приложении.</p>
+				<h2>Добро пожаловать, {user?.displayName?.split(' ')[0]}</h2>
+				<p>Заполните данные, проверьте макет и отправьте готовый пропуск на печать.</p>
 				<Link className='HomePage__primary' to={ROUTES.Card}>
 					<span>{ICON.AddCard}</span>
 					Создать пропуск
@@ -25,18 +25,29 @@ const Home = () => {
 			</div>
 		</section>
 
-		<section className='HomePage__actions' aria-label='Быстрые действия'>
-			<Link className='HomeAction' to={ROUTES.Card}>
-				<span className='HomeAction__icon'>{ICON.CardPass}</span>
-				<span><strong>Пропуска</strong><small>Заполнить данные и подготовить к печати</small></span>
+		{user?.role === 'admin' && <section className='HomePage__admin'>
+			<div className='HomePage__adminHeader'>
+				<h3>Администрирование</h3>
+				<p>Настройка системы и контроль доступа</p>
+			</div>
+			<nav className='HomePage__actions' aria-label='Администрирование'>
+			<Link className='HomeAction' to={ROUTES.Templates}>
+				<span className='HomeAction__icon HomeAction__icon--violet'>{ICON.Editor}</span>
+				<span><strong>Шаблоны</strong><small>Фон, логотип и вид пропусков</small></span>
 				<b aria-hidden='true'>→</b>
 			</Link>
-			{user?.role === 'admin' && <Link className='HomeAction' to={ROUTES.Templates}>
-				<span className='HomeAction__icon HomeAction__icon--violet'>{ICON.Editor}</span>
-				<span><strong>Шаблон</strong><small>Изменить фон, логотип и вид карточки</small></span>
+			<Link className='HomeAction' to={ROUTES.Users}>
+				<span className='HomeAction__icon'>{ICON.Users}</span>
+				<span><strong>Пользователи</strong><small>Учётные записи, роли и доступ</small></span>
 				<b aria-hidden='true'>→</b>
-			</Link>}
-		</section>
+			</Link>
+			<Link className='HomeAction' to={ROUTES.Audit}>
+				<span className='HomeAction__icon HomeAction__icon--audit'>{ICON.Audit}</span>
+				<span><strong>Журнал</strong><small>Входы и критичные действия</small></span>
+				<b aria-hidden='true'>→</b>
+			</Link>
+			</nav>
+		</section>}
 	</main>
 )}
 

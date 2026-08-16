@@ -41,3 +41,11 @@ $Dark_TextPlaceholder: #64748b;
 $Dark_Border: #1f2937;
 
 $Dark_Divider: #5b5b6d;
+
+// Shared product UI tokens
+$RadiusControl: 9px;
+$RadiusPanel: 14px;
+$ControlHeight: 44px;
+$FocusRing: rgba($PrimaryBlue, .28);
+$MotionFast: 160ms cubic-bezier(.22, 1, .36, 1);
+$MotionBase: 220ms cubic-bezier(.22, 1, .36, 1);

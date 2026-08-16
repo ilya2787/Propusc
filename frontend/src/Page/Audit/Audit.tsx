@@ -25,6 +25,8 @@ const actionLabels: Record<string, string> = {
 	'template.synced': 'Сохранены шаблоны',
 	'directory.organization_created': 'Добавлена организация',
 	'directory.post_created': 'Добавлена должность',
+	'directory.organization_deleted': 'Удалена организация',
+	'directory.post_deleted': 'Удалена должность',
 	'directory.director_updated': 'Изменены данные руководителя',
 	'pass.created': 'Пропуск добавлен в очередь',
 	'pass.printed': 'Пропуска отправлены на печать',
@@ -84,7 +86,7 @@ const Audit = () => {
 		}
 	}
 
-	return <main className='AuditPage' id={theme}>
+	return <main className='AuditPage' data-theme={theme.toLowerCase()}>
 		<header className='AuditPage__header'><div><span>Безопасность</span><h1>Журнал действий</h1><p>Входы в систему и критичные действия администраторов.</p></div><strong>{total}<small>записей</small></strong></header>
 		{error && <div className='AuditPage__error' role='alert'>{error}</div>}
 		{notice && <div className='AuditPage__notice' role='status'>{notice}</div>}
@@ -93,7 +95,7 @@ const Audit = () => {
 			<div className='AuditPage__cleanup'><label>Удалить записи старше<select value={cleanupDays} onChange={event => setCleanupDays(event.target.value)}><option value='30'>30 дней</option><option value='90'>90 дней</option><option value='180'>180 дней</option></select></label><button type='button' onClick={() => void cleanup()}>Очистить</button></div>
 		</section>
 		<section className='AuditPage__list'>
-			{loading ? <p className='AuditPage__empty'>Загрузка журнала…</p> : events.length === 0 ? <p className='AuditPage__empty'>По выбранному фильтру записей нет</p> : events.map(event => <article className={`AuditPage__event AuditPage__event--${event.action.split('.')[0]}`} key={event.id}>
+				{loading ? <div className='AuditPage__skeleton' role='status' aria-label='Загрузка журнала'>{Array.from({ length: 6 }, (_, index) => <div className='AuditPage__skeletonRow' key={index}><i /><span><b /><small /></span><em /><strong /></div>)}</div> : events.length === 0 ? <div className='AuditPage__empty'><strong>Событий не найдено</strong><span>Попробуйте выбрать другую категорию журнала.</span></div> : events.map(event => <article className={`AuditPage__event AuditPage__event--${event.action.split('.')[0]}`} key={event.id}>
 				<span className='AuditPage__marker' aria-hidden='true' />
 				<div className='AuditPage__eventMain'><strong>{actionLabels[event.action] || event.action}</strong><small>{event.actor?.displayName || event.actor?.username || 'Неизвестный пользователь'}{event.actor?.username ? ` · @${event.actor.username}` : ''}</small></div>
 				<small className='AuditPage__ip'>{event.ipAddress || 'IP не определён'}</small>

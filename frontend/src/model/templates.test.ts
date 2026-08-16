@@ -45,6 +45,22 @@ describe('template local storage', () => {
 		expect(loaded.at(-1)).toMatchObject({ id: 'custom-pass', isBuiltIn: false })
 	})
 
+	it('migrates legacy preset backgrounds to regular background images', () => {
+		const legacyPass: PassTemplate = {
+			...DEFAULT_TEMPLATES[0],
+			design: { ...DEFAULT_TEMPLATES[0].design, backgroundImage: undefined, backgroundImageName: undefined, background: 'emblem' },
+		}
+		const legacyCertificate: PassTemplate = {
+			...DEFAULT_TEMPLATES[1],
+			design: { ...DEFAULT_TEMPLATES[1].design, frontBackgroundImage: undefined, frontBackgroundImageName: undefined, backBackgroundImage: undefined, backBackgroundImageName: undefined, frontBackground: 'flag', backBackground: 'emblem' },
+		}
+		storage.setItem('pass-templates-v1', JSON.stringify([legacyPass, legacyCertificate]))
+		const loaded = loadTemplates()
+		expect(loaded[0].design).toMatchObject({ backgroundImage: 'builtin:emblem', backgroundImageName: 'Герб.png' })
+		expect(loaded[1].design).toMatchObject({ frontBackgroundImage: 'builtin:flag', backBackgroundImage: 'builtin:emblem' })
+		expect(loaded[0].design.background).toBeUndefined()
+	})
+
 	it('saves templates and announces the change', () => {
 		saveTemplates(DEFAULT_TEMPLATES)
 		expect(JSON.parse(storage.getItem('pass-templates-v1') ?? '[]')).toEqual(DEFAULT_TEMPLATES)

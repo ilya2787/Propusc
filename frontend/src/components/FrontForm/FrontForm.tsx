@@ -19,6 +19,7 @@ import {
 	AddCardPrint,
 	AddOrganizationBD,
 	AddPostBD,
+	DeleteDirectoryItem,
 	ErrorAddCard,
 	UpdateDirectorNatif,
 } from '../natificationMesseg/natificationMessag'
@@ -220,6 +221,32 @@ const FrontForm: FC = () => {
 		}
 	}
 
+	const DeleteOrganization = async () => {
+		const selected = ListOrganization.find(item => item.value === CurrentSingleOrganization)
+		if (!selected || !window.confirm(`Удалить организацию «${selected.label}»?`)) return
+		try {
+			await axios.delete(`${import.meta.env.VITE_APP_SERVER}/DeleteOrganization`, { data: { value: selected.value } })
+			setListOrganization(items => items.filter(item => item.value !== selected.value))
+			setCurrentSingleOrganization('')
+			DeleteDirectoryItem('Организация')
+		} catch (err) {
+			console.error(err)
+		}
+	}
+
+	const DeletePost = async () => {
+		const selected = ListPost.find(item => item.value === CurrentSinglePost)
+		if (!selected || !window.confirm(`Удалить должность «${selected.label}»?`)) return
+		try {
+			await axios.delete(`${import.meta.env.VITE_APP_SERVER}/DeletePost`, { data: { value: selected.value } })
+			setListPost(items => items.filter(item => item.value !== selected.value))
+			setCurrentSinglePost('')
+			DeleteDirectoryItem('Должность')
+		} catch (err) {
+			console.error(err)
+		}
+	}
+
 	const [OpenModalSetting, setOpenModalSetting] = useState<boolean>(false)
 	const [NewPostDirector, setNewPostDirector] = useState<string>(PostDirector)
 	const [NewNameDirector, setNewNameDirector] = useState<string>(NameDirector)
@@ -251,13 +278,12 @@ const FrontForm: FC = () => {
 	}
 
 	return (
-		<div className='FormFront' id={theme}>
+		<div className={`FormFront ${theme}`}>
 			<h2>Данные пропуска</h2>
 			{isAdmin && (showDirectorPost || showDirectorName) && <button
 				type='button'
 				onClick={OpenDirectorSettings}
-				className='FormFront--DirectorCard'
-				id={theme}
+				className={`FormFront--DirectorCard ${theme}`}
 				aria-label='Изменить данные руководителя'
 			>
 				<span className='FormFront--DirectorCard--Icon'>{ICON.Edit}</span>
@@ -268,7 +294,7 @@ const FrontForm: FC = () => {
 				</span>
 				<span className='FormFront--DirectorCard--Action'>Изменить</span>
 			</button>}
-			{showNumber && <div className='FormFront--Number' id={theme}>
+			{showNumber && <div className={`FormFront--Number ${theme}`}>
 				<h3>Номер пропуска</h3>
 				<input
 					type='number'
@@ -281,14 +307,13 @@ const FrontForm: FC = () => {
 			</div>}
 
 			{showOrganization && <div
-				className='FormFront--Organization'
+				className={`FormFront--Organization ${theme}`}
 				tabIndex={0}
 				ref={RefOrganization}
 				onFocus={FocusO}
-				id={theme}
 			>
 				<h3>Организация / Подразделение</h3>
-				<div className='FormFront--Organization--Content' id={theme}>
+				<div className={`FormFront--Organization--Content ${theme}`}>
 					<SelectItem
 						Placeholder='Выберите организацию...'
 						option={ListOrganization}
@@ -296,9 +321,19 @@ const FrontForm: FC = () => {
 						setCurrentSingle={setCurrentSingleOrganization}
 					/>
 					<button
+						type='button'
+						onClick={DeleteOrganization}
+						disabled={!CurrentSingleOrganization}
+						className={`FormFront--Organization--Content--BTN FormFront--DirectoryDelete ${theme}`}
+						aria-label='Удалить выбранную организацию'
+						title='Удалить выбранную организацию'
+					>
+						{ICON.DeleteUser}
+					</button>
+					<button
+						type='button'
 						onClick={() => setOpenModalOrganization(true)}
-						className='FormFront--Organization--Content--BTN'
-						id={theme}
+						className={`FormFront--Organization--Content--BTN ${theme}`}
 					>
 						{ICON.AddList}
 					</button>
@@ -306,14 +341,13 @@ const FrontForm: FC = () => {
 			</div>}
 
 			{showPost && <div
-				className='FormFront--Post'
+				className={`FormFront--Post ${theme}`}
 				tabIndex={0}
 				ref={RefPost}
 				onFocus={FocusP}
-				id={theme}
 			>
 				<h3>Должность</h3>
-				<div className='FormFront--Post--Content' id={theme}>
+				<div className={`FormFront--Post--Content ${theme}`}>
 					<SelectItem
 						Placeholder='Выберите должность...'
 						option={ListPost}
@@ -321,16 +355,26 @@ const FrontForm: FC = () => {
 						setCurrentSingle={setCurrentSinglePost}
 					/>
 					<button
+						type='button'
+						onClick={DeletePost}
+						disabled={!CurrentSinglePost}
+						className={`FormFront--Post--Content--BTN FormFront--DirectoryDelete ${theme}`}
+						aria-label='Удалить выбранную должность'
+						title='Удалить выбранную должность'
+					>
+						{ICON.DeleteUser}
+					</button>
+					<button
+						type='button'
 						onClick={() => setOpenModalPost(true)}
-						className='FormFront--Post--Content--BTN'
-						id={theme}
+						className={`FormFront--Post--Content--BTN ${theme}`}
 					>
 						{ICON.AddList}
 					</button>
 				</div>
 			</div>}
 			{showName && <div className='FormFront--Name'>
-				<div className='FormFront--Name--LastName' id={theme}>
+				<div className={`FormFront--Name--LastName ${theme}`}>
 					<h3>Фамилия</h3>
 					<input
 						type='text'
@@ -341,7 +385,7 @@ const FrontForm: FC = () => {
 						onFocus={FocusL}
 					/>
 				</div>
-				<div className='FormFront--Name--FirstName' id={theme}>
+				<div className={`FormFront--Name--FirstName ${theme}`}>
 					<h3>Имя</h3>
 					<input
 						type='text'
@@ -352,7 +396,7 @@ const FrontForm: FC = () => {
 						onFocus={FocusF}
 					/>
 				</div>
-				<div className='FormFront--Name--Patronymic' id={theme}>
+				<div className={`FormFront--Name--Patronymic ${theme}`}>
 					<h3>Отчеcтво</h3>
 					<input
 						type='text'
@@ -365,7 +409,7 @@ const FrontForm: FC = () => {
 				</div>
 			</div>}
 			{(showDate || showPhoto) && <div className='FormFront--DateAndPhoto'>
-				{showDate && <div className='FormFront--DateAndPhoto--Date' id={theme}>
+				{showDate && <div className={`FormFront--DateAndPhoto--Date ${theme}`}>
 					<h3>Дата изготовления</h3>
 					<DateField
 						value={NewDate}
@@ -373,7 +417,7 @@ const FrontForm: FC = () => {
 						onFocus={FocusD}
 					/>
 				</div>}
-				{showPhoto && (usesQr ? <div className='FormFront--DateAndPhoto--Qr' id={theme}>
+				{showPhoto && (usesQr ? <div className={`FormFront--DateAndPhoto--Qr ${theme}`}>
 					<h3>Ключ QR-кода</h3>
 					<input type='text' value={QrKey} placeholder='Введите ключ' onChange={e => setQrKey(e.target.value)} onFocus={FocusPhotoF} />
 					<small>QR-код обновляется в предпросмотре автоматически</small>
@@ -392,11 +436,10 @@ const FrontForm: FC = () => {
 			</div>}
 			<div className='FormFront--BTN'>
 				<button
-					className='FormFront--BTN--Delete'
+					className={`FormFront--BTN--Delete ${theme}`}
 					onClick={() => {
 						CleaningForm()
 					}}
-					id={theme}
 				>
 					<span>{ICON.DeleteCard}</span>Стереть
 				</button>

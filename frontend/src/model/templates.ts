@@ -149,14 +149,17 @@ export type PassTemplate = {
 	isBuiltIn: boolean
 			design: {
 		cardSize?: TemplateCardSize
-		background: 'flag' | 'emblem'
+		/** @deprecated Kept only to migrate templates saved before image backgrounds were introduced. */
+		background?: 'flag' | 'emblem'
+		/** @deprecated Kept only to migrate templates saved before image backgrounds were introduced. */
 		frontBackground?: 'flag' | 'emblem'
+		/** @deprecated Kept only to migrate templates saved before image backgrounds were introduced. */
 		backBackground?: 'flag' | 'emblem'
-		backgroundImage?: string
+		backgroundImage?: string | null
 		backgroundImageName?: string
-		frontBackgroundImage?: string
+		frontBackgroundImage?: string | null
 		frontBackgroundImageName?: string
-		backBackgroundImage?: string
+		backBackgroundImage?: string | null
 		backBackgroundImageName?: string
 		accentColor: string
 		titleColor: string
@@ -186,9 +189,8 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 		isBuiltIn: true,
 		design: {
 			cardSize: { ...DEFAULT_CARD_SIZE },
-			background: 'flag',
-			frontBackground: 'flag',
-			backBackground: 'flag',
+			backgroundImage: 'builtin:flag',
+			backgroundImageName: 'Флаг.jpg',
 			accentColor: '#feec23',
 			titleColor: '#f84a4a',
 			textColor: '#111111',
@@ -223,9 +225,10 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 		isBuiltIn: true,
 		design: {
 			cardSize: { ...DEFAULT_CARD_SIZE },
-			background: 'flag',
-			frontBackground: 'flag',
-			backBackground: 'emblem',
+			frontBackgroundImage: 'builtin:flag',
+			frontBackgroundImageName: 'Флаг.jpg',
+			backBackgroundImage: 'builtin:emblem',
+			backBackgroundImageName: 'Герб.png',
 			accentColor: '#315ea8',
 			titleColor: '#111827',
 			textColor: '#111111',
@@ -248,13 +251,36 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 const STORAGE_KEY = 'pass-templates-v1'
 export const TEMPLATE_CHANGE_EVENT = 'pass-templates-change'
 
+const migrateTemplateBackgrounds = (template: PassTemplate): PassTemplate => {
+	const design = { ...template.design }
+	if (template.kind === 'pass' && design.backgroundImage === undefined) {
+		design.backgroundImage = design.background === 'emblem' ? 'builtin:emblem' : 'builtin:flag'
+		design.backgroundImageName = design.background === 'emblem' ? 'Герб.png' : 'Флаг.jpg'
+	}
+	if (template.kind === 'certificate' && design.frontBackgroundImage === undefined) {
+		const legacyFront = design.frontBackground ?? design.background
+		design.frontBackgroundImage = legacyFront === 'emblem' ? 'builtin:emblem' : 'builtin:flag'
+		design.frontBackgroundImageName = legacyFront === 'emblem' ? 'Герб.png' : 'Флаг.jpg'
+	}
+	if (template.kind === 'certificate' && design.backBackgroundImage === undefined) {
+		design.backBackgroundImage = design.backBackground === 'flag' ? 'builtin:flag' : 'builtin:emblem'
+		design.backBackgroundImageName = design.backBackground === 'flag' ? 'Флаг.jpg' : 'Герб.png'
+	}
+	delete design.background
+	delete design.frontBackground
+	delete design.backBackground
+	return { ...template, design }
+}
+
+const migrateTemplates = (templates: PassTemplate[]) => templates.map(migrateTemplateBackgrounds)
+
 export const loadTemplates = (): PassTemplate[] => {
 	try {
 		const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
 		if (!Array.isArray(saved)) return DEFAULT_TEMPLATES
-		return DEFAULT_TEMPLATES.map(item =>
+		return migrateTemplates(DEFAULT_TEMPLATES.map(item =>
 			saved.find((savedItem: PassTemplate) => savedItem.id === item.id) ?? item,
-		).concat(saved.filter((item: PassTemplate) => !item.isBuiltIn))
+		).concat(saved.filter((item: PassTemplate) => !item.isBuiltIn)))
 	} catch {
 		return DEFAULT_TEMPLATES
 	}
@@ -273,7 +299,7 @@ export const fetchTemplates = async (): Promise<PassTemplate[]> => {
 		const response = await fetch(`${serverUrl()}/Templates`, { credentials: 'include' })
 		if (response.status === 401) window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
 		if (!response.ok) throw new Error('Не удалось загрузить шаблоны')
-		const templates = await response.json() as PassTemplate[]
+		const templates = migrateTemplates(await response.json() as PassTemplate[])
 		if (templates.length === 0) {
 			await persistTemplates(localTemplates)
 			return localTemplates

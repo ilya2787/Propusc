@@ -86,7 +86,7 @@
 					flex-direction: row;
 					justify-content: flex-start;
 					align-items: center;
-					transition: all 0.3s ease;
+					transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 					background: transparent;
 					padding: 10px 20px;
 					width: 100%;
@@ -108,7 +108,7 @@
 						p {
 							font-size: 13px;
 							color: CL.$TextColorSecondary;
-							transition: all 0.3s ease;
+							transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 						}
 					}
 					&.Active {
@@ -182,7 +182,7 @@
 							border: 1px dashed CL.$PrimaryButtonDelete;
 							cursor: pointer;
 							border-radius: 5px;
-							transition: all 0.3s ease;
+							transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 							background-color: transparent;
 							&:hover {
 								background-color: CL.$PrimaryButtonDelete;
@@ -205,7 +205,7 @@
 					border: 1px dashed CL.$PrimaryButtonDelete;
 
 					cursor: pointer;
-					transition: all 0.3s ease;
+					transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 					display: flex;
 					flex-direction: row;
 					justify-content: center;
@@ -228,7 +228,7 @@
 					border: 1px solid transparent;
 					background-color: CL.$PrimaryButton;
 					cursor: pointer;
-					transition: all 0.3s ease;
+					transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 					display: flex;
 					flex-direction: row;
 					justify-content: center;
@@ -322,7 +322,7 @@
 							height: 38.8px;
 							width: 38.8px;
 							border-radius: 0 5px 5px 0;
-							transition: all 0.3s ease;
+							transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 						}
 					}
 				}
@@ -345,8 +345,21 @@
 							height: 38.8px;
 							width: 38.8px;
 							border-radius: 0 5px 5px 0;
-							transition: all 0.3s ease;
+							transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 						}
+					}
+				}
+				&--DirectoryDelete {
+					border-radius: 0 !important;
+					color: CL.$PrimaryButtonDelete !important;
+					&:hover:not(:disabled) {
+						border-color: CL.$PrimaryButtonDelete !important;
+						background-color: CL.$PrimaryButtonDelete !important;
+						color: #fff !important;
+					}
+					&:disabled {
+						opacity: .4;
+						cursor: not-allowed;
 					}
 				}
 				&--Name {
@@ -433,7 +446,7 @@
 						border-radius: 5px;
 						border: 1px dashed CL.$PrimaryButtonDelete;
 						cursor: pointer;
-						transition: all 0.3s ease;
+						transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 						display: flex;
 						flex-direction: row;
 						justify-content: center;
@@ -457,7 +470,7 @@
 						border: 1px solid transparent;
 						background-color: CL.$PrimaryButton;
 						cursor: pointer;
-						transition: all 0.3s ease;
+						transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 						display: flex;
 						flex-direction: row;
 						justify-content: center;
@@ -488,7 +501,7 @@
 					top: 10px;
 					font-size: 25px;
 					color: CL.$PrimaryBlue;
-					transition: all 0.3s ease;
+					transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 					&:hover {
 						transform: rotate(180deg);
 					}
@@ -515,7 +528,7 @@
 						background-color: CL.$PrimaryButtonAdd;
 						border-radius: 5px;
 						font-size: 20px;
-						transition: all 0.3s ease;
+						transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 						&:hover {
 							background-color: CL.$PrimaryButtonAddHover;
 						}
@@ -549,7 +562,7 @@
 					background-color: CL.$PrimaryButton;
 					border-radius: 5px;
 					color: #fff;
-					transition: all 0.3s ease;
+					transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 					display: flex;
 					flex-direction: row;
 					justify-content: center;
@@ -587,7 +600,7 @@
 		color: #fff;
 		width: 100%;
 		height: 50px;
-		transition: all 0.3s ease;
+		transition: color .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease, transform .3s ease;
 		font-size: 20px;
 		border-radius: 5px;
 		span {
@@ -603,11 +616,11 @@
 	}
 	&_SizeWarning { margin: 4px 0 14px; padding: 12px 14px; border: 1px solid #e5b2b2; border-radius: 8px; color: #9f3030; background: #fff1f1; font-size: 13px; line-height: 1.45; }
 }
-#Dark .Print_SizeWarning { color: #ffb6b6; border-color: #80505a; background: #482d35; }
+body.Dark .Print_SizeWarning { color: #ffb6b6; border-color: #80505a; background: #482d35; }
 .PrintConfirm_Backdrop {
 	position: fixed;
 	inset: 0;
-	z-index: 1000;
+	z-index: var(--z-modal);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -630,10 +643,10 @@
 	&_Keep { color: #4b5565; background: #edf0f4; &:hover { background: #dfe4ea; } }
 	&_Delete { color: #fff; background: #c43d3d; &:hover { background: #a92f2f; } }
 }
-#Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #465068; p { color: #b8c1d1; } .PrintConfirm_Keep { color: #dce2ec; background: #343c50; &:hover { background: #404a61; } } }
+body.Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #465068; p { color: #b8c1d1; } .PrintConfirm_Keep { color: #dce2ec; background: #343c50; &:hover { background: #404a61; } } }
 @keyframes PrintConfirmIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-#Light {
+.Light {
 	&.MainCard {
 		background-color: CL.$Light_ColorBackground;
 		&--headerInfo {
@@ -785,7 +798,7 @@
 	}
 }
 
-#Dark {
+.Dark {
 	&.MainCard {
 		background-color: CL.$Dark_ColorBackground;
 		&--headerInfo {
@@ -980,7 +993,7 @@
 	&--Action { padding: 6px 8px; border-radius: 7px; color: CL.$PrimaryBlue; background: #fff; font-size: 11px; font-weight: 700; }
 }
 
-#Dark.FormFront--DirectorCard {
+.Dark.FormFront--DirectorCard {
 	border-color: CL.$Dark_Divider;
 	color: CL.$Dark_TextColor;
 	background: linear-gradient(135deg, #252c3d 0%, #202637 100%);
@@ -1015,7 +1028,7 @@
 	&__emptyRow td { height: 84px; color: #8a94a4; text-align: center !important; background: #fff !important; }
 }
 
-#Dark.MainCard {
+.Dark.MainCard {
 	.MainCard__pageHeader h1 { color: #f4f7fc; }
 	.MainCard__pageHeader p { color: #b8c2d2; }
 	.MainCard__eyebrow { color: #91b5ff; }
@@ -1039,3 +1052,104 @@
 @media (max-width: 720px) {
 	.MainCard { padding: 24px 16px 44px; &__pageHeader { align-items: stretch; flex-direction: column; & > p { font-size: 14px; } } &__queueBadge { align-self: flex-start; } &--headerInfo--TypePassCard--content { grid-template-columns: 1fr; } &--headerInfo--ListPrintCard--BTN { width: 100%; flex-wrap: wrap; button { flex: 1 1 180px; } } &--headerInfo--ListPrintCard--tables { overflow-x: auto; .table { min-width: 760px; } } &__workspace, &--headerInfo--TypePassCard, &--headerInfo--ListPrintCard { padding: 14px; } }
 }
+
+// Shared modern control language for the pass creation workflow.
+.MainCard {
+	&--headerInfo--TypePassCard--content--Item {
+		text-align: left;
+
+		&:focus-visible { outline: 3px solid CL.$FocusRing; outline-offset: 2px; }
+	}
+
+	&__organizationCell {
+		max-width: 300px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.FormFront {
+		h3 { margin-bottom: 6px; color: #4f5c70; font-size: 13px; font-weight: 700; }
+
+		input,
+		select { min-height: CL.$ControlHeight; border-radius: CL.$RadiusControl !important; }
+
+		input:focus-visible,
+		select:focus-visible { border-color: CL.$PrimaryBlue !important; outline: 3px solid CL.$FocusRing !important; outline-offset: 1px; }
+
+		&--Organization--Content,
+		&--Post--Content {
+			align-items: stretch;
+
+			> .custom-select { flex: 1 1 auto; }
+			> button { flex: 0 0 CL.$ControlHeight; width: CL.$ControlHeight; height: CL.$ControlHeight; }
+			> .FormFront--DirectoryDelete { border-radius: 0 !important; }
+			> button:last-child { border-radius: 0 CL.$RadiusControl CL.$RadiusControl 0 !important; }
+		}
+
+		&--DateAndPhoto--Photo {
+			min-height: 96px;
+			border: 1px dashed #a9b8cc !important;
+			border-radius: CL.$RadiusControl !important;
+			background: #f7f9fc;
+		}
+
+		&--BTN--Delete,
+		&--BTN--Add {
+			min-height: CL.$ControlHeight;
+			border-radius: CL.$RadiusControl;
+			column-gap: 8px;
+			transition: color CL.$MotionFast, background CL.$MotionFast, border-color CL.$MotionFast;
+		}
+
+		&--BTN--Delete { border: 1px solid #ddb0b0; color: #963d3d; background: #fff7f7; }
+	}
+
+	&--content--Info--Preview--BTNRev,
+	&--headerInfo--ListPrintCard--BTN--Clear,
+	&--headerInfo--ListPrintCard--BTN--View {
+		min-height: 42px;
+		border-radius: CL.$RadiusControl;
+		transition: color CL.$MotionFast, background CL.$MotionFast, border-color CL.$MotionFast;
+	}
+
+	&--headerInfo--ListPrintCard--BTN--Clear {
+		border: 1px solid #ddb0b0 !important;
+		color: #963d3d !important;
+		background: #fff7f7 !important;
+		span { color: currentColor !important; }
+		&:hover:not(:disabled) { color: #fff !important; background: #b74848 !important; }
+	}
+
+	.DeleteListUserCard button {
+		width: 36px !important;
+		height: 36px !important;
+		border: 0 !important;
+		border-radius: 8px !important;
+		color: #a44343 !important;
+		background: #fff0f0 !important;
+		transition: color CL.$MotionFast, background CL.$MotionFast !important;
+		&:hover { color: #fff !important; background: #b74848 !important; }
+	}
+}
+
+.Dark.MainCard {
+	.FormFront h3 { color: #c2cbd9; }
+	.FormFront--DateAndPhoto--Photo { border-color: #56637a !important; background: #202738; }
+	.FormFront--BTN--Delete,
+	.MainCard--headerInfo--ListPrintCard--BTN--Clear { border-color: #80505a !important; color: #ffb6b6 !important; background: #482d35 !important; }
+}
+
+@media (max-width: 700px) {
+	.MainCard {
+		padding: 22px 14px 36px;
+
+		&__pageHeader h1 { font-size: 30px; }
+		&__sectionTitle p { font-size: 13px; }
+		&__workspace .MainCard--content--Info .FormFront,
+		&__workspace .MainCard--content--Info--Preview { padding: 14px; }
+		&--headerInfo--ListPrintCard--BTN button { min-height: 44px; }
+	}
+}
+
+.FormFront--DateAndPhoto--Qr small { font-size: 12px; }

@@ -58,6 +58,7 @@ const uploadImage = multer({
 })
 
 const PORT = parseInt(process.env.PORT || '5173', 10)
+const HOST = process.env.HOST || '127.0.0.1'
 
 const DB = mysql.createConnection({
 	host: process.env.DB_HOST || 'localhost',
@@ -268,6 +269,38 @@ app.post('/AddPost', authenticated, editor, (req, res) => {
 	})
 })
 
+app.delete('/DeleteOrganization', authenticated, editor, (req, res) => {
+	if (!isRecord(req.body) || !validString(req.body.value, 191)) {
+		return res.status(400).json({ message: 'Выберите организацию для удаления' })
+	}
+	const value = (req.body.value as string).trim()
+	DB.query('DELETE FROM Organization WHERE value = ?', [value], (err, data: mysql.ResultSetHeader) => {
+		if (err) {
+			console.error('Ошибка удаления организации:', err)
+			return res.status(500).json({ message: 'Не удалось удалить организацию' })
+		}
+		if (data.affectedRows === 0) return res.status(404).json({ message: 'Организация уже удалена или не найдена' })
+		void writeAuditLog(database, req, { action: 'directory.organization_deleted', entityType: 'organization', entityId: value })
+		return res.json({ status: 'success' })
+	})
+})
+
+app.delete('/DeletePost', authenticated, editor, (req, res) => {
+	if (!isRecord(req.body) || !validString(req.body.value, 191)) {
+		return res.status(400).json({ message: 'Выберите должность для удаления' })
+	}
+	const value = (req.body.value as string).trim()
+	DB.query('DELETE FROM Post WHERE value = ?', [value], (err, data: mysql.ResultSetHeader) => {
+		if (err) {
+			console.error('Ошибка удаления должности:', err)
+			return res.status(500).json({ message: 'Не удалось удалить должность' })
+		}
+		if (data.affectedRows === 0) return res.status(404).json({ message: 'Должность уже удалена или не найдена' })
+		void writeAuditLog(database, req, { action: 'directory.post_deleted', entityType: 'post', entityId: value })
+		return res.json({ status: 'success' })
+	})
+})
+
 app.get('/Director', authenticated, (_req, res) => {
 	const sql = 'SELECT * FROM director'
 	DB.query(sql, (err, data) => {
@@ -329,6 +362,6 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
 	return res.status(500).json({ message: 'Внутренняя ошибка сервера' })
 })
 
-app.listen(PORT, () => {
-	console.log(`Server is running on port ${PORT}`)
+app.listen(PORT, HOST, () => {
+	console.log(`Сервер запущен по адресу http://${HOST}:${PORT}`)
 })

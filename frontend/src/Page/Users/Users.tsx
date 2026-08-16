@@ -177,7 +177,7 @@ const Users = () => {
 		void updateUser(user.id, { isActive: !user.isActive })
 	}
 
-	return <main className='UsersPage' id={theme}>
+	return <main className='UsersPage' data-theme={theme.toLowerCase()}>
 		<header className='UsersPage__header'>
 			<div><span>Администрирование</span><h1>Пользователи</h1><p>Создавайте учётные записи и контролируйте доступ к приложению.</p></div>
 			<strong>{users.length}<small>учётных записей</small></strong>
@@ -196,7 +196,7 @@ const Users = () => {
 			</form>
 			<section className='UsersPage__list'>
 				<div className='UsersPage__listHeader'><div><span>Команда</span><h2>Все пользователи</h2></div></div>
-				{loading ? <p className='UsersPage__empty'>Загрузка пользователей…</p> : users.length === 0 ? <p className='UsersPage__empty'>Пользователей пока нет</p> : users.map(user => <article className='UsersPage__user' key={user.id}>
+					{loading ? <div className='UsersPage__skeleton' role='status' aria-label='Загрузка пользователей'>{Array.from({ length: 4 }, (_, index) => <div className='UsersPage__skeletonRow' key={index}><i /><span><b /><small /></span><em /><strong /></div>)}</div> : users.length === 0 ? <div className='UsersPage__empty'><strong>Пользователей пока нет</strong><span>Создайте первую учётную запись с помощью формы слева.</span></div> : users.map(user => <article className='UsersPage__user' key={user.id}>
 					<span className='UsersPage__avatar'>{user.displayName.slice(0, 1).toUpperCase()}</span>
 					<div className='UsersPage__userInfo'><strong>{user.displayName}</strong><small>@{user.username}</small></div>
 					<span className={`UsersPage__status ${user.isActive ? '' : 'UsersPage__status--blocked'}`}>{user.isActive ? 'Активен' : 'Заблокирован'}</span>

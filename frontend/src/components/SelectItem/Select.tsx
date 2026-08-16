@@ -1,6 +1,5 @@
-import { useContext, type Dispatch, type FC, type SetStateAction } from 'react'
+import { type Dispatch, type FC, type SetStateAction } from 'react'
 import Select, { type SingleValue } from 'react-select'
-import { AppContext } from '../../App'
 import './StyleSelect.scss'
 import type { IOption } from './TypeSelect'
 
@@ -16,8 +15,6 @@ const SelectItem: FC<TypeProps> = ({
 	CurrentSingle,
 	setCurrentSingle,
 }) => {
-	const MainContext = useContext(AppContext)
-	const theme = MainContext.theme
 	const getSingle = () => {
 		return CurrentSingle ? option.find(c => c.value === CurrentSingle) : ''
 	}
@@ -28,8 +25,8 @@ const SelectItem: FC<TypeProps> = ({
 
 	return (
 		<Select
+			className='custom-select'
 			classNamePrefix='custom-select'
-			id={theme}
 			onChange={onChangeSingle}
 			value={getSingle()}
 			options={option}

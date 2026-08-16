@@ -6,21 +6,23 @@
 	padding: clamp(40px, 7vh, 86px) clamp(34px, 6vw, 90px) 48px;
 	color: #172033;
 
-	&__hero { display: grid; grid-template-columns: minmax(430px, 1.15fr) minmax(290px, .85fr); align-items: center; max-width: 1280px; margin: 0 auto; }
+	&__hero { display: grid; grid-template-columns: minmax(430px, 1.35fr) minmax(240px, .65fr); align-items: center; max-width: 1180px; margin: 0 auto; }
 	&__copy { position: relative; z-index: 2; }
-	&__eyebrow { display: inline-flex; padding: 7px 12px; border: 1px solid rgba(47, 103, 216, .2); border-radius: 999px; background: rgba(255,255,255,.72); color: CL.$PrimaryBlue; font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-	h2 { max-width: 760px; margin: 22px 0 18px; font-size: clamp(42px, 4.3vw, 66px); line-height: 1.02; letter-spacing: -.045em; }
+	&__eyebrow { display: inline-flex; color: CL.$PrimaryBlue; font-size: 14px; font-weight: 750; }
+	h2 { max-width: 760px; margin: 16px 0 18px; font-size: clamp(38px, 3.8vw, 56px); line-height: 1.06; letter-spacing: -.035em; text-wrap: balance; }
 	&__copy > p { max-width: 610px; margin: 0 0 30px; color: #667085; font-size: 18px; line-height: 1.65; }
-	&__primary { display: inline-flex; align-items: center; gap: 10px; padding: 15px 22px; border-radius: 12px; background: CL.$PrimaryBlue; box-shadow: 0 12px 28px rgba(38, 91, 193, .26); color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; span { display: flex; font-size: 22px; } &:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(38, 91, 193, .32); } }
+	&__primary { display: inline-flex; align-items: center; gap: 10px; min-height: 46px; padding: 12px 20px; border-radius: 10px; background: CL.$PrimaryBlue; color: #fff; font-size: 16px; font-weight: 700; text-decoration: none; transition: background CL.$MotionFast; span { display: flex; font-size: 22px; } &:hover { background: CL.$PrimaryButtonHover; } }
 	&__mascot { position: relative; display: grid; place-items: center; min-height: 420px; }
-	&__mascot img { position: relative; z-index: 1; width: min(100%, 480px); filter: drop-shadow(0 28px 32px rgba(24, 55, 112, .22)); animation: mascotFloat 5s ease-in-out infinite; }
+	&__mascot img { position: relative; z-index: 1; width: min(82%, 360px); filter: drop-shadow(0 18px 20px rgba(24, 55, 112, .18)); animation: mascotFloat 5s ease-in-out infinite; }
 	&__glow { position: absolute; width: 80%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(97, 151, 255, .3), rgba(97, 151, 255, 0) 68%); }
-	&__actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 1050px; margin: 12px auto 0; }
+	&__admin { max-width: 1180px; margin: 8px auto 0; padding-top: 24px; border-top: 1px solid rgba(78, 101, 145, .15); }
+	&__adminHeader { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 14px; h3 { font-size: 16px; font-weight: 750; } p { color: #667085; font-size: 13px; } }
+	&__actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 }
 
-.HomeAction { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; padding: 19px; border: 1px solid rgba(78, 101, 145, .14); border-radius: 16px; background: rgba(255,255,255,.78); box-shadow: 0 12px 34px rgba(32, 52, 89, .08); color: #172033; text-decoration: none; backdrop-filter: blur(12px); transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; &:hover { transform: translateY(-3px); border-color: rgba(47, 103, 216, .36); box-shadow: 0 17px 38px rgba(32, 52, 89, .13); } &__icon { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 13px; background: #e7efff; color: CL.$PrimaryBlue; font-size: 25px; &--violet { background: #f0eaff; color: #7950c8; } } span:nth-child(2) { display: grid; gap: 5px; } strong { font-size: 17px; } small { color: #7a8497; font-size: 13px; line-height: 1.35; } b { color: CL.$PrimaryBlue; font-size: 24px; font-weight: 400; } }
+.HomeAction { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 16px; border: 1px solid rgba(78, 101, 145, .18); border-radius: 14px; background: #fff; color: #172033; text-decoration: none; transition: border-color CL.$MotionFast, background CL.$MotionFast; &:hover { border-color: rgba(CL.$PrimaryBlue, .5); background: #f8faff; } &__icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 10px; background: #e7efff; color: CL.$PrimaryBlue; font-size: 21px; &--violet { background: #f0eaff; color: #7950c8; } &--audit { background: #f9ecef; color: #9b4656; } } span:nth-child(2) { display: grid; gap: 4px; } strong { font-size: 15px; } small { color: #667085; font-size: 12px; line-height: 1.4; } b { color: CL.$PrimaryBlue; font-size: 20px; font-weight: 400; } }
 
-#Dark .HomePage { color: #f1f4fa; .HomePage__eyebrow { background: rgba(29, 38, 60, .72); border-color: rgba(112, 157, 248, .3); color: #90b5ff; } .HomePage__copy > p { color: #aeb8ca; } .HomeAction { border-color: rgba(126, 146, 184, .18); background: rgba(27, 35, 55, .78); color: #f1f4fa; small { color: #aeb8ca; } } }
+body.Dark .HomePage { color: #f1f4fa; .HomePage__eyebrow { color: #90b5ff; } .HomePage__copy > p, .HomePage__adminHeader p { color: #aeb8ca; } .HomePage__admin { border-color: rgba(126, 146, 184, .18); } .HomeAction { border-color: rgba(126, 146, 184, .18); background: #1b2337; color: #f1f4fa; small { color: #aeb8ca; } &:hover { background: #222c42; } } }
 
 @keyframes mascotFloat { 0%, 100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-12px) rotate(1deg); } }
 
@@ -35,11 +37,12 @@
 		&__mascot { min-height: 280px; margin-top: 8px; }
 		&__mascot img { width: min(72%, 330px); }
 		&__actions { grid-template-columns: 1fr; max-width: 620px; }
+		&__adminHeader { align-items: flex-start; flex-direction: column; gap: 4px; }
 	}
 }
 
 @media (max-width: 560px) {
-	.HomePage { padding: 26px 18px 36px; h2 { margin-top: 16px; font-size: 36px; } &__eyebrow { font-size: 11px; } &__mascot { min-height: 230px; } }
+	.HomePage { padding: 26px 18px 36px; h2 { margin-top: 16px; font-size: 36px; } &__eyebrow { font-size: 13px; } &__mascot { min-height: 230px; } }
 	.HomeAction { padding: 15px; small { font-size: 12px; } }
 }
 

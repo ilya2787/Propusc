@@ -37,6 +37,8 @@ function App() {
 	}
 
 	useEffect(() => {
+		document.documentElement.dataset.theme = theme.toLowerCase()
+		document.body.dataset.theme = theme.toLowerCase()
 		if (theme === 'Dark') {
 			document.body.classList.add('Dark')
 			document.body.classList.remove('Light')
@@ -45,15 +47,19 @@ function App() {
 			document.body.classList.remove('Dark')
 			document.body.classList.add('Light')
 		}
+		return () => {
+			delete document.documentElement.dataset.theme
+			delete document.body.dataset.theme
+		}
 	}, [theme])
 
 	return (
-		<div className='MainContent' id={theme}>
+		<div className={`MainContent ${theme}`} data-theme={theme.toLowerCase()}>
 			<MantineProvider>
 				<Notifications />
 			</MantineProvider>
-			<div className='MainContent__header' id={theme}>
-				<Link to={ROUTES.HOME} className='MainContent__header--Logo' id={theme}>
+			<div className={`MainContent__header ${theme}`}>
+				<Link to={ROUTES.HOME} className={`MainContent__header--Logo ${theme}`}>
 					<img src={mascotLogo} alt='' aria-hidden='true' />
 					<div>
 						<h1>Пропуска</h1>
@@ -61,16 +67,15 @@ function App() {
 					</div>
 				</Link>
 				<div className='MainContent__header--Menu'>
-					<Link to={`/`} className='MainContent__header--Menu--Link' id={theme}>
+					<Link to={`/`} className={`MainContent__header--Menu--Link ${theme}`}>
 						<span>{ICON.Home}</span>
 						<p>Главный экран</p>
 					</Link>
 					<NavLink
 						to={ROUTES.Card}
 						className={({ isActive }) =>
-							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
+							`MainContent__header--Menu--Link ${theme} ${isActive ? 'Active' : ''}`
 						}
-						id={theme}
 					>
 						<span>{ICON.CardPass}</span>
 						<p>Пропуска</p>
@@ -78,9 +83,8 @@ function App() {
 					{user?.role === 'admin' && <NavLink
 						to={ROUTES.Templates}
 						className={({ isActive }) =>
-							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
+							`MainContent__header--Menu--Link ${theme} ${isActive ? 'Active' : ''}`
 						}
-						id={theme}
 					>
 						<span>{ICON.Editor}</span>
 						<p>Шаблон</p>
@@ -88,9 +92,8 @@ function App() {
 					{user?.role === 'admin' && <NavLink
 						to={ROUTES.Users}
 						className={({ isActive }) =>
-							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
+							`MainContent__header--Menu--Link ${theme} ${isActive ? 'Active' : ''}`
 						}
-						id={theme}
 					>
 						<span>{ICON.Users}</span>
 						<p>Пользователи</p>
@@ -98,9 +101,8 @@ function App() {
 					{user?.role === 'admin' && <NavLink
 						to={ROUTES.Audit}
 						className={({ isActive }) =>
-							`MainContent__header--Menu--Link ${isActive ? 'Active' : ''}`
+							`MainContent__header--Menu--Link ${theme} ${isActive ? 'Active' : ''}`
 						}
-						id={theme}
 					>
 						<span>{ICON.Audit}</span>
 						<p>Журнал</p>
@@ -133,11 +135,12 @@ function App() {
 							<span className='themeIcon sun'>☀</span>
 							<span className='themeIcon moon'>☾</span>
 						</span>
+						<span className='themeLabel'>{theme === 'Dark' ? 'Тёмная тема' : 'Светлая тема'}</span>
 						<span className='visuallyHidden'>{theme === 'Dark' ? 'Светлая тема' : 'Тёмная тема'}</span>
 					</label>
 				</div>
 			</div>
-			<div className={`MainContent_content ${isHomePage ? 'HomeBackground' : ''}`} id={theme}>
+			<div className={`MainContent_content ${theme} ${isHomePage ? 'HomeBackground' : ''}`}>
 				<AppContext.Provider value={{ theme }}>
 					<Outlet />
 				</AppContext.Provider>

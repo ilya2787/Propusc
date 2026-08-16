@@ -1,4 +1,11 @@
 /* Reset and base styles  */
+:root {
+	--z-dropdown: 40;
+	--z-sticky: 100;
+	--z-navigation: 200;
+	--z-modal: 1000;
+	--z-toast: 1100;
+}
 * {
 	padding: 0px;
 	margin: 0px;
@@ -109,6 +116,30 @@ input:active,
 button:focus,
 button:active {
 	outline: none;
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+	outline: 3px solid rgba(96, 92, 185, .3);
+	outline-offset: 2px;
+}
+
+:where(button, input, select, textarea):disabled {
+	cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		scroll-behavior: auto !important;
+		animation-duration: .01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: .01ms !important;
+	}
+
+	html:focus-within {
+		scroll-behavior: auto;
+	}
 }
 
 button::-moz-focus-inner {

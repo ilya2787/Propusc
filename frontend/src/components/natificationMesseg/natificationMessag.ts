@@ -80,6 +80,16 @@ export const AddPostBD = () => {
 	})
 }
 
+export const DeleteDirectoryItem = (itemName: 'Организация' | 'Должность') => {
+	notifications.show({
+		title: 'Удаление записи',
+		message: `${itemName} успешно удалена`,
+		color: 'green',
+		position: 'top-right',
+		autoClose: 5000,
+	})
+}
+
 export const UpdateDirectorNatif = () => {
 	notifications.show({
 		title: 'Обновление данных',
