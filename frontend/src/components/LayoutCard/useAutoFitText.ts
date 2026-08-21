@@ -5,6 +5,7 @@ export const useAutoFitText = (
 	maximumSize: number,
 	dependencies: unknown[],
 	minimumSize = 8,
+	fitHeight = false,
 ) => {
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -17,17 +18,38 @@ export const useAutoFitText = (
 			cancelAnimationFrame(frame)
 			frame = requestAnimationFrame(() => {
 				element.style.setProperty(cssVariable, `${maximumSize}px`)
-				const availableWidth = element.clientWidth
-				const contentWidth = Math.max(
+				const contentWidth = () => Math.max(
+					element.scrollWidth,
 					...Array.from(element.children).map(child => child.scrollWidth),
-					0,
 				)
-				if (!availableWidth || !contentWidth) return
-				const fittedSize = Math.max(
-					minimumSize,
-					Math.min(maximumSize, Math.floor(maximumSize * availableWidth / contentWidth)),
-				)
-				element.style.setProperty(cssVariable, `${fittedSize}px`)
+				if (!element.clientWidth) return
+
+				if (!fitHeight) {
+					const width = contentWidth()
+					if (width <= element.clientWidth + 1) return
+					const fittedSize = Math.max(
+						minimumSize,
+						Math.min(maximumSize, Math.floor(maximumSize * element.clientWidth / width)),
+					)
+					element.style.setProperty(cssVariable, `${fittedSize}px`)
+					return
+				}
+
+				const overflows = () => {
+					return contentWidth() > element.clientWidth + 1 ||
+						(element.clientHeight > 0 && element.scrollHeight > element.clientHeight + 1)
+				}
+				if (!overflows()) return
+
+				let low = minimumSize
+				let high = maximumSize
+				while (high - low > 0.25) {
+					const candidate = (low + high) / 2
+					element.style.setProperty(cssVariable, `${candidate}px`)
+					if (overflows()) high = candidate
+					else low = candidate
+				}
+				element.style.setProperty(cssVariable, `${Math.max(minimumSize, low)}px`)
 			})
 		}
 
@@ -40,7 +62,7 @@ export const useAutoFitText = (
 		}
 	// The caller supplies values that change the measured text or its constraints.
 	// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [cssVariable, maximumSize, minimumSize, ...dependencies])
+	}, [cssVariable, maximumSize, minimumSize, fitHeight, ...dependencies])
 
 	return ref
 }

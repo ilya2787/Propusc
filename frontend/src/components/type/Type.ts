@@ -1,6 +1,6 @@
 export interface TListPrint {
 	Id: string
-	Number_Tabs: number
+	Number_Tabs: string
 	LastName: string
 	FirstName: string
 	Patronymic: string

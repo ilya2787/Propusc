@@ -353,18 +353,13 @@ body.Dark .MainCard--headerInfo--TypePassCard--content--Item.Active .MainCard__t
 					h3 {
 						@include SettingH3();
 					}
-					input[type='number'] {
+					input[inputmode='numeric'] {
 						width: 100%;
 						padding: 10px;
 						height: 40px;
 
 						border-radius: 5px;
 						font-size: 15px;
-					}
-					input[type='number']::-webkit-outer-spin-button,
-					input[type='number']::-webkit-inner-spin-button {
-						-webkit-appearance: none;
-						margin: 0;
 					}
 				}
 				&--Organization {
@@ -765,7 +760,7 @@ body.Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #46
 						color: CL.$Light_TextColor;
 					}
 					&--Number {
-						input[type='number'] {
+						input[inputmode='numeric'] {
 							border: 1px solid CL.$Divider;
 							background-color: CL.$Sidebar;
 							&:focus {
@@ -927,7 +922,7 @@ body.Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #46
 						color: CL.$Dark_TextColor;
 					}
 					&--Number {
-						input[type='number'] {
+						input[inputmode='numeric'] {
 							border: 1px solid CL.$Dark_Divider;
 							background-color: CL.$Dark_Sidebar;
 							color: CL.$Dark_TextColor;

@@ -10,9 +10,10 @@ import { resolvePhotoSource } from './resolvePhotoSource'
 import { resolveServerImageUrl } from '../../api/images'
 import { getCardDimensions } from './cardDimensions'
 import QrCodeImage from './QrCodeImage'
+import AutoFitTextBlock from './AutoFitTextBlock'
 
 interface TypeProps {
-	Number_Tabs: number
+	Number_Tabs: string
 	NewDate: string
 	CurrentSingleOrganization: string
 	CurrentSinglePost: string
@@ -132,12 +133,15 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 			'data-editor-selected': editor && !Print ? editor.selected === key : undefined,
 		}
 	}
-	const customText = (side: 'front' | 'back') => activeTemplate.design.customTexts?.filter(item => item.side === side).map(item => <div
+	const customText = (side: 'front' | 'back') => activeTemplate.design.customTexts?.filter(item => item.side === side).map(item => item.contentType === 'field' ? <AutoFitTextBlock
 		key={item.id}
-		style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, fontSize: item.fontSize * dimensions.contentScale, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties}
+		fontSize={item.fontSize * dimensions.contentScale}
+		minimumFontSize={6 * dimensions.contentScale}
+		text={CustomFields[item.id] || item.text}
+		style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties}
 		onPointerDown={editor?.onSelectCustom && !Print ? event => editor.onSelectCustom!(item.id, event) : undefined}
 		data-editor-selected={editor && !Print ? editor.selectedCustomId === item.id : undefined}
-	>{item.contentType === 'field' ? (CustomFields[item.id] || item.text) : item.text}</div>)
+	/> : <div key={item.id} style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, fontSize: item.fontSize * dimensions.contentScale, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties} onPointerDown={editor?.onSelectCustom && !Print ? event => editor.onSelectCustom!(item.id, event) : undefined} data-editor-selected={editor && !Print ? editor.selectedCustomId === item.id : undefined}>{item.text}</div>)
 	const templateImages = (side: 'front' | 'back') => activeTemplate.design.images?.filter(item => item.side === side).map(item => <img key={item.id} src={resolveServerImageUrl(item.source)} alt='' style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: (item.layout.height ?? item.layout.width) * dimensions.scaleY, objectFit: 'contain', opacity: item.opacity, borderRadius: (item.borderRadius ?? 0) * dimensions.contentScale, transform: `rotate(${item.rotation}deg)`, transformOrigin: 'center', zIndex: item.layout.zIndex, cursor: editor && !Print ? 'move' : undefined }} onPointerDown={editor?.onSelectImage && !Print ? event => editor.onSelectImage!(item.id, event) : undefined} data-editor-selected={editor && !Print ? editor.selectedImageId === item.id : undefined} />)
 	const movedContent = (key: TemplateElementKey) => {
 		switch (key) {
@@ -155,6 +159,17 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 		}
 	}
 	const movedElements = (side: 'front' | 'back') => (Object.keys(activeTemplate.design.elementSides ?? {}) as TemplateElementKey[]).filter(key => defaultSide(key) !== side && sideFor(key) === side).map(key => <div key={`moved-${key}`} {...editable(key, side)} className='layoutCardPassVip__movedElement'>{movedContent(key)}</div>)
+	const fittedDirectorField = (key: 'certificateDirectorPost' | 'certificateDirectorName', text: string) => {
+		const props = editable(key)
+		return <AutoFitTextBlock
+			{...props}
+			fontSize={sizes[key] * dimensions.contentScale}
+			minimumFontSize={6 * dimensions.contentScale}
+			text={text}
+			style={props.style}
+			className={Print ? `layoutCardPassVip__Print--Back--${key === 'certificateDirectorPost' ? 'DirectorPost' : 'DirectorName'}` : `layoutCardPassVip--Back--${key === 'certificateDirectorPost' ? 'DirectorPost' : 'DirectorName'}`}
+		/>
+	}
 
 	return (
 		<div
@@ -279,8 +294,8 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 					<p>{CurrentSinglePost}</p>
 				</div>
 				{activeTemplate.design.showDirector && <>
-					<div {...editable('certificateDirectorPost')} className={Print ? 'layoutCardPassVip__Print--Back--DirectorPost' : 'layoutCardPassVip--Back--DirectorPost'}><p>{PostDirector}</p></div>
-					<div {...editable('certificateDirectorName')} className={Print ? 'layoutCardPassVip__Print--Back--DirectorName' : 'layoutCardPassVip--Back--DirectorName'}><p>{NameDirector}</p></div>
+					{fittedDirectorField('certificateDirectorPost', PostDirector)}
+					{fittedDirectorField('certificateDirectorName', NameDirector)}
 				</>}
 				{customText('back')}
 			</div>

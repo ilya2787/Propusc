@@ -32,7 +32,7 @@ import { formatDate } from '../../components/FormatDate/FormatDate'
 import './TemplateEditor.scss'
 
 const example = {
-	Number_Tabs: 1042,
+	Number_Tabs: '01042',
 	NewDate: '2026-08-14',
 	CurrentSingleOrganization: 'Организация «Пример»',
 	CurrentSinglePost: 'Специалист',

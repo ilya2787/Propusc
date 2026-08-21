@@ -119,7 +119,7 @@ const FrontForm: FC = () => {
 
 	const AddListPrint = () => {
 		if (
-			(!showNumber || Number_Tabs !== 0) &&
+			(!showNumber || Number_Tabs !== '') &&
 			(!showName || (LastName !== '' && FirstName !== '')) &&
 			(!showDate || NewDate !== '') &&
 			(!showOrganization || Organization !== '') &&
@@ -308,11 +308,11 @@ const FrontForm: FC = () => {
 			{showNumber && <div className={`FormFront--Number ${theme}`}>
 				<h3>Номер пропуска</h3>
 				<input
-					type='number'
-					name=''
-					id=''
+					type='text'
+					inputMode='numeric'
+					pattern='[0-9]*'
 					value={Number_Tabs}
-					onChange={e => setNumber_Tabs(Number(e.target.value))}
+					onChange={e => setNumber_Tabs(e.target.value.replace(/\D/g, ''))}
 					onFocus={FocusN}
 				/>
 			</div>}

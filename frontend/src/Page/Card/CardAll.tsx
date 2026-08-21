@@ -34,8 +34,8 @@ type TypeContext = {
 	setCurrentSingleOrganization: Dispatch<SetStateAction<string>>
 	CurrentSinglePost: string
 	setCurrentSinglePost: Dispatch<SetStateAction<string>>
-	Number_Tabs: number
-	setNumber_Tabs: Dispatch<SetStateAction<number>>
+	Number_Tabs: string
+	setNumber_Tabs: Dispatch<SetStateAction<string>>
 	LastName: string
 	setLastName: Dispatch<SetStateAction<string>>
 	FirstName: string
@@ -79,7 +79,7 @@ export const Context = createContext<TypeContext>({
 	setCurrentSingleOrganization: () => {},
 	CurrentSinglePost: '',
 	setCurrentSinglePost: () => {},
-	Number_Tabs: 0,
+	Number_Tabs: '0',
 	setNumber_Tabs: () => {},
 	LastName: '',
 	setLastName: () => {},
@@ -123,7 +123,9 @@ const PRINT_QUEUE_KEY = 'propusk-print-queue-v1'
 const loadPrintQueue = (): TListPrint[] => {
 	try {
 		const value = JSON.parse(localStorage.getItem(PRINT_QUEUE_KEY) ?? '[]')
-		return Array.isArray(value) ? value : []
+		return Array.isArray(value)
+			? value.map(item => ({ ...item, Number_Tabs: String(item.Number_Tabs ?? '') }))
+			: []
 	} catch {
 		return []
 	}
@@ -153,7 +155,7 @@ const CardAll = () => {
 	const [CurrentSingleOrganization, setCurrentSingleOrganization] =
 		useState<string>('')
 	const [CurrentSinglePost, setCurrentSinglePost] = useState<string>('')
-	const [Number_Tabs, setNumber_Tabs] = useState<number>(0)
+	const [Number_Tabs, setNumber_Tabs] = useState<string>('0')
 	const [LastName, setLastName] = useState<string>('')
 	const [FirstName, setFirstName] = useState<string>('')
 	const [Patronymic, setPatronymic] = useState<string>('')
@@ -264,7 +266,7 @@ const CardAll = () => {
 		setFirstName('')
 		setPatronymic('')
 		setNewDate('')
-		setNumber_Tabs(0)
+		setNumber_Tabs('0')
 		setFilePhoto('')
 		setFilePhotoName('')
 		setQrKey('')
