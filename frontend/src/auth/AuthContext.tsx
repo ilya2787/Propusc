@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { apiUrl } from '../api/server'
 
 export type UserRole = 'admin' | 'operator'
 export type AuthUser = { id: string; username: string; displayName: string; role: UserRole }
@@ -12,7 +13,6 @@ type AuthContextValue = {
 
 export const AUTH_EXPIRED_EVENT = 'propusk-auth-expired'
 const AuthContext = createContext<AuthContextValue | null>(null)
-const serverUrl = () => import.meta.env.VITE_APP_SERVER
 
 const responseMessage = async (response: Response, fallback: string) => {
 	const data = await response.json().catch(() => ({})) as { message?: string }
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const loadUser = useCallback(async () => {
 		try {
-			const response = await fetch(`${serverUrl()}/Auth/Me`, { credentials: 'include' })
+			const response = await fetch(apiUrl('/Auth/Me'), { credentials: 'include' })
 			if (!response.ok) return setUser(null)
 			const data = await response.json() as AuthResponse
 			setUser(data.user)
@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	}, [])
 
 	const login = async (username: string, password: string) => {
-		const response = await fetch(`${serverUrl()}/Auth/Login`, {
+		const response = await fetch(apiUrl('/Auth/Login'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			credentials: 'include',
@@ -60,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const logout = async () => {
 		try {
-			await fetch(`${serverUrl()}/Auth/Logout`, { method: 'POST', credentials: 'include' })
+			await fetch(apiUrl('/Auth/Logout'), { method: 'POST', credentials: 'include' })
 		} finally {
 			setUser(null)
 		}

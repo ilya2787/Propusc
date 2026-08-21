@@ -1,6 +1,5 @@
 import { AUTH_EXPIRED_EVENT } from '../auth/AuthContext'
-
-const serverUrl = () => import.meta.env.VITE_APP_SERVER
+import { apiUrl, serverUrl } from './server'
 
 const authenticatedFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 	const response = await fetch(input, { ...init, credentials: 'include' })
@@ -18,7 +17,7 @@ export const resolveServerImageUrl = (source?: string) => {
 export const uploadImage = async (file: File, kind: 'background' | 'photo') => {
 	const body = new FormData()
 	body.append('image', file)
-	const response = await authenticatedFetch(`${serverUrl()}/UploadImage?kind=${kind}`, { method: 'POST', body })
+	const response = await authenticatedFetch(apiUrl(`/UploadImage?kind=${kind}`), { method: 'POST', body })
 	const data = await response.json().catch(() => ({}))
 	if (!response.ok) throw new Error(data.message || 'Не удалось загрузить изображение')
 	return data as { url: string; name: string }
@@ -26,7 +25,7 @@ export const uploadImage = async (file: File, kind: 'background' | 'photo') => {
 
 export const deleteUploadedImage = async (url?: string) => {
 	if (!url?.startsWith('/uploads/')) return
-	const response = await authenticatedFetch(`${serverUrl()}/UploadedImage`, {
+	const response = await authenticatedFetch(apiUrl('/UploadedImage'), {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ url }),

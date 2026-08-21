@@ -21,12 +21,13 @@ interface TypeProps {
 	Patronymic: string
 	FilePhoto?: string
 	QrKey?: string
+	CustomFields?: Record<string, string>
 	Print: boolean
 	template?: PassTemplate
 	director?: { post: string; name: string }
 	previewMaxWidth?: number
 	previewMaxHeight?: number
-	editor?: { selected?: TemplateElementKey; selectedCustomId?: string; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void; onSelectCustom?: (id: string, event: PointerEvent<HTMLElement>) => void }
+	editor?: { selected?: TemplateElementKey; selectedCustomId?: string; selectedImageId?: string; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void; onSelectCustom?: (id: string, event: PointerEvent<HTMLElement>) => void; onSelectImage?: (id: string, event: PointerEvent<HTMLElement>) => void }
 }
 
 const colorWithOpacity = (color?: string, opacity = 1) => {
@@ -50,6 +51,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 	Patronymic,
 	FilePhoto,
 	QrKey,
+	CustomFields = {},
 	Print,
 	template,
 	director,
@@ -75,8 +77,9 @@ const LayoutCardPass: FC<TypeProps> = ({
 	const photoSettings = { ...DEFAULT_PHOTO_SETTINGS, ...activeTemplate.design.photos?.passPhoto }
 	const fixedText = (key: TemplateElementKey) => activeTemplate.design.fixedTexts?.[key] ?? DEFAULT_FIXED_TEXTS[key] ?? ''
 	const cardStyle = {
-		backgroundImage: backgroundSource ? `url("${backgroundSource}")` : 'none',
-		'--template-background': backgroundSource ? `url("${backgroundSource}")` : 'none',
+		backgroundImage: activeTemplate.design.backgroundMode === 'color' ? 'none' : backgroundSource ? `url("${backgroundSource}")` : 'none',
+		backgroundColor: activeTemplate.design.backgroundMode === 'color' ? activeTemplate.design.backgroundColor ?? '#ffffff' : undefined,
+		'--template-background': activeTemplate.design.backgroundMode === 'color' ? 'none' : backgroundSource ? `url("${backgroundSource}")` : 'none',
 		'--template-accent': activeTemplate.design.accentColor,
 		'--template-title': activeTemplate.design.titleColor,
 		'--template-text': activeTemplate.design.textColor ?? '#111111',
@@ -116,6 +119,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 		}
 	}
 	const customTexts = activeTemplate.design.customTexts?.filter(item => item.side === 'pass') ?? []
+	const templateImages = activeTemplate.design.images?.filter(item => item.side === 'pass') ?? []
 	return (
 		<div
 			className={Print ? 'layoutCardPass__Print' : 'layoutCardPass'}
@@ -131,6 +135,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 					Print ? 'layoutCardPass__Print--Card' : 'layoutCardPass--Card'
 				}
 			>
+				{templateImages.map(item => <img key={item.id} src={resolveServerImageUrl(item.source)} alt='' style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: (item.layout.height ?? item.layout.width) * dimensions.scaleY, objectFit: 'contain', opacity: item.opacity, borderRadius: (item.borderRadius ?? 0) * dimensions.contentScale, transform: `rotate(${item.rotation}deg)`, transformOrigin: 'center', zIndex: item.layout.zIndex, cursor: editor && !Print ? 'move' : undefined }} onPointerDown={editor?.onSelectImage && !Print ? event => editor.onSelectImage!(item.id, event) : undefined} data-editor-selected={editor && !Print ? editor.selectedImageId === item.id : undefined} />)}
 				<div
 					{...editable('passTitle')}
 					className={
@@ -204,7 +209,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 					style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, fontSize: item.fontSize * dimensions.contentScale, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties}
 					onPointerDown={editor?.onSelectCustom && !Print ? event => editor.onSelectCustom!(item.id, event) : undefined}
 					data-editor-selected={editor && !Print ? editor.selectedCustomId === item.id : undefined}
-				>{item.text}</div>)}
+				>{item.contentType === 'field' ? (CustomFields[item.id] || item.text) : item.text}</div>)}
 				<div
 					{...editable('passPhoto')}
 					className={
@@ -216,7 +221,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 					{photoSettings.mode === 'qr' ? (
 						<QrCodeImage value={QrKey || 'ТЕСТОВЫЙ-QR-КЛЮЧ'} darkColor={photoSettings.qrDarkColor} lightColor={photoSettings.qrLightColor} />
 					) : FilePhoto ? (
-						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
+						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%`, filter: `brightness(${photoSettings.brightness}%) contrast(${photoSettings.contrast}%)` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
 					) : (
 						<span>{ICON.Photo}</span>
 					)}

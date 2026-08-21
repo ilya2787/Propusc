@@ -49,6 +49,8 @@
 	&__rotationNumber { position: relative; display: block !important; input { box-sizing: border-box; height: 34px; padding: 5px 24px 5px 6px; text-align: right; appearance: textfield; -moz-appearance: textfield; &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { appearance: none; } } small { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); color: #667085; font-size: 12px; pointer-events: none; } }
 	&__hint { padding: 11px; border-radius: 8px; color: #667085; background: #f3f5f8; font-size: 12px; line-height: 1.45; }
 	&__backgroundUpload { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 7px; padding: 11px; border: 1px dashed #b9c8dc; border-radius: 9px; background: #f8faff; > span { font-size: 13px; font-weight: 600; } small { min-width: 0; overflow: hidden; color: #667085; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; } > button { color: #b33b3b; font-size: 11px; } }
+	&__backgroundModes { display: flex; overflow: hidden; border: 1px solid #ccd5e2; border-radius: 8px; button { min-height: 34px; padding: 0 11px; color: #59677b; background: #fff; font-size: 11px; font-weight: 700; &:first-child { border-right: 1px solid #ccd5e2; } &.active { color: #fff; background: CL.$PrimaryBlue; } } }
+	&__backgroundColor { grid-column: 1 / -1; display: flex !important; align-items: center; gap: 10px; padding: 9px 10px !important; border: 1px solid #dce2ea; border-radius: 8px; background: #fff; input { width: 38px !important; height: 30px; padding: 2px !important; cursor: pointer; } span { color: #59677b; font-size: 12px; font-weight: 700; } }
 	&__fileButton { display: inline-flex !important; align-items: center; justify-content: center; padding: 7px 10px; border-radius: 7px; color: CL.$PrimaryBlue; background: #eaf2ff; font-size: 11px !important; cursor: pointer; transition: color .15s ease, background .15s ease; &:hover { color: white; background: CL.$PrimaryBlue; } input { display: none; } }
 	&__error { padding: 9px; border-radius: 7px; color: #a52f2f; background: #fff0f0; font-size: 12px; }
 	&__numberInput { display: grid !important; grid-template-columns: 30px 1fr 30px !important; gap: 0 !important; overflow: hidden; border: 1px solid #ccd4e0; border-radius: 7px; background: white; > button { display: grid; place-items: center; min-width: 30px; padding: 0; color: CL.$PrimaryBlue; background: #f3f6fa; font-size: 18px; font-weight: 500; line-height: 1; transition: background .15s ease, color .15s ease; &:first-child { border-right: 1px solid #dce2ea; } &:last-child { border-left: 1px solid #dce2ea; } &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #b3bbc8; cursor: not-allowed; } } > span { position: relative; display: block; } input { height: 32px; padding: 5px 21px 5px 4px; border: 0; border-radius: 0; text-align: right; appearance: textfield; -moz-appearance: textfield; &::-webkit-inner-spin-button, &::-webkit-outer-spin-button { margin: 0; appearance: none; } &:focus { outline: 2px solid rgba(CL.$PrimaryBlue, .25); outline-offset: -2px; } } small { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); color: #667085; font-size: 10px; pointer-events: none; } }
@@ -86,13 +88,17 @@
 	&__canvas { min-height: 560px; display: grid; place-items: center; background-color: #eef1f5; background-image: linear-gradient(45deg,#e4e8ed 25%,transparent 25%),linear-gradient(-45deg,#e4e8ed 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e4e8ed 75%),linear-gradient(-45deg,transparent 75%,#e4e8ed 75%); background-size: 24px 24px; background-position: 0 0,0 12px,12px -12px,-12px 0; border-radius: 10px; margin-top: 16px; overflow: hidden; outline: none; &:focus-visible { box-shadow: inset 0 0 0 3px rgba(CL.$PrimaryBlue,.28); } }
 }
 
-.TemplateEditor__canvas [data-editor-selected] { touch-action: none; user-select: none; transition: outline-color .15s ease, box-shadow .15s ease; &:hover { outline: 1px dashed #5a8ed8; outline-offset: 3px; } &[data-editor-selected='true'] { z-index: 10; outline: 2px solid CL.$PrimaryBlue; outline-offset: 4px; box-shadow: 0 0 0 5px rgba(CL.$PrimaryBlue, .12); } }
+.TemplateEditor__canvas [data-editor-selected] { touch-action: none; user-select: none; transition: outline-color .15s ease, box-shadow .15s ease; &:hover { outline: 1px dashed #5a8ed8; outline-offset: 3px; } &[data-editor-selected='true'] { z-index: 10; outline: 2px solid CL.$PrimaryBlue; outline-offset: 4px; box-shadow: 0 0 0 5px rgba(CL.$PrimaryBlue, .12); } &[data-editor-selected='true']:not(img)::after { content: ''; position: absolute; right: -7px; bottom: -7px; width: 12px; height: 12px; box-sizing: border-box; border: 2px solid #fff; border-radius: 3px; background: CL.$PrimaryBlue; box-shadow: 0 1px 4px rgba(20, 43, 78, .3); pointer-events: none; } }
+.TemplateEditor__moveSideButton { width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid #9db9e6; border-radius: 8px; color: #245ba9; background: #eaf2ff; font-size: 12px; font-weight: 700; &:hover { color: #fff; background: CL.$PrimaryBlue; } }
 body.Dark .TemplateEditor { color: #edf1f8; .panel { background: rgba(30,35,51,.96); border-color: #353c50; } input, select, textarea { color: #edf1f8; background: #252b3c; border-color: #465068; } .TemplateEditor__list button.active { background: #273d61; } .TemplateEditor__settingsTabs button { color: #b8c1d1; background: #272e40; &.active { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__selectedFontSizes, .TemplateEditor__fixedTextSettings, .TemplateEditor__photoSettings, .TemplateEditor__fieldVisibility, .TemplateEditor__hint, .TemplateEditor__backgroundUpload, .TemplateEditor__sizeSettings { background: #272e40; border-color: #465068; } .TemplateEditor__settingsGroup { border-color: #465068; background: #272e40; summary { color: #e4eaf4; &:hover { background: #303a50; } } &[open] summary { border-color: #465068; } } .TemplateEditor__cornerSettings { border-color: #465068; background: #252b3c; } .TemplateEditor__cornerMode button { color: #c6cfdd; background: #303749; &.active { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__layerControls > div { border-color: #465068; background: #252b3c; button { color: #bcd4ff; background: #303749; &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #657086; } } strong { color: #edf1f8; border-color: #465068; } } .TemplateEditor__layerControls > small { color: #929db0; } .TemplateEditor__hint { color: #b8c1d1; } .TemplateEditor__fileButton { background: #303d55; } .TemplateEditor__resetButton { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: white; border-color: #789ff0; background: CL.$PrimaryBlue; } } .TemplateEditor__fillSettings button { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: white; background: CL.$PrimaryBlue; } } .TemplateEditor__formatButtons { border-color: #465068; background: #252b3c; button { color: #d7deea; border-color: #465068; &.active { color: white; background: CL.$PrimaryBlue; } } } .TemplateEditor__error { color: #ffb6b6; background: #482d35; } .TemplateEditor__numberInput { background: #252b3c; border-color: #465068; > button { background: #303749; border-color: #465068; &:hover:not(:disabled) { background: CL.$PrimaryBlue; } } } .TemplateEditor__coordinateNumber > button:disabled, .TemplateEditor__coordinateNumber > button:disabled:hover { color: #657086; background: #303749; } }
 
 @keyframes editorTabIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
 // Restructured template editor
 .TemplateEditor {
+	&__addTextButton input[type='file'] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+	&__elementPicker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; padding: 10px; border-radius: 10px; background: #eef3fa; button, label { display: flex; min-width: 0; min-height: 78px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; padding: 11px; border: 1px solid #d6e0ee; border-radius: 9px; color: #26354d; background: #fff; cursor: pointer; text-align: left; transition: border-color .18s ease, background .18s ease, transform .18s ease; &:hover { border-color: #87a8db; background: #f8fbff; transform: translateY(-1px); } strong { font-size: 12px; } span { color: #68758a; font-size: 10px; font-weight: 500; line-height: 1.3; } input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; } } }
+	&__elementListTitle { margin: 12px 0 7px; color: #65738a; font-size: 11px; }
 	padding: 34px clamp(20px, 3.5vw, 54px) 64px;
 	&__header, &__selector, &__workspace, &__serverError { max-width: 1440px; margin-left: auto; margin-right: auto; }
 	&__header { align-items: flex-start; h1 { margin: 6px 0 7px; color: #172033; font-size: clamp(30px, 3vw, 42px); line-height: 1.1; letter-spacing: -.035em; } > div:first-child > p:last-child { color: #626e82; font-size: 15px; } }
@@ -100,7 +106,7 @@ body.Dark .TemplateEditor { color: #edf1f8; .panel { background: rgba(30,35,51,.
 	&__sectionTitle { display: flex; align-items: center; gap: 12px; > span { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; border-radius: 9px; color: white; background: CL.$PrimaryBlue; box-shadow: 0 5px 12px rgba(CL.$PrimaryBlue,.23); font-size: 13px; font-weight: 800; } h2 { color: #202a3b; font-size: 17px; line-height: 1.2; } p { margin-top: 3px; color: #707c90; font-size: 12px; } }
 	&__selector { margin-bottom: 18px; padding: 18px !important; }
 	&__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 16px; padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; button { position: relative; min-height: 74px; padding: 13px 15px; border: 1px solid #dfe4ec; border-radius: 11px; background: #fff; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; &::after { content: ''; position: absolute; top: 15px; right: 14px; width: 8px; height: 8px; border: 2px solid #c5ceda; border-radius: 50%; } &:hover { transform: translateY(-2px); border-color: #a9c1ef; box-shadow: 0 8px 18px rgba(31,49,80,.07); } &.active { border-color: CL.$PrimaryBlue; color: #223b6d; background: #eef4ff; box-shadow: inset 0 0 0 1px rgba(CL.$PrimaryBlue,.08); &::after { border-color: #fff; background: CL.$PrimaryBlue; box-shadow: 0 0 0 3px CL.$PrimaryBlue; } } span { padding-right: 18px; font-size: 14px; font-weight: 700; } small { font-size: 11px; } } }
-	&__workspace { grid-template-columns: minmax(340px, 410px) minmax(520px, 1fr); gap: 18px; }
+	&__workspace { grid-template-columns: minmax(460px, 560px) minmax(520px, 1fr); gap: 18px; }
 	&__settings { max-height: calc(100vh - 36px); overflow-y: auto; padding: 18px; scrollbar-width: thin; > .TemplateEditor__sectionTitle { margin-bottom: 2px; } }
 	&__settingsTabs { position: sticky; top: -18px; z-index: 5; margin: 0 -18px; padding: 12px 18px; border-bottom: 1px solid #e1e6ee; background: rgba(255,255,255,.96); backdrop-filter: blur(10px); button { padding: 10px 8px; font-size: 12px; font-weight: 700; } }
 	&__preview { top: 18px; min-width: 0; padding: 18px; }
@@ -112,9 +118,73 @@ body.Dark .TemplateEditor { color: #edf1f8; .panel { background: rgba(30,35,51,.
 	&__canvas.is-grid .layoutCardPass--Card::after,
 	&__canvas.is-grid .layoutCardPassVip--Front::after,
 	&__canvas.is-grid .layoutCardPassVip--Back::after { content: ''; position: absolute; z-index: 101; inset: 0; pointer-events: none; background-image: linear-gradient(to right, rgba(49,94,168,.23) 1px, transparent 1px), linear-gradient(to bottom, rgba(49,94,168,.23) 1px, transparent 1px); background-size: var(--editor-grid-step) var(--editor-grid-step); box-shadow: inset 0 0 0 1px rgba(49,94,168,.35); }
+
+	// Compact element inspector: use the available width instead of building one long column.
+	&__settings--layout &__fieldVisibility {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: 16px;
+		h4 { grid-column: 1 / -1; }
+	}
+	&__inspectorTabs {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 4px;
+		padding: 4px;
+		border: 1px solid #d9e1ec;
+		border-radius: 9px;
+		background: #edf1f6;
+		button { min-height: 36px; padding: 7px 8px; border-radius: 6px; color: #5f6c80; font-size: 11px; font-weight: 750; transition: color CL.$MotionFast, background CL.$MotionFast; &:hover:not(:disabled) { color: CL.$PrimaryBlue; background: #fff; } &.active { color: #fff; background: CL.$PrimaryBlue; } &:disabled { opacity: .42; cursor: not-allowed; } &:focus-visible { outline: 3px solid CL.$FocusRing; outline-offset: 1px; } }
+	}
+	&__editorInspector,
+	&__settings--layout &__customTextSettings {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start;
+		gap: 10px;
+	}
+	&__inspectorPanel { width: 100%; min-width: 0; grid-column: 1 / -1; &[hidden] { display: none !important; } > summary { display: none; } }
+	&__settings--layout &__inspectorPanel,
+	&__settings--layout &__customTextSettings > details { width: 100%; min-width: 0; grid-column: 1 / -1; border: 0; background: transparent; > summary { display: none; } > .TemplateEditor__settingsGroupBody { box-sizing: border-box; width: 100%; padding: 14px; border-radius: 9px; background: #f5f7fb; } }
+	&__customTextSettings--content > details:not(:nth-of-type(1)),
+	&__customTextSettings--appearance > details:not(:nth-of-type(2)),
+	&__customTextSettings--position > details:not(:nth-of-type(3)),
+	&__imageSettings--content > details:not(:nth-of-type(1)),
+	&__imageSettings--position > details:not(:nth-of-type(2)),
+	&__imageSettings--appearance > details:not(:nth-of-type(3)) { display: none; }
+	&__editorInspector > .TemplateEditor__moveSideButton,
+	&__settings--layout &__customBadge,
+	&__settings--layout &__customTextActions,
+	&__settings--layout &__customTextSettings > .TemplateEditor__duplicateTextButton {
+		grid-column: 1 / -1;
+	}
+	&__settings--layout &__settingsGroupBody {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start;
+		gap: 10px 12px;
+	}
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__hint,
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__backgroundUpload,
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__cornerSettings,
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__textFieldSettings,
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__resetTextStyle,
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__coordinates,
+	&__settings--layout &__settingsGroupBody > .TemplateEditor__layerControls,
+	&__settings--layout &__settingsGroupBody > textarea,
+	&__settings--layout &__settingsGroupBody > h4 {
+		grid-column: 1 / -1;
+	}
+	&__settings--layout &__coordinates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	&__settings--layout &__customTextLibrary { margin-top: 0; padding-top: 10px; }
 }
 
 	body.Dark .TemplateEditor {
+	.TemplateEditor__inspectorTabs { border-color: #465068; background: #22293a; button { color: #b8c2d2; &:hover:not(:disabled) { color: #fff; background: #303749; } &.active { color: #fff; background: CL.$PrimaryBlue; } } }
+	.TemplateEditor__settings--layout .TemplateEditor__inspectorPanel > .TemplateEditor__settingsGroupBody,
+	.TemplateEditor__settings--layout .TemplateEditor__customTextSettings > details > .TemplateEditor__settingsGroupBody { background: #272e40; }
+	.TemplateEditor__elementPicker { background: #222a3b; button, label { border-color: #465068; color: #edf1f8; background: #303749; &:hover { border-color: #789ff0; background: #34435c; } span { color: #aab5c7; } } }
+	.TemplateEditor__moveSideButton { color: #bcd4ff; border-color: #5475aa; background: #2d4263; &:hover { color: #fff; background: CL.$PrimaryBlue; } }
 	.TemplateEditor__historyActions { border-color: #465068; background: #252b3c; button { color: #bcd4ff; border-color: #465068; &:hover:not(:disabled) { color: white; background: CL.$PrimaryBlue; } &:disabled { color: #657086; } } }
 	.TemplateEditor__leaveDialog { color: #edf1f8; border-color: #465068; background: #252b3c; h2 { color: #f4f7fc; } p { color: #b8c2d2; } button.secondary { color: #d7deea; border-color: #59647a; } button.danger { color: #ffb6b6; border-color: #80505a; background: #482d35; } }
 	.TemplateEditor__header h1 { color: #f4f7fc; }
@@ -142,11 +212,12 @@ body.Dark .TemplateEditor { color: #edf1f8; .panel { background: rgba(30,35,51,.
 }
 
 @media (max-width: 1180px) {
-	.TemplateEditor { &__workspace { grid-template-columns: 1fr; } &__settings { max-height: none; overflow: visible; } &__settingsTabs { top: 0; } &__preview { position: static; } &__canvas { min-height: 560px; } }
+	.TemplateEditor { &__workspace { grid-template-columns: 1fr; } &__settings { width: auto; max-height: none; overflow: visible; } &__settingsTabs { top: 0; } &__preview { position: static; } &__canvas { min-height: 560px; } }
 }
 
 @media (max-width: 720px) {
 	.TemplateEditor { padding: 20px 12px 40px; &__leaveDialog > div { flex-direction: column-reverse; button { width: 100%; } } &__header { align-items: stretch; flex-direction: column; gap: 16px; h1 { font-size: 30px; } } &__actions { position: static; display: grid; grid-template-columns: auto 1fr 1fr; button { min-width: 0; padding-right: 10px; padding-left: 10px; } } &__fileMenu { summary { justify-content: center; height: 100%; } > div { right: auto; left: 0; } } &__selector, &__settings, &__preview { padding: 14px !important; } &__list { grid-template-columns: 1fr; } &__workspace { grid-template-columns: minmax(0, 1fr); } &__settingsTabs { top: 0; margin-right: -14px; margin-left: -14px; padding-right: 14px; padding-left: 14px; overflow-x: auto; grid-template-columns: repeat(3, minmax(96px, 1fr)); } &__previewHeader { align-items: flex-start; flex-direction: column; } &__previewControls { width: 100%; align-items: flex-start; flex-wrap: wrap; justify-content: space-between; } &__canvas { min-height: 390px; overflow: hidden; padding: 16px; box-sizing: border-box; } &__row { grid-template-columns: 1fr; } &__coordinates { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+	.TemplateEditor { &__settings--layout &__fieldVisibility, &__editorInspector, &__settings--layout &__customTextSettings, &__settings--layout &__settingsGroupBody { grid-template-columns: 1fr; } &__settings--layout &__fieldVisibility h4, &__editorInspector > *, &__settings--layout &__customTextSettings > *, &__settings--layout &__settingsGroupBody > * { grid-column: 1; } &__settings--layout &__inspectorPanel, &__settings--layout &__customTextSettings > details { grid-column: 1 / -1; > .TemplateEditor__settingsGroupBody { padding: 12px; } } }
 }
 
 @media (max-width: 400px) {
@@ -175,6 +246,7 @@ body.Dark .TemplateEditor .TemplateEditor__settingsGroup summary::after { color:
 
 @media (max-width: 720px) {
 	.TemplateEditor {
+		&__elementPicker { grid-template-columns: 1fr; }
 		label,
 		&__hint,
 		&__keyboardHint,

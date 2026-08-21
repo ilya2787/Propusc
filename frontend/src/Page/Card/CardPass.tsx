@@ -19,6 +19,7 @@ const CardPass: FC = () => {
 	const Organization = AllContext.Organization
 	const Post = AllContext.Post
 	const SelectedTemplate = AllContext.SelectedTemplate
+	const CustomFields = AllContext.CustomFields
 	const previewRef = useRef<HTMLDivElement>(null)
 	const [previewMaxWidth, setPreviewMaxWidth] = useState(514)
 
@@ -47,9 +48,10 @@ const CardPass: FC = () => {
 							LastName={LastName}
 							FirstName={FirstName}
 							Patronymic={Patronymic}
-							NewDate={NewDate ? formatDate(NewDate) : ''}
+							NewDate={NewDate ? formatDate(NewDate, SelectedTemplate.design.dateFormat) : ''}
 							FilePhoto={FilePhoto}
 							QrKey={QrKey}
+							CustomFields={CustomFields}
 							Print={false}
 							template={SelectedTemplate}
 							previewMaxWidth={previewMaxWidth}

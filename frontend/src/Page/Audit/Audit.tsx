@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../App'
+import { serverUrl } from '../../api/server'
 import './Audit.scss'
 
 type AuditEvent = {
@@ -32,7 +33,6 @@ const actionLabels: Record<string, string> = {
 	'pass.printed': 'Пропуска отправлены на печать',
 	'system.backup_created': 'Создана резервная копия',
 }
-const serverUrl = () => import.meta.env.VITE_APP_SERVER
 const formatDate = (value: string) => new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(value))
 
 const Audit = () => {

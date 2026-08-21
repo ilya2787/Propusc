@@ -1,10 +1,9 @@
 export type PassAuditAction = 'pass.created' | 'pass.printed'
-
-const serverUrl = () => import.meta.env.VITE_APP_SERVER
+import { apiUrl } from './server'
 
 export const recordPassEvent = async (action: PassAuditAction, templateId: string, count: number) => {
 	try {
-		await fetch(`${serverUrl()}/Audit/PassEvent`, {
+		await fetch(apiUrl('/Audit/PassEvent'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			credentials: 'include',

@@ -1,4 +1,5 @@
 import { resolveServerImageUrl } from '../../api/images'
+import { apiUrl } from '../../api/server'
 
 export const resolvePhotoSource = (photo?: string) => {
 	if (!photo) return ''
@@ -6,5 +7,5 @@ export const resolvePhotoSource = (photo?: string) => {
 		return photo
 	}
 	if (photo.startsWith('/')) return resolveServerImageUrl(photo)
-	return `${import.meta.env.VITE_APP_SERVER}/Photo/${encodeURIComponent(photo)}`
+	return apiUrl(`/Photo/${encodeURIComponent(photo)}`)
 }

@@ -2,14 +2,17 @@
 .layoutCardPass {
 	&--Card {
 		position: relative;
+		box-sizing: border-box;
+		overflow: hidden;
 		width: calc(68mm * 2);
 		height: calc(48mm * 2);
-		background: var(--template-background, url('@/assets/Flag.jpg')) no-repeat center center;
+		background: var(--template-background, url('@/assets/Flag.jpg')) no-repeat
+			center center;
 		background-size: cover;
 		border-radius: var(--template-radius, 5px);
 		font-family: var(--template-font, 'Times New Roman'), serif;
 		color: var(--template-text, #111);
-			&--Title {
+		&--Title {
 			display: flex;
 			justify-content: center;
 			align-items: center;
@@ -17,18 +20,18 @@
 			text-transform: uppercase;
 			background-color: var(--template-accent, #feec23);
 			height: 100%;
-				width: 50px;
-				border-radius: 5px 0 0 5px;
-				letter-spacing: calc(25px * var(--card-font-scale, 1));
-				p {
+			width: 50px;
+			border-radius: 5px 0 0 5px;
+			letter-spacing: calc(25px * var(--card-font-scale, 1));
+			p {
 				display: flex;
 				justify-content: center;
 				align-items: center;
 				font-weight: bold;
 				font-size: 29px;
-					margin-bottom: calc(-20px * var(--card-font-scale, 1));
-					color: var(--template-title, #f84a4a);
-					letter-spacing: inherit;
+				margin-bottom: calc(-20px * var(--card-font-scale, 1));
+				color: var(--template-title, #f84a4a);
+				letter-spacing: inherit;
 				width: 100%;
 				text-align: center;
 			}
@@ -130,31 +133,35 @@
 .layoutCardPass__Print {
 	&--Card {
 		position: relative;
+		box-sizing: border-box;
+		overflow: hidden;
 		width: 70mm;
 		height: 48mm;
-		background: var(--template-background, url('@/assets/Flag.jpg')) no-repeat center center;
+		background: var(--template-background, url('@/assets/Flag.jpg')) no-repeat
+			center center;
 		background-size: cover;
+		border-radius: var(--template-radius, 5px);
 		font-family: var(--template-font, 'Times New Roman'), serif;
 		color: var(--template-text, #111);
-			&--Title {
+		&--Title {
 			display: flex;
 			justify-content: center;
 			align-items: center;
 			writing-mode: sideways-rl;
 			text-transform: uppercase;
 			background-color: var(--template-accent, #feec23);
-				height: 100%;
-				width: 25px;
-				letter-spacing: calc(25px * var(--card-font-scale, 1));
-				p {
+			height: 100%;
+			width: 25px;
+			letter-spacing: calc(25px * var(--card-font-scale, 1));
+			p {
 				display: flex;
 				justify-content: center;
 				align-items: center;
 				font-weight: bold;
 				font-size: 18px;
-					margin-bottom: calc(-20px * var(--card-font-scale, 1));
-					color: var(--template-title, #f84a4a);
-					letter-spacing: inherit;
+				margin-bottom: calc(-20px * var(--card-font-scale, 1));
+				color: var(--template-title, #f84a4a);
+				letter-spacing: inherit;
 				width: 100%;
 				text-align: center;
 			}
@@ -262,15 +269,22 @@
 	height: calc(48mm * 2);
 	z-index: 0;
 	transform-style: preserve-3d;
-	transition: transform .6s cubic-bezier(.22, .8, .25, 1);
+	transition: transform 0.6s cubic-bezier(0.22, 0.8, 0.25, 1);
 	will-change: transform;
-	&.Flipped { transform: perspective(900px) rotateY(180deg); }
-	&.EditorFront, &.EditorBack {
+	&.Flipped {
+		transform: perspective(900px) rotateY(180deg);
+	}
+	&.EditorFront,
+	&.EditorBack {
 		animation: none;
 		transform: none;
 	}
-	&.EditorFront &--Back { display: none; }
-	&.EditorBack &--Front { display: none; }
+	&.EditorFront &--Back {
+		display: none;
+	}
+	&.EditorBack &--Front {
+		display: none;
+	}
 	&.EditorBack &--Back {
 		display: flex;
 		transform: none;
@@ -278,9 +292,12 @@
 	}
 	&--Front {
 		position: absolute;
+		box-sizing: border-box;
+		overflow: hidden;
 		width: calc(68mm * 2);
 		height: calc(48mm * 2);
-		background: var(--template-front-background, url('@/assets/Flag.jpg')) no-repeat center center;
+		background: var(--template-front-background, url('@/assets/Flag.jpg'))
+			no-repeat center center;
 		background-size: cover;
 		font-family: var(--template-font, 'Times New Roman'), serif;
 		color: var(--template-front-text, #111);
@@ -363,9 +380,12 @@
 	}
 	&--Back {
 		position: absolute;
+		box-sizing: border-box;
+		overflow: hidden;
 		width: calc(68mm * 2);
 		height: calc(48mm * 2);
-		background: var(--template-back-background, url('@/assets/gerbT.png')) no-repeat center center;
+		background: var(--template-back-background, url('@/assets/gerbT.png'))
+			no-repeat center center;
 		background-size: cover;
 		font-family: var(--template-font, 'Times New Roman'), serif;
 		color: var(--template-back-text, #111);
@@ -423,14 +443,18 @@
 	column-gap: 3mm;
 	&--Front {
 		position: relative;
+		box-sizing: border-box;
+		overflow: hidden;
 		width: 70mm;
 		height: 48mm;
-		background: var(--template-front-background, url('@/assets/Flag.jpg')) no-repeat center center;
+		background: var(--template-front-background, url('@/assets/Flag.jpg'))
+			no-repeat center center;
 		background-size: cover;
 		font-family: 'Times New Roman', Times, serif;
 		color: var(--template-front-text, #111);
 		padding: 2px 5px;
-		border: 1px solid #e3e3e3;
+		border: 1px solid #cecccc;
+		border-radius: var(--template-radius, 5px);
 		&--title {
 			width: 100%;
 			font-size: 11px;
@@ -501,9 +525,12 @@
 	}
 	&--Back {
 		position: relative;
+		box-sizing: border-box;
+		overflow: hidden;
 		width: 70mm;
 		height: 48mm;
-		background: var(--template-back-background, url('@/assets/gerbT.png')) no-repeat center center;
+		background: var(--template-back-background, url('@/assets/gerbT.png'))
+			no-repeat center center;
 		background-size: cover;
 		font-family: 'Times New Roman', Times, serif;
 		color: var(--template-back-text, #111);
@@ -576,42 +603,176 @@
 
 // Индивидуальные размеры текстовых блоков шаблона.
 .layoutCardPass--Card {
-	&--Title p { font-size: calc(var(--font-pass-title, 29px) * var(--card-font-scale, 1)); line-height: var(--line-pass-title, 1.15); }
-	&--Number p { font-size: calc(var(--font-pass-number, 22px) * var(--card-font-scale, 1)); line-height: var(--line-pass-number, 1.2); }
-	&--Date p { font-size: calc(var(--font-pass-date, 22px) * var(--card-font-scale, 1)); line-height: var(--line-pass-date, 1.2); }
-	&--Organization p { font-size: calc(var(--font-pass-organization, 18px) * var(--card-font-scale, 1)); line-height: var(--line-pass-organization, 1.35); }
-	&--Post p { font-size: calc(var(--font-pass-post, 18px) * var(--card-font-scale, 1)); line-height: var(--line-pass-post, 1.2); }
-	&--Name p { overflow: visible; font-size: calc(var(--font-pass-name-fit, var(--font-pass-name, 23px)) * var(--card-font-scale, 1)); line-height: var(--line-pass-name, 1.15); white-space: nowrap; }
+	&--Title p {
+		font-size: calc(var(--font-pass-title, 29px) * var(--card-font-scale, 1));
+		line-height: var(--line-pass-title, 1.15);
+	}
+	&--Number p {
+		font-size: calc(var(--font-pass-number, 22px) * var(--card-font-scale, 1));
+		line-height: var(--line-pass-number, 1.2);
+	}
+	&--Date p {
+		font-size: calc(var(--font-pass-date, 22px) * var(--card-font-scale, 1));
+		line-height: var(--line-pass-date, 1.2);
+	}
+	&--Organization p {
+		font-size: calc(
+			var(--font-pass-organization, 18px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-pass-organization, 1.35);
+	}
+	&--Post p {
+		font-size: calc(var(--font-pass-post, 18px) * var(--card-font-scale, 1));
+		line-height: var(--line-pass-post, 1.2);
+	}
+	&--Name p {
+		overflow: visible;
+		font-size: calc(
+			var(--font-pass-name-fit, var(--font-pass-name, 23px)) *
+				var(--card-font-scale, 1)
+		);
+		line-height: var(--line-pass-name, 1.15);
+		white-space: nowrap;
+	}
 }
 .layoutCardPass__Print--Card {
-	&--Title p { font-size: calc(var(--font-pass-title, 29px) * var(--card-font-scale, .5)); line-height: var(--line-pass-title, 1.15); }
-	&--Number p { font-size: calc(var(--font-pass-number, 22px) * var(--card-font-scale, .5)); line-height: var(--line-pass-number, 1.2); }
-	&--Date p { font-size: calc(var(--font-pass-date, 22px) * var(--card-font-scale, .5)); line-height: var(--line-pass-date, 1.2); }
-	&--Organization p { font-size: calc(var(--font-pass-organization, 18px) * var(--card-font-scale, .5)); line-height: var(--line-pass-organization, 1.35); }
-	&--Post p { font-size: calc(var(--font-pass-post, 18px) * var(--card-font-scale, .5)); line-height: var(--line-pass-post, 1.2); }
-	&--Name p { overflow: visible; font-size: calc(var(--font-pass-name-fit, var(--font-pass-name, 23px)) * var(--card-font-scale, .5)); line-height: var(--line-pass-name, 1.15); white-space: nowrap; }
+	&--Title p {
+		font-size: calc(var(--font-pass-title, 29px) * var(--card-font-scale, 0.5));
+		line-height: var(--line-pass-title, 1.15);
+	}
+	&--Number p {
+		font-size: calc(
+			var(--font-pass-number, 22px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-pass-number, 1.2);
+	}
+	&--Date p {
+		font-size: calc(var(--font-pass-date, 22px) * var(--card-font-scale, 0.5));
+		line-height: var(--line-pass-date, 1.2);
+	}
+	&--Organization p {
+		font-size: calc(
+			var(--font-pass-organization, 18px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-pass-organization, 1.35);
+	}
+	&--Post p {
+		font-size: calc(var(--font-pass-post, 18px) * var(--card-font-scale, 0.5));
+		line-height: var(--line-pass-post, 1.2);
+	}
+	&--Name p {
+		overflow: visible;
+		font-size: calc(
+			var(--font-pass-name-fit, var(--font-pass-name, 23px)) *
+				var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-pass-name, 1.15);
+		white-space: nowrap;
+	}
 }
 .layoutCardPassVip--Front {
-	&--title { font-size: calc(var(--font-certificate-title, 22px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-title, 1.05); }
-	&--NumberCard { font-size: calc(var(--font-certificate-number, 23px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-number, 1.1); }
-	&--text { font-size: calc(var(--font-certificate-intro, 20px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-intro, 1.15); }
-	&--Name { overflow: visible; font-size: calc(var(--font-certificate-name-fit, var(--font-certificate-name, 28px)) * var(--card-font-scale, 1)); line-height: var(--line-certificate-name, 1.15); p { font-size: inherit; white-space: nowrap; } }
-	&--Date { font-size: calc(var(--font-certificate-date, 20px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-date, 1.2); }
+	&--title {
+		font-size: calc(
+			var(--font-certificate-title, 22px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-title, 1.05);
+	}
+	&--NumberCard {
+		font-size: calc(
+			var(--font-certificate-number, 23px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-number, 1.1);
+	}
+	&--text {
+		font-size: calc(
+			var(--font-certificate-intro, 20px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-intro, 1.15);
+	}
+	&--Name {
+		overflow: visible;
+		font-size: calc(
+			var(--font-certificate-name-fit, var(--font-certificate-name, 28px)) *
+				var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-name, 1.15);
+		p {
+			font-size: inherit;
+			white-space: nowrap;
+		}
+	}
+	&--Date {
+		font-size: calc(
+			var(--font-certificate-date, 20px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-date, 1.2);
+	}
 }
 .layoutCardPassVip--Back {
-	&--Organization { font-size: calc(var(--font-certificate-organization, 22px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-organization, 1.05); }
-	&--Post { font-size: calc(var(--font-certificate-post, 22px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-post, 1.05); }
+	&--Organization {
+		font-size: calc(
+			var(--font-certificate-organization, 22px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-organization, 1.05);
+	}
+	&--Post {
+		font-size: calc(
+			var(--font-certificate-post, 22px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-post, 1.05);
+	}
 }
 .layoutCardPassVip__Print--Front {
-	&--title { font-size: calc(var(--font-certificate-title, 22px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-title, 1.05); }
-	&--NumberCard { font-size: calc(var(--font-certificate-number, 23px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-number, 1.1); }
-	&--text { font-size: calc(var(--font-certificate-intro, 20px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-intro, 1.15); }
-	&--Name { overflow: visible; font-size: calc(var(--font-certificate-name-fit, var(--font-certificate-name, 28px)) * var(--card-font-scale, .5)); line-height: var(--line-certificate-name, 1.15); p { font-size: inherit; white-space: nowrap; } }
-	&--Date { font-size: calc(var(--font-certificate-date, 20px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-date, 1.2); }
+	&--title {
+		font-size: calc(
+			var(--font-certificate-title, 22px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-title, 1.05);
+	}
+	&--NumberCard {
+		font-size: calc(
+			var(--font-certificate-number, 23px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-number, 1.1);
+	}
+	&--text {
+		font-size: calc(
+			var(--font-certificate-intro, 20px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-intro, 1.15);
+	}
+	&--Name {
+		overflow: visible;
+		font-size: calc(
+			var(--font-certificate-name-fit, var(--font-certificate-name, 28px)) *
+				var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-name, 1.15);
+		p {
+			font-size: inherit;
+			white-space: nowrap;
+		}
+	}
+	&--Date {
+		font-size: calc(
+			var(--font-certificate-date, 20px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-date, 1.2);
+	}
 }
 .layoutCardPassVip__Print--Back {
-	&--Organization { font-size: calc(var(--font-certificate-organization, 22px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-organization, 1.05); }
-	&--Post { font-size: calc(var(--font-certificate-post, 22px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-post, 1.05); }
+	&--Organization {
+		font-size: calc(
+			var(--font-certificate-organization, 22px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-organization, 1.05);
+	}
+	&--Post {
+		font-size: calc(
+			var(--font-certificate-post, 22px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-post, 1.05);
+	}
 }
 
 .layoutCardPass--Card,
@@ -621,24 +782,66 @@
 	&--DirectorPost,
 	&--DirectorName {
 		font-weight: bold;
-		p { margin: 0; }
+		p {
+			margin: 0;
+		}
 	}
 }
 .layoutCardPass--Card {
-	&--DirectorPost p { font-size: calc(var(--font-pass-director-post, 15px) * var(--card-font-scale, 1)); line-height: var(--line-pass-director-post, 1.3); }
-	&--DirectorName p { font-size: calc(var(--font-pass-director-name, 15px) * var(--card-font-scale, 1)); line-height: var(--line-pass-director-name, 1.2); }
+	&--DirectorPost p {
+		font-size: calc(
+			var(--font-pass-director-post, 15px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-pass-director-post, 1.3);
+	}
+	&--DirectorName p {
+		font-size: calc(
+			var(--font-pass-director-name, 15px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-pass-director-name, 1.2);
+	}
 }
 .layoutCardPass__Print--Card {
-	&--DirectorPost p { font-size: calc(var(--font-pass-director-post, 15px) * var(--card-font-scale, .5)); line-height: var(--line-pass-director-post, 1.3); }
-	&--DirectorName p { font-size: calc(var(--font-pass-director-name, 15px) * var(--card-font-scale, .5)); line-height: var(--line-pass-director-name, 1.2); }
+	&--DirectorPost p {
+		font-size: calc(
+			var(--font-pass-director-post, 15px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-pass-director-post, 1.3);
+	}
+	&--DirectorName p {
+		font-size: calc(
+			var(--font-pass-director-name, 15px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-pass-director-name, 1.2);
+	}
 }
 .layoutCardPassVip--Back {
-	&--DirectorPost p { font-size: calc(var(--font-certificate-director-post, 15px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-director-post, 1.3); }
-	&--DirectorName p { font-size: calc(var(--font-certificate-director-name, 15px) * var(--card-font-scale, 1)); line-height: var(--line-certificate-director-name, 1.2); }
+	&--DirectorPost p {
+		font-size: calc(
+			var(--font-certificate-director-post, 15px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-director-post, 1.3);
+	}
+	&--DirectorName p {
+		font-size: calc(
+			var(--font-certificate-director-name, 15px) * var(--card-font-scale, 1)
+		);
+		line-height: var(--line-certificate-director-name, 1.2);
+	}
 }
 .layoutCardPassVip__Print--Back {
-	&--DirectorPost p { font-size: calc(var(--font-certificate-director-post, 15px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-director-post, 1.3); }
-	&--DirectorName p { font-size: calc(var(--font-certificate-director-name, 15px) * var(--card-font-scale, .5)); line-height: var(--line-certificate-director-name, 1.2); }
+	&--DirectorPost p {
+		font-size: calc(
+			var(--font-certificate-director-post, 15px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-director-post, 1.3);
+	}
+	&--DirectorName p {
+		font-size: calc(
+			var(--font-certificate-director-name, 15px) * var(--card-font-scale, 0.5)
+		);
+		line-height: var(--line-certificate-director-name, 1.2);
+	}
 }
 
 @media print {

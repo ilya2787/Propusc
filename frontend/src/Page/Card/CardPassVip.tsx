@@ -21,14 +21,13 @@ const CardPassVip: FC = () => {
 	const Organization = AllContext.Organization
 	const Post = AllContext.Post
 	const setFocusOrganization = AllContext.setFocusOrganization
-	const FocusOrganization = AllContext.FocusOrganization
-	const FocusPost = AllContext.FocusPost
 	const setFocusPost = AllContext.setFocusPost
 	const SelectedTemplate = AllContext.SelectedTemplate
+	const CustomFields = AllContext.CustomFields
 	const [isBackVisible, setIsBackVisible] = useState(false)
 	const previewRef = useRef<HTMLDivElement>(null)
 	const [previewMaxWidth, setPreviewMaxWidth] = useState(514)
-	const backVisible = isBackVisible || FocusOrganization || FocusPost
+	const backVisible = isBackVisible
 
 	useEffect(() => {
 		const container = previewRef.current
@@ -41,14 +40,14 @@ const CardPassVip: FC = () => {
 	}, [])
 
 	const rotationCard = () => {
-		setIsBackVisible(!backVisible)
+		setIsBackVisible(value => !value)
 		setFocusOrganization(false)
 		setFocusPost(false)
 	}
 
 	return (
 		<div className={`MainCard--content ${theme}`}>
-			<h1>Удостоверение</h1>
+				<h1>Двухсторонний пропуск</h1>
 			<div className={`MainCard--content--Info ${theme}`}>
 				<FrontForm />
 				<div className={`MainCard--content--Info--Preview ${theme}`}>
@@ -61,9 +60,10 @@ const CardPassVip: FC = () => {
 							LastName={LastName}
 							FirstName={FirstName}
 							Patronymic={Patronymic}
-							NewDate={NewDate ? formatDate(NewDate) : ''}
+							NewDate={NewDate ? formatDate(NewDate, SelectedTemplate.design.dateFormat) : ''}
 							FilePhoto={FilePhoto}
 							QrKey={QrKey}
+							CustomFields={CustomFields}
 							Print={false}
 							template={SelectedTemplate}
 							previewMaxWidth={previewMaxWidth}

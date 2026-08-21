@@ -20,9 +20,25 @@ dotenv.config()
 
 const app = express()
 app.disable('x-powered-by')
+if (process.env.NODE_ENV === 'production') app.set('trust proxy', 'loopback')
+const configuredOrigins = (process.env.CORS_ORIGINS || '')
+	.split(',')
+	.map(origin => origin.trim())
+	.filter(Boolean)
+const isAllowedOrigin = (origin?: string) => {
+	if (!origin) return true
+	if (configuredOrigins.includes(origin)) return true
+	try {
+		const url = new URL(origin)
+		return process.env.NODE_ENV !== 'production' && ['localhost', '127.0.0.1'].includes(url.hostname)
+	} catch {
+		return false
+	}
+}
+
 app.use(
 	cors({
-		origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+		origin: (origin, callback) => callback(null, isAllowedOrigin(origin)),
 		methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE'],
 		credentials: true,
 		exposedHeaders: ['Content-Disposition'],

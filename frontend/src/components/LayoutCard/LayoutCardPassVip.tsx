@@ -21,13 +21,14 @@ interface TypeProps {
 	Patronymic: string
 	FilePhoto?: string
 	QrKey?: string
+	CustomFields?: Record<string, string>
 	Print: boolean
 	template?: PassTemplate
 	director?: { post: string; name: string }
 	previewMaxWidth?: number
 	previewMaxHeight?: number
 	previewSide?: 'front' | 'back'
-	editor?: { selected?: TemplateElementKey; selectedCustomId?: string; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void; onSelectCustom?: (id: string, event: PointerEvent<HTMLElement>) => void }
+	editor?: { selected?: TemplateElementKey; selectedCustomId?: string; selectedImageId?: string; onSelect: (key: TemplateElementKey, event: PointerEvent<HTMLElement>) => void; onSelectCustom?: (id: string, event: PointerEvent<HTMLElement>) => void; onSelectImage?: (id: string, event: PointerEvent<HTMLElement>) => void }
 	flipped?: boolean
 }
 
@@ -52,6 +53,7 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 	Patronymic,
 	FilePhoto,
 	QrKey,
+	CustomFields = {},
 	Print,
 	template,
 	director,
@@ -80,8 +82,8 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 	const photoSettings = { ...DEFAULT_PHOTO_SETTINGS, ...activeTemplate.design.photos?.certificatePhoto }
 	const fixedText = (key: TemplateElementKey) => activeTemplate.design.fixedTexts?.[key] ?? DEFAULT_FIXED_TEXTS[key] ?? ''
 	const cardStyle = {
-		'--template-front-background': frontBackgroundSource ? `url("${frontBackgroundSource}")` : 'none',
-		'--template-back-background': backBackgroundSource ? `url("${backBackgroundSource}")` : 'none',
+		'--template-front-background': activeTemplate.design.frontBackgroundMode === 'color' ? 'none' : frontBackgroundSource ? `url("${frontBackgroundSource}")` : 'none',
+		'--template-back-background': activeTemplate.design.backBackgroundMode === 'color' ? 'none' : backBackgroundSource ? `url("${backBackgroundSource}")` : 'none',
 		'--template-accent': activeTemplate.design.accentColor,
 		'--template-title': activeTemplate.design.titleColor,
 		'--template-front-text': activeTemplate.design.frontTextColor ?? activeTemplate.design.textColor ?? '#111111',
@@ -108,8 +110,13 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 		'--line-certificate-director-post': activeTemplate.design.lineHeights?.certificateDirectorPost ?? 1.3,
 		'--line-certificate-director-name': activeTemplate.design.lineHeights?.certificateDirectorName ?? 1.2,
 	} as React.CSSProperties
-	const editable = (key: TemplateElementKey) => {
-		const hidden = activeTemplate.design.hiddenElements?.includes(key) ?? false
+	const defaultSide = (key: TemplateElementKey): 'front' | 'back' => ['certificateOrganization', 'certificatePost', 'certificateDirectorPost', 'certificateDirectorName'].includes(key) ? 'back' : 'front'
+	const sideFor = (key: TemplateElementKey) => activeTemplate.design.elementSides?.[key] ?? defaultSide(key)
+	const typographyField: Partial<Record<TemplateElementKey, keyof typeof sizes>> = {
+		certificateTitle: 'certificateTitle', certificateNumber: 'certificateNumber', certificateIntro: 'certificateIntro', certificateName: 'certificateName', certificateDate: 'certificateDate', certificateOrganization: 'certificateOrganization', certificatePost: 'certificatePost', certificateDirectorPost: 'certificateDirectorPost', certificateDirectorName: 'certificateDirectorName',
+	}
+	const editable = (key: TemplateElementKey, renderSide = defaultSide(key)) => {
+		const hidden = (activeTemplate.design.hiddenElements?.includes(key) ?? false) || sideFor(key) !== renderSide || (['certificateDirectorPost', 'certificateDirectorName'].includes(key) && !activeTemplate.design.showDirector)
 		let configured = activeTemplate.design.elements?.[key]
 		const legacyDirector = activeTemplate.design.elements?.certificateDirector
 		if (!configured && legacyDirector && key === 'certificateDirectorPost') configured = { ...legacyDirector, width: Math.min(285, legacyDirector.width) }
@@ -118,8 +125,9 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 		const isPhoto = key === 'certificatePhoto'
 		const isDirector = key === 'certificateDirector'
 		const textStyle = activeTemplate.design.textStyles?.[key]
+		const typeField = typographyField[key]
 		return {
-			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, minHeight: isDirector && layout.height === undefined ? 50 * dimensions.scaleY : undefined, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : isDirector ? 50 * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), opacity: textStyle?.opacity, zIndex: layout.zIndex, margin: 0, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
+			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, minHeight: isDirector && layout.height === undefined ? 50 * dimensions.scaleY : undefined, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : isDirector ? 50 * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), opacity: textStyle?.opacity, zIndex: layout.zIndex, margin: 0, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontSize: typeField ? sizes[typeField] * dimensions.contentScale : undefined, lineHeight: typeField ? activeTemplate.design.lineHeights?.[typeField] ?? 1.2 : undefined, fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
 			onPointerDown: editor && !Print ? (event: PointerEvent<HTMLElement>) => editor.onSelect(key, event) : undefined,
 			'data-editor-selected': editor && !Print ? editor.selected === key : undefined,
 		}
@@ -129,7 +137,24 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 		style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, fontSize: item.fontSize * dimensions.contentScale, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties}
 		onPointerDown={editor?.onSelectCustom && !Print ? event => editor.onSelectCustom!(item.id, event) : undefined}
 		data-editor-selected={editor && !Print ? editor.selectedCustomId === item.id : undefined}
-	>{item.text}</div>)
+	>{item.contentType === 'field' ? (CustomFields[item.id] || item.text) : item.text}</div>)
+	const templateImages = (side: 'front' | 'back') => activeTemplate.design.images?.filter(item => item.side === side).map(item => <img key={item.id} src={resolveServerImageUrl(item.source)} alt='' style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: (item.layout.height ?? item.layout.width) * dimensions.scaleY, objectFit: 'contain', opacity: item.opacity, borderRadius: (item.borderRadius ?? 0) * dimensions.contentScale, transform: `rotate(${item.rotation}deg)`, transformOrigin: 'center', zIndex: item.layout.zIndex, cursor: editor && !Print ? 'move' : undefined }} onPointerDown={editor?.onSelectImage && !Print ? event => editor.onSelectImage!(item.id, event) : undefined} data-editor-selected={editor && !Print ? editor.selectedImageId === item.id : undefined} />)
+	const movedContent = (key: TemplateElementKey) => {
+		switch (key) {
+			case 'certificateTitle': return fixedText(key)
+			case 'certificateNumber': return <>{fixedText(key)} {Number_Tabs}</>
+			case 'certificateIntro': return fixedText(key)
+			case 'certificateName': return <>{LastName}<br />{FirstName}<br />{Patronymic}</>
+			case 'certificateDate': return <>{fixedText(key)} {NewDate}</>
+			case 'certificateOrganization': return CurrentSingleOrganization
+			case 'certificatePost': return CurrentSinglePost
+			case 'certificateDirectorPost': return PostDirector
+			case 'certificateDirectorName': return NameDirector
+			case 'certificatePhoto': return photoSettings.mode === 'qr' ? <QrCodeImage value={QrKey || 'ТЕСТОВЫЙ-QR-КЛЮЧ'} darkColor={photoSettings.qrDarkColor} lightColor={photoSettings.qrLightColor} /> : FilePhoto ? <img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%`, filter: `brightness(${photoSettings.brightness}%) contrast(${photoSettings.contrast}%)` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' /> : <span>{ICON.Photo}</span>
+			default: return null
+		}
+	}
+	const movedElements = (side: 'front' | 'back') => (Object.keys(activeTemplate.design.elementSides ?? {}) as TemplateElementKey[]).filter(key => defaultSide(key) !== side && sideFor(key) === side).map(key => <div key={`moved-${key}`} {...editable(key, side)} className='layoutCardPassVip__movedElement'>{movedContent(key)}</div>)
 
 	return (
 		<div
@@ -145,11 +170,13 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 			className={Print ? 'layoutCardPassVip__Print' : `layoutCardPassVip ${flipped && !previewSide ? 'Flipped' : ''} ${previewSide ? `Editor${previewSide === 'front' ? 'Front' : 'Back'}` : ''}`}
 		>
 			<div
-				style={{ backgroundImage: `url("${frontBackgroundSource}")`, width: dimensions.widthPx, height: dimensions.heightPx }}
+				style={{ backgroundImage: activeTemplate.design.frontBackgroundMode === 'color' ? 'none' : `url("${frontBackgroundSource}")`, backgroundColor: activeTemplate.design.frontBackgroundMode === 'color' ? activeTemplate.design.frontBackgroundColor ?? '#ffffff' : undefined, width: dimensions.widthPx, height: dimensions.heightPx }}
 				className={
 					Print ? 'layoutCardPassVip__Print--Front' : 'layoutCardPassVip--Front'
 				}
 			>
+				{templateImages('front')}
+				{movedElements('front')}
 				<h3
 					{...editable('certificateTitle')}
 					className={
@@ -216,7 +243,7 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 					{photoSettings.mode === 'qr' ? (
 						<QrCodeImage value={QrKey || 'ТЕСТОВЫЙ-QR-КЛЮЧ'} darkColor={photoSettings.qrDarkColor} lightColor={photoSettings.qrLightColor} />
 					) : FilePhoto ? (
-						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
+						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%`, filter: `brightness(${photoSettings.brightness}%) contrast(${photoSettings.contrast}%)` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
 					) : (
 						<span>{ICON.Photo}</span>
 					)}
@@ -224,11 +251,13 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 				{customText('front')}
 			</div>
 			<div
-				style={{ backgroundImage: `url("${backBackgroundSource}")`, width: dimensions.widthPx, height: dimensions.heightPx }}
+				style={{ backgroundImage: activeTemplate.design.backBackgroundMode === 'color' ? 'none' : `url("${backBackgroundSource}")`, backgroundColor: activeTemplate.design.backBackgroundMode === 'color' ? activeTemplate.design.backBackgroundColor ?? '#ffffff' : undefined, width: dimensions.widthPx, height: dimensions.heightPx }}
 				className={
 					Print ? 'layoutCardPassVip__Print--Back' : 'layoutCardPassVip--Back'
 				}
 			>
+				{templateImages('back')}
+				{movedElements('back')}
 				<div
 					{...editable('certificateOrganization')}
 					className={

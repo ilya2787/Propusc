@@ -27,6 +27,7 @@ import CardPassVip from './CardPassVip'
 import './CardStyle.scss'
 import { fetchTemplates, loadTemplates, TEMPLATE_CHANGE_EVENT, type PassTemplate } from '../../model/templates'
 import { getA4PrintLayout } from '../../components/LayoutCard/cardDimensions'
+import { apiUrl } from '../../api/server'
 
 type TypeContext = {
 	CurrentSingleOrganization: string
@@ -67,6 +68,10 @@ type TypeContext = {
 	NameDirector: string
 	setNameDirector: Dispatch<SetStateAction<string>>
 	SelectedTemplate: PassTemplate
+	EditingPrintId: string | null
+	setEditingPrintId: Dispatch<SetStateAction<string | null>>
+	CustomFields: Record<string, string>
+	setCustomFields: Dispatch<SetStateAction<Record<string, string>>>
 }
 // eslint-disable-next-line react-refresh/only-export-components
 export const Context = createContext<TypeContext>({
@@ -108,7 +113,21 @@ export const Context = createContext<TypeContext>({
 	NameDirector: '',
 	setNameDirector: () => {},
 	SelectedTemplate: loadTemplates()[0],
+	EditingPrintId: null,
+	setEditingPrintId: () => {},
+	CustomFields: {},
+	setCustomFields: () => {},
 })
+
+const PRINT_QUEUE_KEY = 'propusk-print-queue-v1'
+const loadPrintQueue = (): TListPrint[] => {
+	try {
+		const value = JSON.parse(localStorage.getItem(PRINT_QUEUE_KEY) ?? '[]')
+		return Array.isArray(value) ? value : []
+	} catch {
+		return []
+	}
+}
 
 const CardAll = () => {
 	const ContextMain = useContext(AppContext)
@@ -142,6 +161,7 @@ const CardAll = () => {
 	const [FilePhoto, setFilePhoto] = useState<string>('')
 	const [FilePhotoName, setFilePhotoName] = useState<string>('')
 	const [QrKey, setQrKey] = useState<string>('')
+	const [CustomFields, setCustomFields] = useState<Record<string, string>>({})
 	////////////
 
 	//Фокус объектов
@@ -158,7 +178,7 @@ const CardAll = () => {
 
 	const ListBDOrganization = async () => {
 		await axios
-			.get<IOption[]>(`${import.meta.env.VITE_APP_SERVER}/AllListOrganization`)
+			.get<IOption[]>(apiUrl('/AllListOrganization'))
 			.then(res => setListOrganization(res.data))
 			.catch(err => console.log(err))
 	}
@@ -168,7 +188,7 @@ const CardAll = () => {
 
 	const ListBDPost = async () => {
 		await axios
-			.get<IOption[]>(`${import.meta.env.VITE_APP_SERVER}/AllListPost`)
+			.get<IOption[]>(apiUrl('/AllListPost'))
 			.then(res => setListPost(res.data))
 			.catch(err => console.log(err))
 	}
@@ -177,10 +197,48 @@ const CardAll = () => {
 	}, [setListPost])
 
 	//Общий список на печать
-	const [ListPrint, setListPrint] = useState<TListPrint[]>([])
+	const [ListPrint, setListPrint] = useState<TListPrint[]>(loadPrintQueue)
+	const [EditingPrintId, setEditingPrintId] = useState<string | null>(null)
+	useEffect(() => localStorage.setItem(PRINT_QUEUE_KEY, JSON.stringify(ListPrint)), [ListPrint])
 	const ActivePrintVip = SelectedTemplate.kind === 'certificate'
 	const printLayout = getA4PrintLayout(SelectedTemplate, SelectedTemplate.kind)
 	const NumberObjectPage = printLayout.cardsPerPage
+	const templateIconKey = (template: PassTemplate) => {
+		if (template.design.icon) return template.design.icon
+		if (/авто|транспорт|машин/i.test(`${template.name} ${template.description}`)) return 'vehicle'
+		return template.kind === 'certificate' ? 'double' : 'single'
+	}
+	const templateIcon = (template: PassTemplate) => {
+		const icon = templateIconKey(template)
+		if (icon === 'vehicle') return ICON.CarPass
+		if (icon === 'double') return ICON.CardPassDouble
+		return ICON.CardPass
+	}
+	const queueColumns = [
+		{
+			key: 'number',
+			label: 'Таб. №',
+			value: (item: TListPrint) => item.Number_Tabs ? String(item.Number_Tabs) : '',
+		},
+		{
+			key: 'name',
+			label: 'ФИО',
+			value: (item: TListPrint) => [item.LastName, item.FirstName, item.Patronymic].filter(Boolean).join(' '),
+		},
+		{ key: 'post', label: 'Должность', value: (item: TListPrint) => String(item.Post ?? '').trim() },
+		{ key: 'organization', label: 'Организация', value: (item: TListPrint) => String(item.Organization ?? '').trim() },
+		{ key: 'date', label: 'Дата', value: (item: TListPrint) => String(item.NewDate ?? '').trim() },
+	].filter(column => ListPrint.some(item => column.value(item) !== ''))
+	const customQueueColumns = Templates.flatMap(template => template.design.customTexts ?? [])
+		.filter(field => field.contentType === 'field')
+		.filter((field, index, fields) => fields.findIndex(item => item.id === field.id) === index)
+		.filter(field => ListPrint.some(item => String(item.CustomFields?.[field.id] ?? '').trim() !== ''))
+		.map(field => ({
+			key: `custom-${field.id}`,
+			label: field.fieldLabel?.trim() || 'Доп. поле',
+			value: (item: TListPrint) => String(item.CustomFields?.[field.id] ?? '').trim(),
+		}))
+	const visibleQueueColumns = [...queueColumns, ...customQueueColumns]
 
 	//Удаление строки
 	const deleteLineCard = (Id: string) => {
@@ -210,6 +268,24 @@ const CardAll = () => {
 		setFilePhoto('')
 		setFilePhotoName('')
 		setQrKey('')
+		setCustomFields({})
+		setEditingPrintId(null)
+	}
+
+	const editPrintItem = (item: TListPrint) => {
+		setNumber_Tabs(item.Number_Tabs)
+		setLastName(item.LastName)
+		setFirstName(item.FirstName)
+		setPatronymic(item.Patronymic)
+		setNewDate(/^\d{4}-\d{2}-\d{2}$/.test(item.NewDate) ? item.NewDate : '')
+		setCurrentSingleOrganization(ListOrganization.find(option => option.label === item.Organization)?.value ?? '')
+		setCurrentSinglePost(ListPost.find(option => option.label === item.Post)?.value ?? '')
+		setFilePhoto(item.FilePhoto)
+		setFilePhotoName(item.FilePhoto ? 'Текущая фотография' : '')
+		setQrKey(item.QrKey)
+		setCustomFields(item.CustomFields ?? {})
+		setEditingPrintId(item.Id)
+		window.scrollTo({ top: 300, behavior: 'smooth' })
 	}
 
 	// Печать
@@ -234,7 +310,7 @@ const CardAll = () => {
 
 	useEffect(() => {
 		axios
-			.get<TDirector[]>(`${import.meta.env.VITE_APP_SERVER}/Director`)
+			.get<TDirector[]>(apiUrl('/Director'))
 			.then(res => {
 				setNameDirector(res.data[0].Name)
 				setPostDirector(res.data[0].Post)
@@ -282,6 +358,10 @@ const CardAll = () => {
 				NameDirector,
 				setNameDirector,
 				SelectedTemplate,
+				EditingPrintId,
+				setEditingPrintId,
+				CustomFields,
+				setCustomFields,
 			}}
 		>
 			<div className={`MainCard ${theme}`}>
@@ -315,7 +395,7 @@ const CardAll = () => {
 									}}
 									aria-pressed={SelectedTemplate.id === template.id}
 								>
-									<img src={template.kind === 'pass' ? '/img/maket1.png' : '/img/maket2.png'} alt='' aria-hidden='true' />
+									<span className={`MainCard__templateIcon MainCard__templateIcon--${templateIconKey(template)}`} aria-hidden='true'>{templateIcon(template)}</span>
 									<div className='MainCard--headerInfo--TypePassCard--content--Item--text'>
 										<h2>{template.name}</h2><p>{template.description}</p>
 									</div>
@@ -352,35 +432,28 @@ const CardAll = () => {
 							<table className={`table ${theme}`}>
 								<thead>
 									<tr>
-										<th>Таб. №</th>
-										<th>ФИО</th>
-										<th>Должность</th>
-										<th>Организация</th>
-										<th>Удалить</th>
+										{visibleQueueColumns.map(column => <th key={column.key}>{column.label}</th>)}
+										<th>Действия</th>
 									</tr>
 								</thead>
 								<tbody>
-									{ListPrint.length === 0 && <tr className='MainCard__emptyRow'><td colSpan={5}>Очередь пока пуста — заполните форму и нажмите «Добавить»</td></tr>}
-									{ListPrint.map((data, i) => (
-										<tr key={i}>
-											<td>{data.Number_Tabs}</td>
-											<td>{`${data.LastName} ${data.FirstName} ${data.Patronymic}`}</td>
-											<td>{data.Post}</td>
-											<td>
-											<div className='MainCard__organizationCell'>
-													{data.Organization}
-												</div>
-											</td>
+									{ListPrint.length === 0 && <tr className='MainCard__emptyRow'><td colSpan={Math.max(visibleQueueColumns.length + 1, 1)}>Очередь пока пуста — заполните форму и нажмите «Добавить»</td></tr>}
+									{ListPrint.map(data => (
+										<tr key={data.Id}>
+											{visibleQueueColumns.map(column => <td key={column.key}>
+												<div className='MainCard__queueValue'>{column.value(data) || '—'}</div>
+											</td>)}
 											<td className='DeleteListUserCard'>
+												<button type='button' aria-label={`Редактировать пропуск: ${data.LastName} ${data.FirstName}`} onClick={() => editPrintItem(data)}>{ICON.Edit}</button>
 												<button
-													type='button'
-													aria-label={`Удалить пропуск: ${data.LastName} ${data.FirstName}`}
-													onClick={() => {
-									deleteLineCard(data.Id)
-													}}
-												>
-													{ICON.DeleteUser}
-												</button>
+																type='button'
+																aria-label={`Удалить пропуск: ${data.LastName} ${data.FirstName}`}
+																onClick={() => {
+																	deleteLineCard(data.Id)
+																}}
+															>
+																{ICON.DeleteUser}
+															</button>
 											</td>
 										</tr>
 									))}

@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState, type FormEvent } from 'react'
 import { AppContext } from '../../App'
+import { serverUrl } from '../../api/server'
 import type { UserRole } from '../../auth/AuthContext'
 import { useAuth } from '../../auth/AuthContext'
 import PasswordField from '../../components/PasswordField/PasswordField'
@@ -15,7 +16,6 @@ type ManagedUser = {
 	lastLoginAt: string | null
 }
 
-const serverUrl = () => import.meta.env.VITE_APP_SERVER
 const formatDate = (value: string | null) => value
 	? new Intl.DateTimeFormat('ru-RU', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
 	: 'Ещё не входил'

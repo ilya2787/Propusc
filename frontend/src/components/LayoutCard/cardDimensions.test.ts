@@ -28,8 +28,15 @@ describe('Размещение на печатном листе A4', () => {
 	})
 
 	it('отклоняет удостоверение, две стороны которого превышают ширину печатной области', () => {
-		const layout = getA4PrintLayout(templateWithSize('certificate', 94, 48), 'certificate')
+		const layout = getA4PrintLayout(templateWithSize('certificate', 104, 48), 'certificate')
 		expect(layout).toMatchObject({ fits: false, columns: 0, cardsPerPage: 1 })
+	})
+
+	it('в вертикальном режиме ставит лицевую сторону над обратной и выделяет один лист на пропуск', () => {
+		const template = templateWithSize('certificate', 200, 100)
+		template.design.printLayout = 'vertical'
+		const layout = getA4PrintLayout(template, 'certificate')
+		expect(layout).toMatchObject({ fits: true, cardsPerPage: 1, itemWidthMm: 200, itemHeightMm: 203 })
 	})
 })
 

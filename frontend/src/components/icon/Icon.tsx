@@ -1,5 +1,4 @@
 import { AiFillPrinter } from 'react-icons/ai'
-import { BsPersonVcard } from 'react-icons/bs'
 import { CgDarkMode } from 'react-icons/cg'
 import { GoHome } from 'react-icons/go'
 import { HiOutlineClipboardDocumentList, HiOutlineUsers } from 'react-icons/hi2'
@@ -14,12 +13,14 @@ import {
 } from 'react-icons/md'
 import { PiUploadThin } from 'react-icons/pi'
 import { RxUpdate } from 'react-icons/rx'
-import { TbPhotoUp } from 'react-icons/tb'
+import { TbCards, TbCar, TbId, TbPhotoUp } from 'react-icons/tb'
 import { TiUserDelete } from 'react-icons/ti'
 
 export const ICON = {
 	Document: <HiDocumentDuplicate />,
-	CardPass: <BsPersonVcard />,
+	CardPass: <TbId />,
+	CardPassDouble: <TbCards />,
+	CarPass: <TbCar />,
 	Home: <GoHome />,
 	Editor: <MdMovieEdit />,
 	Users: <HiOutlineUsers />,

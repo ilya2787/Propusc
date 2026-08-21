@@ -5,6 +5,70 @@
 	color: CL.$TextColorSecondary;
 	margin-bottom: 5px;
 }
+
+.FormFront__dynamicFields {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 10px;
+	width: 100%;
+}
+
+.FormFront--DynamicField {
+	width: 100%;
+	h3 { margin-bottom: 6px; color: CL.$TextColorSecondary; font-size: 13px; font-weight: 700; }
+	input { box-sizing: border-box; width: 100%; height: 40px; padding: 10px; border: 1px solid CL.$Divider; border-radius: 5px; color: CL.$Light_TextColor; background: #fff; font-size: 15px; }
+	input:focus { border-color: CL.$PrimaryBlue; outline: none; }
+}
+
+.MainCard__templateIcon {
+	display: grid;
+	flex: 0 0 auto;
+	place-items: center;
+	box-sizing: border-box;
+	width: 46px;
+	height: 46px;
+	border-radius: 11px;
+	color: #315ea8;
+	background: #edf3ff;
+	line-height: 0;
+	transition: color .18s ease, background-color .18s ease;
+
+	svg {
+		display: block;
+		width: 26px;
+		height: 26px;
+		overflow: visible;
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	&--double svg { width: 27px; height: 27px; }
+	&--vehicle svg { width: 28px; height: 28px; }
+}
+
+.MainCard--headerInfo--TypePassCard--content--Item.Active .MainCard__templateIcon {
+	color: #fff;
+	background: #315ea8;
+}
+
+body.Dark .FormFront--DynamicField, .FormFront--DynamicField.Dark {
+	h3 { color: CL.$Dark_TextColorSecondary; }
+	input { border-color: CL.$Dark_Divider; color: CL.$Dark_TextColor; background: CL.$Dark_Sidebar; }
+	input:focus { border-color: CL.$Dark_PrimaryBlue; }
+}
+
+body.Dark .MainCard__templateIcon, .Dark .MainCard__templateIcon {
+	color: #a9c3ff;
+	background: #313d56;
+}
+
+body.Dark .MainCard--headerInfo--TypePassCard--content--Item.Active .MainCard__templateIcon,
+.Dark .MainCard--headerInfo--TypePassCard--content--Item.Active .MainCard__templateIcon {
+	color: #fff;
+	background: #5f88dc;
+}
 @mixin SettingNameBlock {
 	flex: 1 1 200px;
 	width: 100%;
@@ -1019,7 +1083,7 @@ body.Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #46
 	&__queueBadge { display: flex; align-items: center; gap: 12px; min-width: 142px; padding: 12px 16px; border: 1px solid #dfe5ef; border-radius: 14px; background: rgba(255,255,255,.8); box-shadow: 0 8px 24px rgba(31, 49, 80, .06); > span { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px; background: #e8f0ff; color: CL.$PrimaryBlue; font-size: 20px; } div { display: grid; } strong { font-size: 20px; line-height: 1; } small { margin-top: 4px; color: #7f8999; font-size: 11px; } }
 	&__sectionTitle { display: flex; align-items: center; gap: 12px; > span { display: grid; flex: 0 0 auto; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: CL.$PrimaryBlue; color: #fff; font-size: 13px; font-weight: 800; box-shadow: 0 5px 12px rgba(49, 94, 168, .22); } h2 { color: #202a3b; font-size: 17px; line-height: 1.2; } p { margin-top: 3px; color: #707c90; font-size: 12px; } }
 
-	&--headerInfo { display: block; max-width: 1400px; margin: 0 auto 20px; &--TypePassCard { display: block; max-width: none; min-width: 0; width: 100%; height: auto; padding: 18px; border: 1px solid #e1e6ef !important; border-radius: 16px; background: rgba(255,255,255,.75); box-shadow: 0 8px 30px rgba(29, 45, 75, .05); &--content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 16px; &--Item { min-height: 82px; padding: 10px 14px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff; cursor: pointer; transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease; img { width: 48px; max-height: 60px; object-fit: contain; margin-right: 13px; } &--text { gap: 4px; h2 { font-size: 14px; } p { font-size: 11px; line-height: 1.35; } } &:hover { border-color: rgba(CL.$PrimaryBlue, .55); background: #edf3ff; box-shadow: 0 7px 18px rgba(34, 52, 83, .1); transform: translateY(-1px); } &.Active { border: 1px solid CL.$PrimaryBlue; background: #eef4ff; box-shadow: inset 0 0 0 1px rgba(49,94,168,.08); } } } } }
+	&--headerInfo { display: block; max-width: 1400px; margin: 0 auto 20px; &--TypePassCard { display: block; max-width: none; min-width: 0; width: 100%; height: auto; padding: 18px; border: 1px solid #e1e6ef !important; border-radius: 16px; background: rgba(255,255,255,.75); box-shadow: 0 8px 30px rgba(29, 45, 75, .05); &--content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 16px; &--Item { min-width: 0; min-height: 82px; gap: 13px; padding: 10px 14px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff; cursor: pointer; transition: border-color .18s ease, background .18s ease, box-shadow .18s ease, transform .18s ease; img { width: 48px; max-height: 60px; object-fit: contain; margin-right: 0; } &--text { min-width: 0; gap: 4px; h2, p { max-width: 100%; overflow-wrap: anywhere; } h2 { font-size: 14px; } p { font-size: 11px; line-height: 1.35; } } &:hover { border-color: rgba(CL.$PrimaryBlue, .55); background: #edf3ff; box-shadow: 0 7px 18px rgba(34, 52, 83, .1); transform: translateY(-1px); } &.Active { border: 1px solid CL.$PrimaryBlue; background: #eef4ff; box-shadow: inset 0 0 0 1px rgba(49,94,168,.08); } } } } }
 
 	&__workspace { max-width: 1400px; margin: 0 auto 20px; padding: 18px; border: 1px solid #e1e6ef; border-radius: 16px; background: rgba(255,255,255,.82); box-shadow: 0 10px 34px rgba(29, 45, 75, .06); > .MainCard__sectionTitle { margin-bottom: 18px; } .MainCard--content { margin: 0; gap: 0; > h1 { display: none; } &--Info { align-items: stretch; gap: 18px; .FormFront, &--Preview { min-width: 0; min-height: 0; padding: 18px; border: 1px solid #e4e8ef !important; border-radius: 14px; background: #fff; } .FormFront { justify-content: flex-start; gap: 15px; } &--Preview { position: sticky; top: 18px; justify-content: flex-start; background: #f6f8fc; h2 { margin-bottom: 10px; } } } } }
 
@@ -1051,6 +1115,11 @@ body.Dark .PrintConfirm { color: #f1f4f9; background: #252b3c; border-color: #46
 
 @media (max-width: 720px) {
 	.MainCard { padding: 24px 16px 44px; &__pageHeader { align-items: stretch; flex-direction: column; & > p { font-size: 14px; } } &__queueBadge { align-self: flex-start; } &--headerInfo--TypePassCard--content { grid-template-columns: 1fr; } &--headerInfo--ListPrintCard--BTN { width: 100%; flex-wrap: wrap; button { flex: 1 1 180px; } } &--headerInfo--ListPrintCard--tables { overflow-x: auto; .table { min-width: 760px; } } &__workspace, &--headerInfo--TypePassCard, &--headerInfo--ListPrintCard { padding: 14px; } }
+}
+
+@media (max-width: 380px) {
+	.MainCard__templateIcon { width: 40px; height: 40px; border-radius: 9px; svg { width: 23px; height: 23px; } }
+	.MainCard--headerInfo--TypePassCard--content--Item { gap: 10px; padding-inline: 10px; }
 }
 
 // Shared modern control language for the pass creation workflow.

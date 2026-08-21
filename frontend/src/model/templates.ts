@@ -1,6 +1,10 @@
 import { AUTH_EXPIRED_EVENT } from '../auth/AuthContext'
+import { apiUrl } from '../api/server'
 
 export type TemplateKind = 'pass' | 'certificate'
+export type TemplateIcon = 'single' | 'double' | 'vehicle'
+export type TemplateDateFormat = 'numeric' | 'long' | 'nominative'
+export type TemplatePrintLayout = 'horizontal' | 'vertical' | 'duplex'
 
 export type TemplateCardSize = {
 	widthMm: number
@@ -49,16 +53,32 @@ export type TemplatePhotoSettings = {
 	borderRadius: number
 	qrDarkColor: string
 	qrLightColor: string
+	brightness: number
+	contrast: number
 }
 
 export type TemplateCustomText = {
 	id: string
 	text: string
+	contentType?: 'static' | 'field' | 'block'
+	fieldLabel?: string
+	dataType?: 'text' | 'number'
 	side: 'pass' | 'front' | 'back'
 	layout: TemplateElementLayout
 	fontSize: number
 	lineHeight: number
 	style?: TemplateTextStyle
+}
+
+export type TemplateImage = {
+	id: string
+	name: string
+	source: string
+	side: 'pass' | 'front' | 'back'
+	layout: TemplateElementLayout
+	opacity: number
+	rotation: number
+	borderRadius?: number
 }
 
 export const DEFAULT_PHOTO_SETTINGS: TemplatePhotoSettings = {
@@ -71,6 +91,8 @@ export const DEFAULT_PHOTO_SETTINGS: TemplatePhotoSettings = {
 	borderRadius: 5,
 	qrDarkColor: '#111111',
 	qrLightColor: '#ffffff',
+	brightness: 100,
+	contrast: 100,
 }
 
 export type TemplateElementKey =
@@ -147,7 +169,10 @@ export type PassTemplate = {
 	description: string
 	kind: TemplateKind
 	isBuiltIn: boolean
-			design: {
+	design: {
+		icon?: TemplateIcon
+		dateFormat?: TemplateDateFormat
+		printLayout?: TemplatePrintLayout
 		cardSize?: TemplateCardSize
 		/** @deprecated Kept only to migrate templates saved before image backgrounds were introduced. */
 		background?: 'flag' | 'emblem'
@@ -157,10 +182,16 @@ export type PassTemplate = {
 		backBackground?: 'flag' | 'emblem'
 		backgroundImage?: string | null
 		backgroundImageName?: string
+		backgroundMode?: 'image' | 'color'
+		backgroundColor?: string
 		frontBackgroundImage?: string | null
 		frontBackgroundImageName?: string
+		frontBackgroundMode?: 'image' | 'color'
+		frontBackgroundColor?: string
 		backBackgroundImage?: string | null
 		backBackgroundImageName?: string
+		backBackgroundMode?: 'image' | 'color'
+		backBackgroundColor?: string
 		accentColor: string
 		titleColor: string
 		textColor?: string
@@ -174,9 +205,11 @@ export type PassTemplate = {
 		fixedTexts?: Partial<Record<TemplateElementKey, string>>
 		textStyles?: Partial<Record<TemplateElementKey, TemplateTextStyle>>
 		customTexts?: TemplateCustomText[]
+		images?: TemplateImage[]
 		photos?: Partial<Record<'passPhoto' | 'certificatePhoto', TemplatePhotoSettings>>
 		hiddenElements?: TemplateElementKey[]
 		elements?: Partial<Record<TemplateElementKey, TemplateElementLayout>>
+		elementSides?: Partial<Record<TemplateElementKey, 'front' | 'back'>>
 	}
 }
 
@@ -188,6 +221,9 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 		kind: 'pass',
 		isBuiltIn: true,
 		design: {
+			icon: 'single',
+			dateFormat: 'numeric',
+			printLayout: 'horizontal',
 			cardSize: { ...DEFAULT_CARD_SIZE },
 			backgroundImage: 'builtin:flag',
 			backgroundImageName: 'Флаг.jpg',
@@ -219,11 +255,14 @@ export const DEFAULT_TEMPLATES: PassTemplate[] = [
 	},
 	{
 		id: 'service-certificate',
-		name: 'Удостоверение',
-		description: 'Двустороннее служебное удостоверение',
+		name: 'Двухсторонний пропуск',
+		description: 'Пропуск с лицевой и обратной сторонами',
 		kind: 'certificate',
 		isBuiltIn: true,
 		design: {
+			icon: 'double',
+			dateFormat: 'numeric',
+			printLayout: 'horizontal',
 			cardSize: { ...DEFAULT_CARD_SIZE },
 			frontBackgroundImage: 'builtin:flag',
 			frontBackgroundImageName: 'Флаг.jpg',
@@ -341,12 +380,10 @@ export const saveTemplates = (templates: PassTemplate[]) => {
 	window.dispatchEvent(new Event(TEMPLATE_CHANGE_EVENT))
 }
 
-const serverUrl = () => import.meta.env.VITE_APP_SERVER
-
 export const fetchTemplates = async (): Promise<PassTemplate[]> => {
 	const localTemplates = loadTemplates()
 	try {
-		const response = await fetch(`${serverUrl()}/Templates`, { credentials: 'include' })
+		const response = await fetch(apiUrl('/Templates'), { credentials: 'include' })
 		if (response.status === 401) window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
 		if (!response.ok) throw new Error('Не удалось загрузить шаблоны')
 		const templates = migrateTemplates(await response.json() as PassTemplate[])
@@ -362,7 +399,7 @@ export const fetchTemplates = async (): Promise<PassTemplate[]> => {
 }
 
 export const persistTemplates = async (templates: PassTemplate[]) => {
-	const response = await fetch(`${serverUrl()}/TemplatesSync`, {
+	const response = await fetch(apiUrl('/TemplatesSync'), {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		credentials: 'include',

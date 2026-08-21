@@ -9,6 +9,8 @@ export interface TListPrint {
 	Post: string
 	FilePhoto: string
 	QrKey: string
+	TemplateId?: string
+	CustomFields?: Record<string, string>
 }
 export interface TDirector {
 	Name: string

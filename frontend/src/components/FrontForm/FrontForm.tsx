@@ -12,7 +12,6 @@ import { deleteUploadedImage, uploadImage } from '../../api/images'
 import { Context } from '../../Page/Card/CardAll'
 import { DEFAULT_PHOTO_SETTINGS, type TemplateElementKey } from '../../model/templates'
 import { recordPassEvent } from '../../api/audit'
-import { formatDate } from '../FormatDate/FormatDate'
 import { ICON } from '../icon/Icon'
 import ModalWindows from '../ModalWindows/ModalWindows'
 import {
@@ -27,6 +26,7 @@ import SelectItem from '../SelectItem/Select'
 import { transliterateToLatin } from '../Translit/TranslitFunction'
 import DateField from '../DateField/DateField'
 import { useAuth } from '../../auth/AuthContext'
+import { apiUrl } from '../../api/server'
 
 const FrontForm: FC = () => {
 	const MainContext = useContext(AppContext)
@@ -70,6 +70,11 @@ const FrontForm: FC = () => {
 	const NameDirector = AllContext.NameDirector
 	const setNameDirector = AllContext.setNameDirector
 	const SelectedTemplate = AllContext.SelectedTemplate
+	const EditingPrintId = AllContext.EditingPrintId
+	const setEditingPrintId = AllContext.setEditingPrintId
+	const CustomFields = AllContext.CustomFields
+	const setCustomFields = AllContext.setCustomFields
+	const dynamicFields = SelectedTemplate.design.customTexts?.filter(item => item.contentType === 'field') ?? []
 	const hiddenElements = SelectedTemplate.design.hiddenElements ?? []
 	const elementKey = (passKey: TemplateElementKey, certificateKey: TemplateElementKey) =>
 		SelectedTemplate.kind === 'pass' ? passKey : certificateKey
@@ -119,7 +124,8 @@ const FrontForm: FC = () => {
 			(!showDate || NewDate !== '') &&
 			(!showOrganization || Organization !== '') &&
 			(!showPost || Post !== '') &&
-			(!showPhoto || (usesQr ? QrKey.trim() !== '' : FilePhoto !== ''))
+			(!showPhoto || (usesQr ? QrKey.trim() !== '' : FilePhoto !== '')) &&
+			dynamicFields.every(field => String(CustomFields[field.id] ?? '').trim() !== '')
 		) {
 			const value = {
 				Id: crypto.randomUUID(),
@@ -127,13 +133,18 @@ const FrontForm: FC = () => {
 				LastName: LastName,
 				FirstName: FirstName,
 				Patronymic: Patronymic,
-				NewDate: showDate && NewDate ? formatDate(NewDate) : '',
+				NewDate: showDate ? NewDate : '',
 				Organization: Organization,
 				Post: Post,
 				FilePhoto: showPhoto && !usesQr ? FilePhoto : '',
 				QrKey: usesQr ? QrKey.trim() : '',
+				TemplateId: SelectedTemplate.id,
+				CustomFields,
 			}
-			setListPrint(ListPrint => [...ListPrint, value])
+			setListPrint(ListPrint => EditingPrintId
+				? ListPrint.map(item => item.Id === EditingPrintId ? { ...value, Id: EditingPrintId } : item)
+				: [...ListPrint, value])
+			setEditingPrintId(null)
 			void recordPassEvent('pass.created', SelectedTemplate.id, 1)
 			CleaningForm(showPhoto && !usesQr)
 			AddCardPrint()
@@ -190,7 +201,7 @@ const FrontForm: FC = () => {
 		}
 		if (AddTextOrganization !== '') {
 			axios
-				.post(`${import.meta.env.VITE_APP_SERVER}/AddOrganization`, value)
+				.post(apiUrl('/AddOrganization'), value)
 				.then(() => {
 					setListOrganization(ListOrganization => [...ListOrganization, value])
 					setAddTextOrganization('')
@@ -211,7 +222,7 @@ const FrontForm: FC = () => {
 		}
 		if (AddTextPost !== '') {
 			axios
-				.post(`${import.meta.env.VITE_APP_SERVER}/AddPost`, value)
+				.post(apiUrl('/AddPost'), value)
 				.then(() => {
 					setListPost(ListPost => [...ListPost, value])
 					AddPostBD()
@@ -225,7 +236,7 @@ const FrontForm: FC = () => {
 		const selected = ListOrganization.find(item => item.value === CurrentSingleOrganization)
 		if (!selected || !window.confirm(`Удалить организацию «${selected.label}»?`)) return
 		try {
-			await axios.delete(`${import.meta.env.VITE_APP_SERVER}/DeleteOrganization`, { data: { value: selected.value } })
+			await axios.delete(apiUrl('/DeleteOrganization'), { data: { value: selected.value } })
 			setListOrganization(items => items.filter(item => item.value !== selected.value))
 			setCurrentSingleOrganization('')
 			DeleteDirectoryItem('Организация')
@@ -238,7 +249,7 @@ const FrontForm: FC = () => {
 		const selected = ListPost.find(item => item.value === CurrentSinglePost)
 		if (!selected || !window.confirm(`Удалить должность «${selected.label}»?`)) return
 		try {
-			await axios.delete(`${import.meta.env.VITE_APP_SERVER}/DeletePost`, { data: { value: selected.value } })
+			await axios.delete(apiUrl('/DeletePost'), { data: { value: selected.value } })
 			setListPost(items => items.filter(item => item.value !== selected.value))
 			setCurrentSinglePost('')
 			DeleteDirectoryItem('Должность')
@@ -265,7 +276,7 @@ const FrontForm: FC = () => {
 		setUpdatingDirector(true)
 		const value = { Name: NewNameDirector, Post: NewPostDirector, id: 1 }
 		try {
-			await axios.post(`${import.meta.env.VITE_APP_SERVER}/DirectorUpdate`, value)
+			await axios.post(apiUrl('/DirectorUpdate'), value)
 			setPostDirector(NewPostDirector)
 			setNameDirector(NewNameDirector)
 			setOpenModalSetting(false)
@@ -434,6 +445,12 @@ const FrontForm: FC = () => {
 					<p>{FilePhotoName || 'Выберите фотографию'}</p>
 				</div>)}
 			</div>}
+			{dynamicFields.length > 0 && <div className='FormFront__dynamicFields'>
+				{dynamicFields.map(field => <div className={`FormFront--DynamicField ${theme}`} key={field.id}>
+					<h3>{field.fieldLabel?.trim() || 'Поле пропуска'}</h3>
+					<input type={field.dataType === 'number' ? 'number' : 'text'} min={field.dataType === 'number' ? 0 : undefined} step={field.dataType === 'number' ? 'any' : undefined} value={CustomFields[field.id] ?? ''} onChange={event => setCustomFields(values => ({ ...values, [field.id]: event.target.value }))} placeholder={field.text || 'Введите значение'} />
+				</div>)}
+			</div>}
 			<div className='FormFront--BTN'>
 				<button
 					className={`FormFront--BTN--Delete ${theme}`}
@@ -449,7 +466,7 @@ const FrontForm: FC = () => {
 						AddListPrint()
 					}}
 				>
-					<span>{ICON.AddCard}</span> Добавить
+					<span>{EditingPrintId ? ICON.Edit : ICON.AddCard}</span> {EditingPrintId ? 'Сохранить' : 'Добавить'}
 				</button>
 			</div>
 			<ModalWindows
