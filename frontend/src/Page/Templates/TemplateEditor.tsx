@@ -657,7 +657,7 @@ const TemplateEditor = () => {
 	}
 
 	const removeTemplate = () => {
-		if (selected.isBuiltIn) return
+		if (templates.length <= 1) return
 		const next = templates.filter(item => item.id !== selected.id)
 		recordHistory(templates)
 		setTemplates(next)
@@ -850,7 +850,7 @@ const TemplateEditor = () => {
 							<p className='TemplateEditor__hint'>В предпросмотре размер автоматически масштабируется. Значения в миллиметрах применяются без масштабирования только при печати.</p>
 							{!printLayout.fits && <p className='TemplateEditor__error'>Размер {printLayout.itemWidthMm} × {printLayout.itemHeightMm} мм с учётом двух сторон удостоверения не помещается в печатную область A4.</p>}
 						</div>
-						<div className='TemplateEditor__danger'><button onClick={resetBuiltIns}>Сбросить стандартные</button>{!selected.isBuiltIn && <button onClick={removeTemplate}>Удалить шаблон</button>}</div>
+						<div className='TemplateEditor__danger'><button onClick={resetBuiltIns}>Сбросить стандартные</button><button onClick={removeTemplate} disabled={templates.length <= 1} title={templates.length <= 1 ? 'Нужен хотя бы один шаблон' : undefined}>Удалить шаблон</button></div>
 					</div>}
 					{settingsTab === 'appearance' && <div className='TemplateEditor__tabContent'>
 					<h3>{selected.kind === 'certificate' ? (editorSide === 'front' ? 'Лицевая сторона' : 'Оборотная сторона') : 'Оформление пропуска'}</h3>
