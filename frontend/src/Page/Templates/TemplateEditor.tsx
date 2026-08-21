@@ -1,8 +1,11 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { useBlocker } from 'react-router'
+import axios from 'axios'
 import { AppContext } from '../../App'
 import { AUTH_EXPIRED_EVENT } from '../../auth/AuthContext'
 import { deleteUploadedImage, uploadImage } from '../../api/images'
+import { apiUrl } from '../../api/server'
+import type { TDirector } from '../../components/type/Type'
 import LayoutCardPass from '../../components/LayoutCard/LayoutCardPass'
 import LayoutCardPassVip from '../../components/LayoutCard/LayoutCardPassVip'
 import {
@@ -189,6 +192,7 @@ const TemplateEditor = () => {
 	const previewCanvasRef = useRef<HTMLDivElement>(null)
 	const [previewMaxWidth, setPreviewMaxWidth] = useState(514)
 	const [historyState, setHistoryState] = useState({ canUndo: false, canRedo: false })
+	const [director, setDirector] = useState({ post: '', name: '' })
 	const navigationBlocker = useBlocker(!saved)
 	const selected = useMemo(
 		() => templates.find(template => template.id === selectedId) ?? templates[0],
@@ -197,6 +201,12 @@ const TemplateEditor = () => {
 	const cardSize = selected.design.cardSize ?? DEFAULT_CARD_SIZE
 	const previewDimensions = getCardDimensions(selected, false, previewMaxWidth, 363)
 	const printLayout = getA4PrintLayout(selected, selected.kind)
+	useEffect(() => {
+		axios.get<TDirector[]>(apiUrl('/Director')).then(response => {
+			const current = response.data[0]
+			if (current) setDirector({ post: current.Post, name: current.Name })
+		}).catch(() => undefined)
+	}, [])
 	const recordHistory = useCallback((snapshot: PassTemplate[]) => {
 		undoHistory.current.push(snapshot)
 		if (undoHistory.current.length > 50) undoHistory.current.shift()
@@ -1050,8 +1060,8 @@ const TemplateEditor = () => {
 					{selected.kind === 'certificate' && <div className='TemplateEditor__previewTabs TemplateEditor__tabs' aria-label='Сторона пропуска'><button className={editorSide === 'front' ? 'active' : ''} onClick={() => setEditorSide('front')}>Лицевая</button><button className={editorSide === 'back' ? 'active' : ''} onClick={() => setEditorSide('back')}>Обратная</button></div>}
 					<div ref={previewCanvasRef} className={`TemplateEditor__canvas ${showGrid ? 'is-grid' : ''}`} style={{ '--editor-grid-step': `${gridStep * previewDimensions.scaleX}px` } as CSSProperties} tabIndex={0} aria-label='Макет шаблона. Используйте стрелки для перемещения выбранного элемента' onPointerDownCapture={event => event.currentTarget.focus({ preventScroll: true })} onPointerMove={moveElement} onPointerUp={finishElementDrag} onPointerCancel={finishElementDrag}>
 						{selected.kind === 'pass'
-							? <LayoutCardPass {...example} NewDate={formatDate(example.NewDate, selected.design.dateFormat)} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} editor={{ selected: selectedElement, selectedCustomId, selectedImageId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag, onSelectImage: startImageDrag }} director={{ post: 'Руководитель', name: 'А. А. Смирнов' }} />
-							: <LayoutCardPassVip {...example} NewDate={formatDate(example.NewDate, selected.design.dateFormat)} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} previewSide={editorSide} editor={{ selected: selectedElement, selectedCustomId, selectedImageId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag, onSelectImage: startImageDrag }} director={{ post: 'Руководитель', name: 'А. А. Смирнов' }} />}
+							? <LayoutCardPass {...example} NewDate={formatDate(example.NewDate, selected.design.dateFormat)} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} editor={{ selected: selectedElement, selectedCustomId, selectedImageId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag, onSelectImage: startImageDrag }} director={director} />
+							: <LayoutCardPassVip {...example} NewDate={formatDate(example.NewDate, selected.design.dateFormat)} FilePhoto={previewPhoto} template={selected} previewMaxWidth={previewMaxWidth} previewMaxHeight={363} previewSide={editorSide} editor={{ selected: selectedElement, selectedCustomId, selectedImageId, onSelect: startElementDrag, onSelectCustom: startCustomTextDrag, onSelectImage: startImageDrag }} director={director} />}
 					</div>
 				</section>
 			</div>

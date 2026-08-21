@@ -114,7 +114,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 		const isPhoto = key === 'passPhoto'
 		const textStyle = activeTemplate.design.textStyles?.[key]
 		return {
-				style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), opacity: textStyle?.opacity, zIndex: layout.zIndex, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing * dimensions.contentScale}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
+			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), opacity: textStyle?.opacity, zIndex: layout.zIndex, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing * dimensions.contentScale}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: key === 'passDirectorPost' || key === 'passDirectorName' ? 'pre-wrap' : 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
 			onPointerDown: editor && !Print ? (event: PointerEvent<HTMLElement>) => editor.onSelect(key, event) : undefined,
 			'data-editor-selected': editor && !Print ? editor.selected === key : undefined,
 		}
@@ -127,9 +127,9 @@ const LayoutCardPass: FC<TypeProps> = ({
 		return <AutoFitTextBlock
 			{...props}
 			fontSize={fontSize}
-			minimumFontSize={6 * dimensions.contentScale}
+			minimumFontSize={editor && !Print ? fontSize : 6 * dimensions.contentScale}
 			text={text}
-			style={{ ...props.style, lineHeight: activeTemplate.design.lineHeights?.[key] ?? 1.2 }}
+			style={{ ...props.style, lineHeight: activeTemplate.design.lineHeights?.[key] ?? 1.2, whiteSpace: 'pre-wrap' }}
 			className={Print ? `layoutCardPass__Print--Card--${key === 'passDirectorPost' ? 'DirectorPost' : 'DirectorName'}` : `layoutCardPass--Card--${key === 'passDirectorPost' ? 'DirectorPost' : 'DirectorName'}`}
 		/>
 	}

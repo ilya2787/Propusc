@@ -524,11 +524,11 @@ const FrontForm: FC = () => {
 					/></label>}
 					{showDirectorName && <label>
 						<span>ФИО руководителя</span>
-					<input
-						type='text'
+					<textarea
 						placeholder='ФИО'
 						value={NewNameDirector}
 						onChange={e => setNewNameDirector(e.target.value)}
+						rows={3}
 					/></label>}
 					<div className='DirectorSettings__actions'>
 						<button type='button' className='DirectorSettings__cancel' onClick={() => setOpenModalSetting(false)}>Отмена</button>
