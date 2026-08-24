@@ -68,7 +68,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 	const printDimensions = getCardDimensions(activeTemplate, true)
 	const sizes = { ...DEFAULT_FONT_SIZES, ...activeTemplate.design.fontSizes }
 	const nameWidth = activeTemplate.design.elements?.passName?.width ?? DEFAULT_ELEMENT_LAYOUTS.passName.width
-	const nameRef = useAutoFitText('--font-pass-name-fit', sizes.passName, [LastName, FirstName, Patronymic, nameWidth])
+	const nameRef = useAutoFitText('--font-pass-name-fit', sizes.passName, [LastName, FirstName, Patronymic, nameWidth], editor && !Print ? sizes.passName : 8)
 	const storedBackground = activeTemplate.design.backgroundImage
 	const backgroundSource = storedBackground === null
 		? ''
@@ -220,7 +220,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 				{customTexts.map(item => item.contentType === 'field' ? <AutoFitTextBlock
 					key={item.id}
 					fontSize={item.fontSize * dimensions.contentScale}
-					minimumFontSize={6 * dimensions.contentScale}
+					minimumFontSize={editor && !Print ? item.fontSize * dimensions.contentScale : 6 * dimensions.contentScale}
 					text={CustomFields[item.id] || item.text}
 					style={{ position: 'absolute', left: item.layout.x * dimensions.scaleX, top: item.layout.y * dimensions.scaleY, width: item.layout.width * dimensions.scaleX, height: item.layout.height !== undefined ? item.layout.height * dimensions.scaleY : undefined, boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: item.style?.padding !== undefined ? item.style.padding * dimensions.contentScale : undefined, zIndex: item.layout.zIndex, color: item.style?.color, backgroundColor: colorWithOpacity(item.style?.backgroundColor, item.style?.backgroundOpacity), borderRadius: textBorderRadius(item.style, dimensions.contentScale), opacity: item.style?.opacity, lineHeight: item.lineHeight, fontWeight: item.style?.fontWeight, fontStyle: item.style?.fontStyle, letterSpacing: item.style?.letterSpacing, textTransform: item.style?.textTransform, textAlign: item.layout.align, whiteSpace: 'pre-line', transform: item.style?.rotation ? `rotate(${item.style.rotation}deg)` : undefined, transformOrigin: 'center center', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties}
 					onPointerDown={editor?.onSelectCustom && !Print ? event => editor.onSelectCustom!(item.id, event) : undefined}
