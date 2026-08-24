@@ -53,6 +53,10 @@ const FrontForm: FC = () => {
 	const setFilePhoto = AllContext.setFilePhoto
 	const FilePhotoName = AllContext.FilePhotoName
 	const setFilePhotoName = AllContext.setFilePhotoName
+	const PhotoBrightness = AllContext.PhotoBrightness
+	const setPhotoBrightness = AllContext.setPhotoBrightness
+	const PhotoContrast = AllContext.PhotoContrast
+	const setPhotoContrast = AllContext.setPhotoContrast
 	const QrKey = AllContext.QrKey
 	const setQrKey = AllContext.setQrKey
 	const setListPrint = AllContext.setListPrint
@@ -100,6 +104,8 @@ const FrontForm: FC = () => {
 		if (!file) {
 			setFilePhoto('')
 			setFilePhotoName('')
+			setPhotoBrightness(100)
+			setPhotoContrast(100)
 			return
 		}
 		if (!file.type.startsWith('image/')) return
@@ -110,6 +116,8 @@ const FrontForm: FC = () => {
 			const uploaded = await uploadImage(file, 'photo')
 			setFilePhoto(uploaded.url)
 			setFilePhotoName(uploaded.name)
+			setPhotoBrightness(100)
+			setPhotoContrast(100)
 		} catch (error) {
 			console.error(error)
 			setFilePhoto('')
@@ -137,6 +145,8 @@ const FrontForm: FC = () => {
 				Organization: Organization,
 				Post: Post,
 				FilePhoto: showPhoto && !usesQr ? FilePhoto : '',
+				PhotoBrightness,
+				PhotoContrast,
 				QrKey: usesQr ? QrKey.trim() : '',
 				TemplateId: SelectedTemplate.id,
 				CustomFields,
@@ -444,6 +454,13 @@ const FrontForm: FC = () => {
 					<span>{ICON.Upload}</span>
 					<p>{FilePhotoName || 'Выберите фотографию'}</p>
 				</div>)}
+			{showPhoto && !usesQr && FilePhoto && <div className='FormFront__photoAdjustments'>
+				<div className='FormFront__photoAdjustmentsHeader'><h3>Коррекция фото</h3><button type='button' onClick={() => { setPhotoBrightness(100); setPhotoContrast(100) }} disabled={PhotoBrightness === 100 && PhotoContrast === 100}>Сбросить</button></div>
+				<div className='FormFront__photoAdjustmentsControls'>
+					<label><span>Яркость <output>{PhotoBrightness}%</output></span><input type='range' min='50' max='150' value={PhotoBrightness} onChange={e => setPhotoBrightness(Number(e.target.value))} /></label>
+					<label><span>Контраст <output>{PhotoContrast}%</output></span><input type='range' min='50' max='150' value={PhotoContrast} onChange={e => setPhotoContrast(Number(e.target.value))} /></label>
+				</div>
+			</div>}
 			</div>}
 			{dynamicFields.length > 0 && <div className='FormFront__dynamicFields'>
 				{dynamicFields.map(field => <div className={`FormFront--DynamicField ${theme}`} key={field.id}>

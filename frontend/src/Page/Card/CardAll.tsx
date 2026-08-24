@@ -48,6 +48,10 @@ type TypeContext = {
 	setFilePhoto: Dispatch<SetStateAction<string>>
 	FilePhotoName: string
 	setFilePhotoName: Dispatch<SetStateAction<string>>
+	PhotoBrightness: number
+	setPhotoBrightness: Dispatch<SetStateAction<number>>
+	PhotoContrast: number
+	setPhotoContrast: Dispatch<SetStateAction<number>>
 	QrKey: string
 	setQrKey: Dispatch<SetStateAction<string>>
 	ListPrint: TListPrint[]
@@ -93,6 +97,10 @@ export const Context = createContext<TypeContext>({
 	setFilePhoto: () => {},
 	FilePhotoName: '',
 	setFilePhotoName: () => {},
+	PhotoBrightness: 100,
+	setPhotoBrightness: () => {},
+	PhotoContrast: 100,
+	setPhotoContrast: () => {},
 	QrKey: '',
 	setQrKey: () => {},
 	ListPrint: [],
@@ -124,7 +132,7 @@ const loadPrintQueue = (): TListPrint[] => {
 	try {
 		const value = JSON.parse(localStorage.getItem(PRINT_QUEUE_KEY) ?? '[]')
 		return Array.isArray(value)
-			? value.map(item => ({ ...item, Number_Tabs: String(item.Number_Tabs ?? '') }))
+			? value.map(item => ({ ...item, Number_Tabs: String(item.Number_Tabs ?? ''), PhotoBrightness: Number(item.PhotoBrightness ?? 100), PhotoContrast: Number(item.PhotoContrast ?? 100) }))
 			: []
 	} catch {
 		return []
@@ -162,6 +170,8 @@ const CardAll = () => {
 	const [NewDate, setNewDate] = useState<string>('')
 	const [FilePhoto, setFilePhoto] = useState<string>('')
 	const [FilePhotoName, setFilePhotoName] = useState<string>('')
+	const [PhotoBrightness, setPhotoBrightness] = useState(100)
+	const [PhotoContrast, setPhotoContrast] = useState(100)
 	const [QrKey, setQrKey] = useState<string>('')
 	const [CustomFields, setCustomFields] = useState<Record<string, string>>({})
 	////////////
@@ -269,6 +279,8 @@ const CardAll = () => {
 		setNumber_Tabs('0')
 		setFilePhoto('')
 		setFilePhotoName('')
+		setPhotoBrightness(100)
+		setPhotoContrast(100)
 		setQrKey('')
 		setCustomFields({})
 		setEditingPrintId(null)
@@ -284,6 +296,8 @@ const CardAll = () => {
 		setCurrentSinglePost(ListPost.find(option => option.label === item.Post)?.value ?? '')
 		setFilePhoto(item.FilePhoto)
 		setFilePhotoName(item.FilePhoto ? 'Текущая фотография' : '')
+		setPhotoBrightness(item.PhotoBrightness ?? 100)
+		setPhotoContrast(item.PhotoContrast ?? 100)
 		setQrKey(item.QrKey)
 		setCustomFields(item.CustomFields ?? {})
 		setEditingPrintId(item.Id)
@@ -341,6 +355,10 @@ const CardAll = () => {
 				setFilePhoto,
 				FilePhotoName,
 				setFilePhotoName,
+				PhotoBrightness,
+				setPhotoBrightness,
+				PhotoContrast,
+				setPhotoContrast,
 				QrKey,
 				setQrKey,
 				ListPrint,

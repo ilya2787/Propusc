@@ -21,6 +21,8 @@ interface TypeProps {
 	FirstName: string
 	Patronymic: string
 	FilePhoto?: string
+	PhotoBrightness?: number
+	PhotoContrast?: number
 	QrKey?: string
 	CustomFields?: Record<string, string>
 	Print: boolean
@@ -51,6 +53,8 @@ const LayoutCardPass: FC<TypeProps> = ({
 	FirstName,
 	Patronymic,
 	FilePhoto,
+	PhotoBrightness = 100,
+	PhotoContrast = 100,
 	QrKey,
 	CustomFields = {},
 	Print,
@@ -237,7 +241,7 @@ const LayoutCardPass: FC<TypeProps> = ({
 					{photoSettings.mode === 'qr' ? (
 						<QrCodeImage value={QrKey || 'ТЕСТОВЫЙ-QR-КЛЮЧ'} darkColor={photoSettings.qrDarkColor} lightColor={photoSettings.qrLightColor} />
 					) : FilePhoto ? (
-						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%`, filter: `brightness(${photoSettings.brightness}%) contrast(${photoSettings.contrast}%)` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
+						<img style={{ width: `${photoSettings.scale}%`, height: `${photoSettings.scale}%`, maxWidth: 'none', objectFit: photoSettings.fit, objectPosition: `${photoSettings.positionX}% ${photoSettings.positionY}%`, filter: `brightness(${PhotoBrightness}%) contrast(${PhotoContrast}%)` }} src={resolvePhotoSource(FilePhoto)} alt='Фотография сотрудника' />
 					) : (
 						<span>{ICON.Photo}</span>
 					)}

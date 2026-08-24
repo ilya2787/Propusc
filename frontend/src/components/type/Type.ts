@@ -8,6 +8,8 @@ export interface TListPrint {
 	Organization: string
 	Post: string
 	FilePhoto: string
+	PhotoBrightness?: number
+	PhotoContrast?: number
 	QrKey: string
 	TemplateId?: string
 	CustomFields?: Record<string, string>

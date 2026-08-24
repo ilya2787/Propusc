@@ -21,6 +21,32 @@
 	input:focus { border-color: CL.$PrimaryBlue; outline: none; }
 }
 
+.FormFront__photoAdjustments {
+	box-sizing: border-box;
+	display: grid;
+	width: 100%;
+	gap: 9px;
+	padding: 10px 11px;
+	border: 1px solid CL.$Divider;
+	border-radius: 9px;
+	background: #f7f9fc;
+	&Header { display: flex; align-items: center; justify-content: space-between; gap: 10px; h3 { margin: 0; color: CL.$Light_TextColor; font-size: 12px; } button { min-height: 28px; padding: 4px 8px; border: 0; border-radius: 6px; color: CL.$PrimaryBlue; background: #e9f0fc; font-size: 10px; font-weight: 750; &:disabled { color: #9ba6b6; background: #eef1f5; cursor: default; } } }
+	&Controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; label { display: grid; min-width: 0; gap: 4px; color: CL.$TextColorSecondary; font-size: 10px; font-weight: 700; > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; } output { color: CL.$PrimaryBlue; font-variant-numeric: tabular-nums; } } }
+	input[type='range'] { width: 100%; height: 18px; margin: 0; accent-color: CL.$PrimaryBlue; cursor: pointer; }
+}
+
+body.Dark .FormFront__photoAdjustments,
+.Dark .FormFront__photoAdjustments {
+	border-color: CL.$Dark_Divider;
+	background: CL.$Dark_Sidebar;
+	.FormFront__photoAdjustmentsHeader { h3 { color: CL.$Dark_TextColor; } button { color: #bcd4ff; background: #303d55; &:disabled { color: #6f7a8d; background: #2b3242; } } }
+	.FormFront__photoAdjustmentsControls label { color: #b8c1d1; output { color: #bcd4ff; } }
+}
+
+@media (max-width: 520px) {
+	.FormFront__photoAdjustmentsControls { grid-template-columns: 1fr; gap: 8px; }
+}
+
 .MainCard__templateIcon {
 	display: grid;
 	flex: 0 0 auto;

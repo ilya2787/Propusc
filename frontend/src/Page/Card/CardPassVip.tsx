@@ -17,6 +17,8 @@ const CardPassVip: FC = () => {
 	const NewDate = AllContext.NewDate
 	const Number_Tabs = AllContext.Number_Tabs
 	const FilePhoto = AllContext.FilePhoto
+	const PhotoBrightness = AllContext.PhotoBrightness
+	const PhotoContrast = AllContext.PhotoContrast
 	const QrKey = AllContext.QrKey
 	const Organization = AllContext.Organization
 	const Post = AllContext.Post
@@ -62,6 +64,8 @@ const CardPassVip: FC = () => {
 							Patronymic={Patronymic}
 							NewDate={NewDate ? formatDate(NewDate, SelectedTemplate.design.dateFormat) : ''}
 							FilePhoto={FilePhoto}
+							PhotoBrightness={PhotoBrightness}
+							PhotoContrast={PhotoContrast}
 							QrKey={QrKey}
 							CustomFields={CustomFields}
 							Print={false}
