@@ -72,8 +72,11 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 	const NameDirector = director?.name ?? AllContext.NameDirector
 	const PostDirector = director?.post ?? AllContext.PostDirector
 	const activeTemplate = template ?? getTemplate('service-certificate')
-	const dimensions = getCardDimensions(activeTemplate, false, Print ? 335 : previewMaxWidth ?? 514, Print ? 240 : previewMaxHeight ?? 363)
 	const printDimensions = getCardDimensions(activeTemplate, true)
+	const dimensions = Print
+		? printDimensions
+		: getCardDimensions(activeTemplate, false, previewMaxWidth ?? 514, previewMaxHeight ?? 363)
+	const borderWidth = Print ? 1 : Math.max(1, dimensions.contentScale)
 	const sizes = { ...DEFAULT_FONT_SIZES, ...activeTemplate.design.fontSizes }
 	const nameWidth = activeTemplate.design.elements?.certificateName?.width ?? DEFAULT_ELEMENT_LAYOUTS.certificateName.width
 	const nameRef = useAutoFitText('--font-certificate-name-fit', sizes.certificateName, [LastName, FirstName, Patronymic, nameWidth], editor && !Print ? sizes.certificateName : 8)
@@ -132,7 +135,7 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 		const textStyle = activeTemplate.design.textStyles?.[key]
 		const typeField = typographyField[key]
 		return {
-			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, minHeight: isDirector && layout.height === undefined ? 50 * dimensions.scaleY : undefined, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : isDirector ? 50 * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), border: !isPhoto && textStyle?.borderColor ? `${dimensions.contentScale}px solid ${textStyle.borderColor}` : undefined, opacity: textStyle?.opacity, zIndex: layout.zIndex, margin: 0, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontSize: typeField ? sizes[typeField] * dimensions.contentScale : undefined, lineHeight: typeField ? activeTemplate.design.lineHeights?.[typeField] ?? 1.2 : undefined, fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: key === 'certificateDirectorPost' || key === 'certificateDirectorName' ? 'pre-wrap' : 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
+			style: { display: hidden ? 'none' : undefined, position: 'absolute', left: layout.x * dimensions.scaleX, top: layout.y * dimensions.scaleY, right: 'auto', bottom: 'auto', width: layout.width * dimensions.scaleX, minHeight: isDirector && layout.height === undefined ? 50 * dimensions.scaleY : undefined, height: isPhoto ? photoSettings.height * dimensions.scaleY : layout.height !== undefined ? layout.height * dimensions.scaleY : isDirector ? 50 * dimensions.scaleY : undefined, maxWidth: 'none', boxSizing: 'border-box', overflow: 'hidden', overflowWrap: 'anywhere', padding: !isPhoto && textStyle?.padding !== undefined ? textStyle.padding * dimensions.contentScale : undefined, borderRadius: isPhoto ? photoSettings.borderRadius * dimensions.contentScale : textBorderRadius(textStyle, dimensions.contentScale), border: !isPhoto && textStyle?.borderColor ? `${borderWidth}px solid ${textStyle.borderColor}` : undefined, opacity: textStyle?.opacity, zIndex: layout.zIndex, margin: 0, textAlign: layout.align, color: textStyle?.color, backgroundColor: colorWithOpacity(textStyle?.backgroundColor, textStyle?.backgroundOpacity), transform: textStyle?.rotation ? `rotate(${textStyle.rotation}deg)` : undefined, transformOrigin: 'center center', fontSize: typeField ? sizes[typeField] * dimensions.contentScale : undefined, lineHeight: typeField ? activeTemplate.design.lineHeights?.[typeField] ?? 1.2 : undefined, fontWeight: textStyle?.fontWeight, fontStyle: textStyle?.fontStyle, letterSpacing: textStyle?.letterSpacing !== undefined ? `${textStyle.letterSpacing}px` : undefined, textTransform: textStyle?.textTransform, whiteSpace: key === 'certificateDirectorPost' || key === 'certificateDirectorName' ? 'pre-wrap' : 'pre-line', cursor: editor && !Print ? 'move' : undefined } as React.CSSProperties,
 			onPointerDown: editor && !Print ? (event: PointerEvent<HTMLElement>) => editor.onSelect(key, event) : undefined,
 			'data-editor-selected': editor && !Print ? editor.selected === key : undefined,
 		}
@@ -183,13 +186,12 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 				...(Print ? {
 					'--card-print-width': `${printDimensions.widthMm}mm`,
 					'--card-print-height': `${printDimensions.heightMm}mm`,
-					'--card-print-scale': printDimensions.widthPx / dimensions.widthPx,
 				} : {}),
 			}}
 			className={Print ? 'layoutCardPassVip__Print' : `layoutCardPassVip ${flipped && !previewSide ? 'Flipped' : ''} ${previewSide ? `Editor${previewSide === 'front' ? 'Front' : 'Back'}` : ''}`}
 		>
 			<div
-				style={{ backgroundImage: activeTemplate.design.frontBackgroundMode === 'color' ? 'none' : `url("${frontBackgroundSource}")`, backgroundColor: activeTemplate.design.frontBackgroundMode === 'color' ? activeTemplate.design.frontBackgroundColor ?? '#ffffff' : undefined, width: dimensions.widthPx, height: dimensions.heightPx, boxSizing: 'border-box', border: activeTemplate.design.borderColor ? `${dimensions.contentScale}px solid ${activeTemplate.design.borderColor}` : undefined }}
+				style={{ backgroundImage: activeTemplate.design.frontBackgroundMode === 'color' ? 'none' : `url("${frontBackgroundSource}")`, backgroundColor: activeTemplate.design.frontBackgroundMode === 'color' ? activeTemplate.design.frontBackgroundColor ?? '#ffffff' : undefined, width: dimensions.widthPx, height: dimensions.heightPx, boxSizing: 'border-box', border: activeTemplate.design.borderColor ? `${borderWidth}px solid ${activeTemplate.design.borderColor}` : undefined }}
 				className={
 					Print ? 'layoutCardPassVip__Print--Front' : 'layoutCardPassVip--Front'
 				}
@@ -270,7 +272,7 @@ const LayoutCardPassVip: FC<TypeProps> = ({
 				{customText('front')}
 			</div>
 			<div
-				style={{ backgroundImage: activeTemplate.design.backBackgroundMode === 'color' ? 'none' : `url("${backBackgroundSource}")`, backgroundColor: activeTemplate.design.backBackgroundMode === 'color' ? activeTemplate.design.backBackgroundColor ?? '#ffffff' : undefined, width: dimensions.widthPx, height: dimensions.heightPx, boxSizing: 'border-box', border: activeTemplate.design.borderColor ? `${dimensions.contentScale}px solid ${activeTemplate.design.borderColor}` : undefined }}
+				style={{ backgroundImage: activeTemplate.design.backBackgroundMode === 'color' ? 'none' : `url("${backBackgroundSource}")`, backgroundColor: activeTemplate.design.backBackgroundMode === 'color' ? activeTemplate.design.backBackgroundColor ?? '#ffffff' : undefined, width: dimensions.widthPx, height: dimensions.heightPx, boxSizing: 'border-box', border: activeTemplate.design.borderColor ? `${borderWidth}px solid ${activeTemplate.design.borderColor}` : undefined }}
 				className={
 					Print ? 'layoutCardPassVip__Print--Back' : 'layoutCardPassVip--Back'
 				}

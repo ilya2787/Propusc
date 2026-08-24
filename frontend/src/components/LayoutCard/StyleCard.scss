@@ -849,15 +849,12 @@
 		background-size: cover !important;
 		-webkit-print-color-adjust: exact;
 		print-color-adjust: exact;
+		transform: none !important;
 	}
 
 	.layoutCardPass__Print {
 		width: var(--card-print-width);
 		height: var(--card-print-height);
-		&--Card {
-			transform: scale(var(--card-print-scale));
-			transform-origin: top left;
-		}
 	}
 
 	.layoutCardPassVip__Print {
@@ -866,10 +863,5 @@
 		width: calc(var(--card-print-width) + var(--card-print-width) + 3mm);
 		height: var(--card-print-height);
 		column-gap: 3mm;
-		&--Front,
-		&--Back {
-			transform: scale(var(--card-print-scale));
-			transform-origin: top left;
-		}
 	}
 }

@@ -44,7 +44,7 @@ export const getCardDimensions = (
 export const getA4PrintLayout = (template: PassTemplate, kind: TemplateKind) => {
 	const { widthMm, heightMm } = getCardSize(template)
 	const layout = template.design.printLayout ?? 'horizontal'
-	const usePageMargins = kind !== 'certificate' || layout !== 'duplex'
+	const usePageMargins = true
 	const printableWidth = A4_PRINTABLE_WIDTH_MM - (usePageMargins ? PRINT_PAGE_MARGIN_MM * 2 : 0)
 	const printableHeight = A4_PRINTABLE_HEIGHT_MM - (usePageMargins ? PRINT_PAGE_MARGIN_MM * 2 : 0)
 	const itemWidth = kind === 'certificate' && layout === 'horizontal' ? widthMm * 2 + PRINT_GAP_MM : widthMm
