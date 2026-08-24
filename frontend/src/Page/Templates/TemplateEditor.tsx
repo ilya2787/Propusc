@@ -3,7 +3,7 @@ import { useBlocker } from 'react-router'
 import axios from 'axios'
 import { AppContext } from '../../App'
 import { AUTH_EXPIRED_EVENT } from '../../auth/AuthContext'
-import { deleteUploadedImage, uploadImage } from '../../api/images'
+import { deleteUploadedImage, downloadImageAsDataUrl, uploadEmbeddedImage, uploadImage } from '../../api/images'
 import { apiUrl } from '../../api/server'
 import type { TDirector } from '../../components/type/Type'
 import LayoutCardPass from '../../components/LayoutCard/LayoutCardPass'
@@ -43,6 +43,38 @@ const example = {
 	FirstName: 'Алексей',
 	Patronymic: 'Андреевич',
 	Print: false,
+}
+
+const withExportedImages = async (template: PassTemplate): Promise<PassTemplate> => {
+	const design = { ...template.design }
+	const backgroundFields = ['backgroundImage', 'frontBackgroundImage', 'backBackgroundImage'] as const
+	await Promise.all(backgroundFields.map(async field => {
+		const source = design[field]
+		if (source) design[field] = await downloadImageAsDataUrl(source)
+	}))
+	design.images = await Promise.all((design.images ?? []).map(async image => ({
+		...image,
+		source: await downloadImageAsDataUrl(image.source),
+	})))
+	return { ...template, design }
+}
+
+const withImportedImages = async (template: PassTemplate): Promise<PassTemplate> => {
+	const design = { ...template.design }
+	const backgrounds = [
+		['backgroundImage', 'backgroundImageName'],
+		['frontBackgroundImage', 'frontBackgroundImageName'],
+		['backBackgroundImage', 'backBackgroundImageName'],
+	] as const
+	await Promise.all(backgrounds.map(async ([sourceField, nameField]) => {
+		const source = design[sourceField]
+		if (source?.startsWith('data:')) design[sourceField] = await uploadEmbeddedImage(source, design[nameField] || 'background')
+	}))
+	design.images = await Promise.all((design.images ?? []).map(async image => ({
+		...image,
+		source: await uploadEmbeddedImage(image.source, image.name),
+	})))
+	return { ...template, design }
 }
 
 const elementFontFields: Partial<Record<TemplateElementKey, [keyof TemplateFontSizes, string][]>> = {
@@ -701,21 +733,27 @@ const TemplateEditor = () => {
 	const saveAndLeave = async () => {
 		if (await saveAllTemplates()) navigationBlocker.proceed?.()
 	}
-	const exportTemplates = () => {
-		const blob = new Blob([JSON.stringify(createTemplateArchive(templates), null, 2)], { type: 'application/json' })
-		const url = URL.createObjectURL(blob)
-		const anchor = document.createElement('a')
-		anchor.href = url
-		anchor.download = `propusk-templates-${new Date().toISOString().slice(0, 10)}.json`
-		anchor.click()
-		URL.revokeObjectURL(url)
-		fileMenuRef.current?.removeAttribute('open')
+	const exportTemplates = async () => {
+		setServerError('')
+		try {
+			const exportedTemplates = await Promise.all(templates.map(withExportedImages))
+			const blob = new Blob([JSON.stringify(createTemplateArchive(exportedTemplates), null, 2)], { type: 'application/json' })
+			const url = URL.createObjectURL(blob)
+			const anchor = document.createElement('a')
+			anchor.href = url
+			anchor.download = `propusk-templates-${new Date().toISOString().slice(0, 10)}.json`
+			anchor.click()
+			URL.revokeObjectURL(url)
+			fileMenuRef.current?.removeAttribute('open')
+		} catch (error) {
+			setServerError(error instanceof Error ? error.message : 'Не удалось экспортировать шаблоны')
+		}
 	}
 	const importTemplates = async (file?: File) => {
 		if (!file) return
 		setServerError('')
 		try {
-			const imported = parseTemplateArchive(await file.text())
+			const imported = await Promise.all(parseTemplateArchive(await file.text()).map(withImportedImages))
 			const existingIds = new Set(templates.map(item => item.id))
 			const stamp = Date.now()
 			const copies = imported.map((item, index) => {

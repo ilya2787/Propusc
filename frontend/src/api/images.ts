@@ -23,6 +23,26 @@ export const uploadImage = async (file: File, kind: 'background' | 'photo') => {
 	return data as { url: string; name: string }
 }
 
+export const downloadImageAsDataUrl = async (source?: string) => {
+	if (!source || source.startsWith('builtin:') || source.startsWith('data:')) return source ?? ''
+	const response = await authenticatedFetch(resolveServerImageUrl(source))
+	if (!response.ok) throw new Error('Не удалось добавить изображение в файл шаблонов')
+	const blob = await response.blob()
+	return await new Promise<string>((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onload = () => resolve(String(reader.result ?? ''))
+		reader.onerror = () => reject(new Error('Не удалось прочитать изображение для экспорта'))
+		reader.readAsDataURL(blob)
+	})
+}
+
+export const uploadEmbeddedImage = async (source: string, name: string) => {
+	if (!source.startsWith('data:')) return source
+	const blob = await fetch(source).then(response => response.blob())
+	const file = new File([blob], name || 'image', { type: blob.type })
+	return (await uploadImage(file, 'background')).url
+}
+
 export const deleteUploadedImage = async (url?: string) => {
 	if (!url?.startsWith('/uploads/')) return
 	const response = await authenticatedFetch(apiUrl('/UploadedImage'), {

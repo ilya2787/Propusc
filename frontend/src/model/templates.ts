@@ -351,7 +351,7 @@ export const createTemplateArchive = (templates: PassTemplate[]): TemplateArchiv
 })
 
 export const parseTemplateArchive = (source: string): PassTemplate[] => {
-	if (source.length > 2 * 1024 * 1024) throw new Error('Файл шаблонов превышает допустимый размер 2 МБ')
+	if (source.length > 50 * 1024 * 1024) throw new Error('Файл шаблонов превышает допустимый размер 50 МБ')
 	let parsed: unknown
 	try { parsed = JSON.parse(source) } catch { throw new Error('Файл не является корректным JSON') }
 	if (!isRecord(parsed) || parsed.format !== 'propusk-templates' || parsed.version !== 1 || !Array.isArray(parsed.templates)) {
