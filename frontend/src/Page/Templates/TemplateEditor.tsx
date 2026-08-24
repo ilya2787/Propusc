@@ -871,6 +871,10 @@ const TemplateEditor = () => {
 					</div>
 					<label>Шрифт<select value={selected.design.fontFamily} onChange={e => updateDesign({ fontFamily: e.target.value })}><option value='Times New Roman'>Times New Roman</option><option value='Arial'>Arial</option><option value='Georgia'>Georgia</option></select></label>
 					<label>Скругление: {selected.design.borderRadius}px<input type='range' min='0' max='24' value={selected.design.borderRadius} onChange={e => updateDesign({ borderRadius: Number(e.target.value) })} /></label>
+					<div className='TemplateEditor__outlineSettings'>
+						<label><input type='checkbox' checked={Boolean(selected.design.borderColor)} onChange={e => updateDesign({ borderColor: e.target.checked ? '#111111' : undefined })} /><span>Обводка всего пропуска</span></label>
+						<div className='TemplateEditor__colorField'><span>Цвет обводки</span><input type='color' value={selected.design.borderColor ?? '#111111'} disabled={!selected.design.borderColor} onChange={e => updateDesign({ borderColor: e.target.value })} aria-label='Выбрать цвет обводки пропуска' /></div>
+					</div>
 					{backgroundError && <p className='TemplateEditor__error' role='alert'>{backgroundError}</p>}
 					</div>}
 					{settingsTab === 'layout' && <div className='TemplateEditor__tabContent'>
@@ -951,6 +955,10 @@ const TemplateEditor = () => {
 									{selectedTextStyle.backgroundColor
 										? <button type='button' onClick={() => updateTextStyle(selectedElement!, { backgroundColor: undefined })}>Убрать заливку</button>
 										: <button type='button' onClick={() => updateTextStyle(selectedElement!, { backgroundColor: '#ffffff' })}>Добавить заливку</button>}
+								</div>
+								<div className='TemplateEditor__outlineSettings'>
+									<label><input type='checkbox' checked={Boolean(selectedTextStyle.borderColor)} onChange={e => updateTextStyle(selectedElement!, { borderColor: e.target.checked ? '#111111' : undefined })} /><span>Обводка блока</span></label>
+									<div className='TemplateEditor__colorField'><span>Цвет обводки</span><input type='color' value={selectedTextStyle.borderColor ?? '#111111'} disabled={!selectedTextStyle.borderColor} onChange={e => updateTextStyle(selectedElement!, { borderColor: e.target.value })} aria-label='Выбрать цвет обводки блока' /></div>
 								</div>
 								<label className='TemplateEditor__fillOpacity'>Прозрачность заливки: {Math.round((selectedTextStyle.backgroundOpacity ?? 1) * 100)}%<input type='range' min='0' max='1' step='.05' value={selectedTextStyle.backgroundOpacity ?? 1} disabled={!selectedTextStyle.backgroundColor} onChange={e => updateTextStyle(selectedElement!, { backgroundOpacity: Number(e.target.value) })} /></label>
 								<label className='TemplateEditor__blockPadding'>Внутренний отступ: {selectedTextStyle.padding ?? 0}px<input type='range' min='0' max='40' value={selectedTextStyle.padding ?? 0} onChange={e => updateTextStyle(selectedElement!, { padding: Number(e.target.value) })} /></label>

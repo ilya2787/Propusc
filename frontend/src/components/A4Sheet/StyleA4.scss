@@ -1,8 +1,11 @@
 @media print {
-	@page {
-		size: A4;
-		margin: 0;
+	.print-wrapper,
+	.a4-page,
+	.a4-page_Vip {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
 	}
+
 	.a4-page {
 		width: 210mm;
 		padding: 0;

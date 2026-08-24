@@ -8,6 +8,7 @@ const CSS_PIXELS_PER_MM = 96 / 25.4
 export const PRINT_GAP_MM = 3
 export const A4_PRINTABLE_WIDTH_MM = 210
 export const A4_PRINTABLE_HEIGHT_MM = 297
+export const PRINT_PAGE_MARGIN_MM = 10
 
 export const getCardSize = (template: PassTemplate): TemplateCardSize => ({
 	widthMm: template.design.cardSize?.widthMm ?? DEFAULT_CARD_SIZE.widthMm,
@@ -43,10 +44,13 @@ export const getCardDimensions = (
 export const getA4PrintLayout = (template: PassTemplate, kind: TemplateKind) => {
 	const { widthMm, heightMm } = getCardSize(template)
 	const layout = template.design.printLayout ?? 'horizontal'
+	const usePageMargins = kind !== 'certificate' || layout !== 'duplex'
+	const printableWidth = A4_PRINTABLE_WIDTH_MM - (usePageMargins ? PRINT_PAGE_MARGIN_MM * 2 : 0)
+	const printableHeight = A4_PRINTABLE_HEIGHT_MM - (usePageMargins ? PRINT_PAGE_MARGIN_MM * 2 : 0)
 	const itemWidth = kind === 'certificate' && layout === 'horizontal' ? widthMm * 2 + PRINT_GAP_MM : widthMm
 	const itemHeight = kind === 'certificate' && layout === 'vertical' ? heightMm * 2 + PRINT_GAP_MM : heightMm
-	const columns = Math.floor((A4_PRINTABLE_WIDTH_MM + PRINT_GAP_MM) / (itemWidth + PRINT_GAP_MM))
-	const rows = Math.floor((A4_PRINTABLE_HEIGHT_MM + PRINT_GAP_MM) / (itemHeight + PRINT_GAP_MM))
+	const columns = Math.floor((printableWidth + PRINT_GAP_MM) / (itemWidth + PRINT_GAP_MM))
+	const rows = Math.floor((printableHeight + PRINT_GAP_MM) / (itemHeight + PRINT_GAP_MM))
 	const fits = columns > 0 && rows > 0
 	const onePerPage = kind === 'certificate' && layout !== 'horizontal'
 	return {
@@ -56,6 +60,7 @@ export const getA4PrintLayout = (template: PassTemplate, kind: TemplateKind) => 
 		cardsPerPage: fits ? (onePerPage ? 1 : columns * rows) : 1,
 		itemWidthMm: itemWidth,
 		itemHeightMm: itemHeight,
+		usePageMargins,
 	}
 }
 

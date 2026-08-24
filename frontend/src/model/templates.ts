@@ -29,6 +29,7 @@ export type TemplateTextStyle = {
 	color?: string
 	backgroundColor?: string
 	backgroundOpacity?: number
+	borderColor?: string
 	padding?: number
 	borderRadius?: number
 	borderTopLeftRadius?: number
@@ -199,6 +200,7 @@ export type PassTemplate = {
 		backTextColor?: string
 		fontFamily: string
 		borderRadius: number
+		borderColor?: string
 		showDirector: boolean
 		fontSizes?: TemplateFontSizes
 		lineHeights?: TemplateLineHeights

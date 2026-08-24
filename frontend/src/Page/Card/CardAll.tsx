@@ -293,6 +293,7 @@ const CardAll = () => {
 	// Печать
 	const handlePrint = useReactToPrint({
 		content: () => printRef.current,
+		pageStyle: `@page { size: A4; margin: ${printLayout.usePageMargins ? '10mm' : '0'}; } body { margin: 0; }`,
 		onAfterPrint: () => {
 			void recordPassEvent('pass.printed', SelectedTemplate.id, ListPrint.length)
 			setPrintDialogClosed(true)
