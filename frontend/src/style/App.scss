@@ -440,7 +440,22 @@ body.Dark .RouteLoader { color: #aeb8ca; }
 			}
 			&--Menu { align-items: center; &--Link { justify-content: center; padding: 12px; span { font-size: 24px; } p { display: none; } } }
 			&--account { right: 8px; bottom: 68px; left: 8px; overflow: visible; padding: 6px; border-radius: 12px; &--identity { display: flex; justify-content: center; } &--avatar { width: 40px; height: 40px; } &--info { display: none; } > button { position: absolute; top: -5px; right: -5px; width: 23px; height: 23px; min-height: 0; margin: 0; padding: 0; border: 2px solid currentColor; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(28,43,69,.18); > svg { width: 12px; height: 12px; } > small { display: none; } &:hover { transform: none; } } }
-			&--theme { width: 54px; height: 30px; bottom: 22px; .themeThumb { width: 24px; height: 24px; top: 2px; left: 3px; } .themeIcon { font-size: 13px; } input:checked + label .themeThumb { transform: translateX(23px); } }
+			&--theme {
+				width: 54px;
+				height: 30px;
+				bottom: 22px;
+
+				label {
+					display: block;
+					padding: 0;
+					border-radius: 999px;
+				}
+
+				.themeLabel { display: none; }
+				.themeThumb { position: absolute; top: 2px; left: 3px; width: 24px; height: 24px; }
+				.themeIcon { font-size: 13px; }
+				input:checked + label .themeThumb { transform: translateX(23px); }
+			}
 		}
 		&_content { width: calc(100% - 76px); margin-left: 76px; }
 	}
